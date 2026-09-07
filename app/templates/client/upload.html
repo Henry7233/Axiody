@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+{% set active_page = "submit" %}
+
+{% block title %}Submission | AXIODY{% endblock %}
+
+{% block head %}
+<style>
+  .submission-page {
+    padding: 42px 0 60px;
+  }
+
+  .submission-header {
+    margin-bottom: 26px;
+  }
+
+  .submission-header h1 {
+    margin: 0 0 8px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -1.3px;
+    color: #0c1738;
+  }
+
+  .submission-header p {
+    margin: 0;
+    color: #657598;
+    font-size: 1.05rem;
+  }
+
+  .submission-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+    gap: 22px;
+  }
+
+  .form-card {
+    background: #ffffff;
+    border: 1px solid #e7edf6;
+    border-radius: 18px;
+    padding: 26px;
+    box-shadow: 0 10px 28px rgba(48, 76, 121, 0.07);
+  }
+
+  .form-group {
+    margin-bottom: 22px;
+  }
+
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 9px;
+    color: #101b3a;
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+
+  .required {
+    color: #e53935;
+  }
+
+  .form-control {
+    width: 100%;
+    border: 1px solid #cbd6e6;
+    border-radius: 10px;
+    padding: 13px 14px;
+    font: inherit;
+    color: #101b3a;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-control:focus {
+    border-color: #0d63e8;
+    box-shadow: 0 0 0 3px rgba(13, 99, 232, 0.12);
+  }
+
+  textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .description-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+    color: #7182a1;
+    font-size: 0.87rem;
+  }
+
+  .upload-box {
+    border: 2px dashed #a9c4ea;
+    border-radius: 14px;
+    min-height: 205px;
+    padding: 28px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #fbfdff;
+    transition: border-color 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+  }
+
+  .upload-box:hover,
+  .upload-box.dragging {
+    border-color: #0d63e8;
+    background: #f4f8ff;
+  }
+
+  .upload-icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 10px;
+    color: #0d63e8;
+  }
+
+  .upload-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .upload-title {
+    color: #101b3a;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .upload-or {
+    color: #7b8aa5;
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+  }
+
+  .choose-file-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: #dcecff;
+    color: #0b5dce;
+    padding: 10px 24px;
+    font-weight: 700;
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .selected-file {
+    margin-top: 10px;
+    color: #0d63e8;
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .selected-file:empty {
+    display: none;
+  }
+
+  .supported-files {
+    margin: 10px 0 0;
+    color: #617394;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .date-help {
+    margin-top: 7px;
+    color: #7182a1;
+    font-size: 0.86rem;
+  }
+
+  .submit-btn {
+    border: 0;
+    border-radius: 11px;
+    background: #0d63e8;
+    color: #ffffff;
+    width: 100%;
+    padding: 14px 22px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+
+  .submit-btn:hover {
+    background: #0858d3;
+  }
+
+  .submit-note {
+    color: #617394;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    margin-top: 12px;
+  }
+
+  .selected-files-list {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+
+  .selected-files-list:empty {
+    display: none;
+  }
+
+  .selected-files-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #d9e3f2;
+    border-radius: 10px;
+    background: #f8fbff;
+    color: #101b3a;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .file-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .remove-file-btn {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: #e8eff9;
+    color: #31415f;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .remove-file-btn:hover {
+    background: #ffdede;
+    color: #b42318;
+  }
+
+  @media (max-width: 880px) {
+    .submission-form {
+      grid-template-columns: 1fr;
+    }
+
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="submission-page">
+
+  <div class="submission-header">
+    <h1>Submission Page</h1>
+    <p>Upload your financial documents for processing and review.</p>
+  </div>
+
+  <form class="submission-form"
+        method="POST"
+        enctype="multipart/form-data"
+        action="">
+
+    <!-- LEFT CARD -->
+    <div class="form-card">
+
+      <div class="form-group">
+        <label class="form-label" for="title">
+          Title <span class="required">*</span>
+        </label>
+        <input
+          class="form-control"
+          type="text"
+          id="title"
+          name="title"
+          placeholder="Enter a title for your submission"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">
+          Description
+        </label>
+        <textarea
+          class="form-control"
+          id="description"
+          name="description"
+          maxlength="500"
+          placeholder="Provide a brief description about this document (optional)"
+        ></textarea>
+        <div class="description-footer">
+          <span id="description-count">0</span>/500
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="document_date">
+          Date <span class="required">*</span>
+        </label>
+
+        <input
+          class="form-control"
+          type="date"
+          id="document_date"
+          name="document_date"
+          required
+        >
+
+        <div class="date-help">
+          Select the date of the document.
+        </div>
+
+        <button class="submit-btn" type="submit">
+          Submit Document
+        </button>
+
+        <div class="submit-note">
+          After submission, AXIODY will classify and validate the uploaded document.
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT CARD -->
+    <div class="form-card">
+
+      <div class="form-group">
+        <label class="form-label" for="document_file">
+          File Upload <span class="required">*</span>
+        </label>
+
+        <label class="upload-box" id="upload-box" for="document_file">
+          <span class="upload-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M16 16l-4-4-4 4"/>
+              <path d="M12 12v9"/>
+              <path d="M20.4 17.5A5 5 0 0 0 18 8.2 7 7 0 0 0 4.3 10.5 4.5 4.5 0 0 0 5 19h3"/>
+              <path d="M16 19h3"/>
+            </svg>
+          </span>
+
+          <span class="upload-title">Drag and drop file here</span>
+          <span class="upload-or">or</span>
+          <span class="choose-file-btn">Choose File</span>
+          <span class="selected-file" id="selected-file">No file selected</span>
+          <ul class="selected-files-list" id="selected-files-list" aria-label="Selected files"></ul>
+        </label>
+
+        <input
+          class="file-input"
+          type="file"
+          id="document_file"
+          name="document_file"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+          multiple
+          required
+        >
+
+        <p class="supported-files">
+          <strong>Supported files:</strong>
+          PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX.<br>
+          Bank statements, invoices, and receipts may be uploaded in different file formats.
+          You can upload more than one file at a time.
+        </p>
+      </div>
+
+    </div>
+
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const description = document.getElementById("description");
+  const descriptionCount = document.getElementById("description-count");
+
+  description.addEventListener("input", function () {
+    descriptionCount.textContent = description.value.length;
+  });
+
+  const fileInput = document.getElementById("document_file");
+  const selectedFile = document.getElementById("selected-file");
+  const selectedFilesList = document.getElementById("selected-files-list");
+  const uploadBox = document.getElementById("upload-box");
+
+  function showFiles(files) {
+    if (!files || files.length === 0) {
+      selectedFile.textContent = "No file selected";
+      selectedFilesList.replaceChildren();
+      return;
+    }
+
+    selectedFile.textContent = "";
+    selectedFilesList.replaceChildren(...Array.from(files).map((file, index) => {
+      const item = document.createElement("li");
+      const fileName = document.createElement("span");
+      const removeButton = document.createElement("button");
+
+      fileName.className = "file-name";
+      fileName.textContent = file.name;
+
+      removeButton.className = "remove-file-btn";
+      removeButton.type = "button";
+      removeButton.textContent = "X";
+      removeButton.setAttribute("aria-label", `Remove ${file.name}`);
+      removeButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        removeFile(index);
+      });
+
+      item.append(fileName, removeButton);
+      return item;
+    }));
+  }
+
+  function removeFile(removeIndex) {
+    const remainingFiles = Array.from(fileInput.files).filter(function (file, index) {
+      return index !== removeIndex;
+    });
+    const transfer = new DataTransfer();
+
+    remainingFiles.forEach(function (file) {
+      transfer.items.add(file);
+    });
+
+    fileInput.files = transfer.files;
+    showFiles(fileInput.files);
+  }
+
+  fileInput.addEventListener("change", function () {
+    showFiles(fileInput.files);
+  });
+
+  ["dragenter", "dragover"].forEach(function (eventName) {
+    uploadBox.addEventListener(eventName, function (event) {
+      event.preventDefault();
+      uploadBox.classList.add("dragging");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(function (eventName) {
+    uploadBox.addEventListener(eventName, function (event) {
+      event.preventDefault();
+      uploadBox.classList.remove("dragging");
+    });
+  });
+
+  uploadBox.addEventListener("drop", function (event) {
+    const files = event.dataTransfer.files;
+
+    if (files.length > 0) {
+      fileInput.files = files;
+      showFiles(files);
+    }
+  });
+</script>
+{% endblock %}

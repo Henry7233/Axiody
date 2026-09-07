@@ -42,12 +42,12 @@ def login():
             return jsonify(
                 {
                     "message": "Your login is successful.",
-                    "redirect_url": url_for("auth.dashboard"),
+                    "redirect_url": url_for("client.upload"),
                 }
             )
 
         flash("You are logged in.", "success")
-        return redirect(url_for("auth.dashboard"))
+        return redirect(url_for("client.upload"))
 
     return render_template("auth/login.html")
 
@@ -71,7 +71,7 @@ def register():
         session["user_id"] = user["id"]
         session["user_email"] = user["email"]
         flash("Account created. You are logged in.", "success")
-        return redirect(url_for("auth.dashboard"))
+        return redirect(url_for("client.upload"))
 
     return render_template("auth/register.html")
 
