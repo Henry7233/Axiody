@@ -29,8 +29,18 @@
 
   .submission-form {
     display: grid;
+    gap: 22px;
+  }
+
+  .submission-entry {
+    display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
     gap: 22px;
+  }
+
+  .submission-entry + .submission-entry {
+    border-top: 1px solid #dbe4f1;
+    padding-top: 22px;
   }
 
   .form-card {
@@ -199,6 +209,18 @@
     background: #0858d3;
   }
 
+  .action-row {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .action-row .submit-btn,
+  .action-row .add-upload-btn {
+    margin-top: 0;
+  }
+
   .add-upload-btn {
     border: 1px solid #b8d2f8;
     border-radius: 11px;
@@ -221,16 +243,6 @@
     font-size: 0.9rem;
     line-height: 1.45;
     margin-top: 12px;
-  }
-
-  .upload-blocks {
-    display: grid;
-    gap: 22px;
-  }
-
-  .upload-entry + .upload-entry {
-    border-top: 1px solid #e6ebf3;
-    padding-top: 22px;
   }
 
   .selected-files-list {
@@ -284,7 +296,7 @@
   }
 
   @media (max-width: 880px) {
-    .submission-form {
+    .submission-entry {
       grid-template-columns: 1fr;
     }
 
@@ -305,75 +317,77 @@
         enctype="multipart/form-data"
         action="">
 
-    <!-- LEFT CARD -->
-    <div class="form-card">
+    <div class="submission-entry" data-submission-entry>
+      <!-- LEFT CARD -->
+      <div class="form-card">
 
-      <div class="form-group">
-        <label class="form-label" for="title">
-          Title <span class="required">*</span>
-        </label>
-        <input
-          class="form-control"
-          type="text"
-          id="title"
-          name="title"
-          placeholder="Enter a title for your submission"
-          required
-        >
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="description">
-          Description
-        </label>
-        <textarea
-          class="form-control"
-          id="description"
-          name="description"
-          maxlength="500"
-          placeholder="Provide a brief description about this document (optional)"
-        ></textarea>
-        <div class="description-footer">
-          <span id="description-count">0</span>/500
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="document_date">
-          Date <span class="required">*</span>
-        </label>
-
-        <input
-          class="form-control"
-          type="date"
-          id="document_date"
-          name="document_date"
-          required
-        >
-
-        <div class="date-help">
-          Select the date of the document.
+        <div class="form-group title-entry">
+          <label class="form-label" for="title_1">
+            Title <span class="required">*</span>
+          </label>
+          <input
+            class="form-control title-input"
+            type="text"
+            id="title_1"
+            name="title"
+            placeholder="Enter a title for your submission"
+            required
+          >
         </div>
 
-        <button class="submit-btn" type="submit">
-          Submit Document
-        </button>
+        <div class="form-group description-entry">
+          <label class="form-label" for="description_1">
+            Description
+          </label>
+          <textarea
+            class="form-control description-input"
+            id="description_1"
+            name="description"
+            maxlength="500"
+            placeholder="Provide a brief description about this document (optional)"
+          ></textarea>
+          <div class="description-footer">
+            <span class="description-count">0</span>/500
+          </div>
+        </div>
 
-        <button class="add-upload-btn" type="button" id="add-upload-btn">
-          Add +
-        </button>
+        <div class="form-group date-entry">
+          <label class="form-label" for="document_date_1">
+            Date <span class="required">*</span>
+          </label>
 
-        <div class="submit-note">
-          After submission, AXIODY will classify and validate the uploaded document.
+          <input
+            class="form-control date-input"
+            type="date"
+            id="document_date_1"
+            name="document_date"
+            required
+          >
+
+          <div class="date-help">
+            Select the date of the document.
+          </div>
+
+          <div class="action-row">
+            <button class="submit-btn" type="submit">
+              Submit Document
+            </button>
+
+            <button class="add-upload-btn" type="button" data-add-upload>
+              Add +
+            </button>
+          </div>
+
+          <div class="submit-note">
+            After submission, AXIODY will classify and validate the uploaded document.
+          </div>
+
         </div>
 
       </div>
 
-    </div>
-
-    <!-- RIGHT CARD -->
-    <div class="form-card">
-      <div class="upload-blocks" id="upload-blocks">
+      <!-- RIGHT CARD -->
+      <div class="form-card">
         <div class="form-group upload-entry" data-upload-entry>
           <label class="form-label" for="document_file_1">
             File Upload <span class="required">*</span>
@@ -423,16 +437,17 @@
 
 {% block scripts %}
 <script>
-  const description = document.getElementById("description");
-  const descriptionCount = document.getElementById("description-count");
+  const submissionForm = document.querySelector(".submission-form");
+  let submissionCount = 1;
 
-  description.addEventListener("input", function () {
-    descriptionCount.textContent = description.value.length;
-  });
+  function setupDescriptionEntry(submissionEntry) {
+    const description = submissionEntry.querySelector(".description-input");
+    const descriptionCount = submissionEntry.querySelector(".description-count");
 
-  const uploadBlocks = document.getElementById("upload-blocks");
-  const addUploadButton = document.getElementById("add-upload-btn");
-  let uploadCount = 1;
+    description.addEventListener("input", function () {
+      descriptionCount.textContent = description.value.length;
+    });
+  }
 
   function showFiles(uploadEntry, files) {
     const selectedFile = uploadEntry.querySelector(".selected-file");
@@ -515,28 +530,61 @@
     });
   }
 
-  function addUploadEntry() {
-    const firstEntry = uploadBlocks.querySelector("[data-upload-entry]");
-    const newEntry = firstEntry.cloneNode(true);
-    const newInput = newEntry.querySelector(".file-input");
-    const newLabel = newEntry.querySelector(".form-label");
-    const newUploadBox = newEntry.querySelector("[data-upload-box]");
-    const newId = `document_file_${++uploadCount}`;
+  function setupAddButton(submissionEntry) {
+    const addUploadButton = submissionEntry.querySelector("[data-add-upload]");
 
-    newInput.id = newId;
+    addUploadButton.addEventListener("click", function () {
+      addSubmissionEntry();
+    });
+  }
+
+  function addSubmissionEntry() {
+    const firstEntry = submissionForm.querySelector("[data-submission-entry]");
+    const newEntry = firstEntry.cloneNode(true);
+    const newTitleInput = newEntry.querySelector(".title-input");
+    const newTitleLabel = newEntry.querySelector(".title-entry .form-label");
+    const newDescriptionInput = newEntry.querySelector(".description-input");
+    const newDescriptionLabel = newEntry.querySelector(".description-entry .form-label");
+    const newDescriptionCount = newEntry.querySelector(".description-count");
+    const newDateInput = newEntry.querySelector(".date-input");
+    const newDateLabel = newEntry.querySelector(".date-entry .form-label");
+    const newUploadEntry = newEntry.querySelector("[data-upload-entry]");
+    const newInput = newEntry.querySelector(".file-input");
+    const newUploadLabel = newEntry.querySelector(".upload-entry .form-label");
+    const newUploadBox = newEntry.querySelector("[data-upload-box]");
+    const newIndex = ++submissionCount;
+    const newTitleId = `title_${newIndex}`;
+    const newDescriptionId = `description_${newIndex}`;
+    const newDateId = `document_date_${newIndex}`;
+    const newFileId = `document_file_${newIndex}`;
+
+    newTitleInput.id = newTitleId;
+    newTitleInput.value = "";
+    newTitleLabel.setAttribute("for", newTitleId);
+    newDescriptionInput.id = newDescriptionId;
+    newDescriptionInput.value = "";
+    newDescriptionLabel.setAttribute("for", newDescriptionId);
+    newDescriptionCount.textContent = "0";
+    newDateInput.id = newDateId;
+    newDateInput.value = "";
+    newDateLabel.setAttribute("for", newDateId);
+    newInput.id = newFileId;
     newInput.value = "";
-    newLabel.setAttribute("for", newId);
-    newUploadBox.setAttribute("for", newId);
+    newUploadLabel.setAttribute("for", newFileId);
+    newUploadBox.setAttribute("for", newFileId);
     newEntry.querySelector(".selected-file").textContent = "No file selected";
     newEntry.querySelector(".selected-files-list").replaceChildren();
 
-    uploadBlocks.appendChild(newEntry);
-    setupUploadEntry(newEntry);
+    submissionForm.appendChild(newEntry);
+    setupDescriptionEntry(newEntry);
+    setupUploadEntry(newUploadEntry);
+    setupAddButton(newEntry);
   }
 
-  document.querySelectorAll("[data-upload-entry]").forEach(setupUploadEntry);
-  addUploadButton.addEventListener("click", function () {
-    addUploadEntry();
+  document.querySelectorAll("[data-submission-entry]").forEach(function (submissionEntry) {
+    setupDescriptionEntry(submissionEntry);
+    setupAddButton(submissionEntry);
   });
+  document.querySelectorAll("[data-upload-entry]").forEach(setupUploadEntry);
 </script>
 {% endblock %}
