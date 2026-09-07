@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register | Your space</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="../static/auth.js" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="story" aria-label="Welcome">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span> Your space</div>
+      <div class="story-content">
+        <div class="eyebrow">A little space. A fresh start.</div>
+        <h1>Something good<br>starts <span>here.</span></h1>
+        <p>Make yourself at home. Create your account and take the first step.</p>
+        <div class="art" aria-hidden="true"><div class="orbit"></div><div class="orbit"></div><div class="orbit"></div><div class="spark"></div></div>
+      </div>
+      <div class="story-footer">A place to start. A space to grow.</div>
+    </aside>
+    <main class="main">
+      <section class="card" aria-labelledby="form-title">
+        <p class="step">Let's get started</p>
+        <h2 id="form-title">Create an account</h2>
+        <p class="intro">Just a few details, and you're on your way.</p>
+        <form>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" minlength="8" aria-describedby="password-hint" required>
+              <button class="toggle" type="button" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
+            </div>
+            <p class="hint" id="password-hint">Use at least 8 characters.</p>
+          </div>
+          <button class="primary" type="submit">Create an account <span aria-hidden="true">&rarr;</span></button>
+          <div class="message" role="status" aria-live="polite"></div>
+        </form>
+        <div class="divider">Already have an account?</div>
+        <a class="secondary" href="login.html">Log in</a>
+        <p class="preview-note">Design preview · Authentication is not connected.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
