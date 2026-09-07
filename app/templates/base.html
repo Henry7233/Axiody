@@ -287,8 +287,9 @@
              href="{{ submissions_url | default(url_for('client.upload')) }}"
              {% if active_page | default('') == 'submit' %}aria-current="page"{% endif %}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 3h8l4 4v14H6Z"/>
-              <path d="M14 3v5h5"/>
+              <path d="M12 16V4"/>
+              <path d="M7 9l5-5 5 5"/>
+              <path d="M5 14v5h14v-5"/>
             </svg>
             <span>Submit</span>
           </a>

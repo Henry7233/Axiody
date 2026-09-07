@@ -199,11 +199,38 @@
     background: #0858d3;
   }
 
+  .add-upload-btn {
+    border: 1px solid #b8d2f8;
+    border-radius: 11px;
+    background: #eef6ff;
+    color: #0b5dce;
+    width: 100%;
+    padding: 12px 18px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+
+  .add-upload-btn:hover {
+    background: #dcecff;
+  }
+
   .submit-note {
     color: #617394;
     font-size: 0.9rem;
     line-height: 1.45;
     margin-top: 12px;
+  }
+
+  .upload-blocks {
+    display: grid;
+    gap: 22px;
+  }
+
+  .upload-entry + .upload-entry {
+    border-top: 1px solid #e6ebf3;
+    padding-top: 22px;
   }
 
   .selected-files-list {
@@ -332,6 +359,10 @@
           Submit Document
         </button>
 
+        <button class="add-upload-btn" type="button" id="add-upload-btn">
+          Add +
+        </button>
+
         <div class="submit-note">
           After submission, AXIODY will classify and validate the uploaded document.
         </div>
@@ -342,45 +373,46 @@
 
     <!-- RIGHT CARD -->
     <div class="form-card">
+      <div class="upload-blocks" id="upload-blocks">
+        <div class="form-group upload-entry" data-upload-entry>
+          <label class="form-label" for="document_file_1">
+            File Upload <span class="required">*</span>
+          </label>
 
-      <div class="form-group">
-        <label class="form-label" for="document_file">
-          File Upload <span class="required">*</span>
-        </label>
+          <label class="upload-box" for="document_file_1" data-upload-box>
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M16 16l-4-4-4 4"/>
+                <path d="M12 12v9"/>
+                <path d="M20.4 17.5A5 5 0 0 0 18 8.2 7 7 0 0 0 4.3 10.5 4.5 4.5 0 0 0 5 19h3"/>
+                <path d="M16 19h3"/>
+              </svg>
+            </span>
 
-        <label class="upload-box" id="upload-box" for="document_file">
-          <span class="upload-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M16 16l-4-4-4 4"/>
-              <path d="M12 12v9"/>
-              <path d="M20.4 17.5A5 5 0 0 0 18 8.2 7 7 0 0 0 4.3 10.5 4.5 4.5 0 0 0 5 19h3"/>
-              <path d="M16 19h3"/>
-            </svg>
-          </span>
+            <span class="upload-title">Drag and drop file here</span>
+            <span class="upload-or">or</span>
+            <span class="choose-file-btn">Choose File</span>
+            <span class="selected-file">No file selected</span>
+            <ul class="selected-files-list" aria-label="Selected files"></ul>
+          </label>
 
-          <span class="upload-title">Drag and drop file here</span>
-          <span class="upload-or">or</span>
-          <span class="choose-file-btn">Choose File</span>
-          <span class="selected-file" id="selected-file">No file selected</span>
-          <ul class="selected-files-list" id="selected-files-list" aria-label="Selected files"></ul>
-        </label>
+          <input
+            class="file-input"
+            type="file"
+            id="document_file_1"
+            name="document_files"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+            multiple
+            required
+          >
 
-        <input
-          class="file-input"
-          type="file"
-          id="document_file"
-          name="document_file"
-          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
-          multiple
-          required
-        >
-
-        <p class="supported-files">
-          <strong>Supported files:</strong>
-          PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX.<br>
-          Bank statements, invoices, and receipts may be uploaded in different file formats.
-          You can upload more than one file at a time.
-        </p>
+          <p class="supported-files">
+            <strong>Supported files:</strong>
+            PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX.<br>
+            Bank statements, invoices, and receipts may be uploaded in different file formats.
+            You can upload more than one file at a time.
+          </p>
+        </div>
       </div>
 
     </div>
@@ -398,12 +430,14 @@
     descriptionCount.textContent = description.value.length;
   });
 
-  const fileInput = document.getElementById("document_file");
-  const selectedFile = document.getElementById("selected-file");
-  const selectedFilesList = document.getElementById("selected-files-list");
-  const uploadBox = document.getElementById("upload-box");
+  const uploadBlocks = document.getElementById("upload-blocks");
+  const addUploadButton = document.getElementById("add-upload-btn");
+  let uploadCount = 1;
 
-  function showFiles(files) {
+  function showFiles(uploadEntry, files) {
+    const selectedFile = uploadEntry.querySelector(".selected-file");
+    const selectedFilesList = uploadEntry.querySelector(".selected-files-list");
+
     if (!files || files.length === 0) {
       selectedFile.textContent = "No file selected";
       selectedFilesList.replaceChildren();
@@ -426,7 +460,7 @@
       removeButton.addEventListener("click", function (event) {
         event.preventDefault();
         event.stopPropagation();
-        removeFile(index);
+        removeFile(uploadEntry, index);
       });
 
       item.append(fileName, removeButton);
@@ -434,7 +468,8 @@
     }));
   }
 
-  function removeFile(removeIndex) {
+  function removeFile(uploadEntry, removeIndex) {
+    const fileInput = uploadEntry.querySelector(".file-input");
     const remainingFiles = Array.from(fileInput.files).filter(function (file, index) {
       return index !== removeIndex;
     });
@@ -445,34 +480,63 @@
     });
 
     fileInput.files = transfer.files;
-    showFiles(fileInput.files);
+    showFiles(uploadEntry, fileInput.files);
   }
 
-  fileInput.addEventListener("change", function () {
-    showFiles(fileInput.files);
-  });
+  function setupUploadEntry(uploadEntry) {
+    const fileInput = uploadEntry.querySelector(".file-input");
+    const uploadBox = uploadEntry.querySelector("[data-upload-box]");
 
-  ["dragenter", "dragover"].forEach(function (eventName) {
-    uploadBox.addEventListener(eventName, function (event) {
-      event.preventDefault();
-      uploadBox.classList.add("dragging");
+    fileInput.addEventListener("change", function () {
+      showFiles(uploadEntry, fileInput.files);
     });
-  });
 
-  ["dragleave", "drop"].forEach(function (eventName) {
-    uploadBox.addEventListener(eventName, function (event) {
-      event.preventDefault();
-      uploadBox.classList.remove("dragging");
+    ["dragenter", "dragover"].forEach(function (eventName) {
+      uploadBox.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        uploadBox.classList.add("dragging");
+      });
     });
-  });
 
-  uploadBox.addEventListener("drop", function (event) {
-    const files = event.dataTransfer.files;
+    ["dragleave", "drop"].forEach(function (eventName) {
+      uploadBox.addEventListener(eventName, function (event) {
+        event.preventDefault();
+        uploadBox.classList.remove("dragging");
+      });
+    });
 
-    if (files.length > 0) {
-      fileInput.files = files;
-      showFiles(files);
-    }
+    uploadBox.addEventListener("drop", function (event) {
+      const files = event.dataTransfer.files;
+
+      if (files.length > 0) {
+        fileInput.files = files;
+        showFiles(uploadEntry, files);
+      }
+    });
+  }
+
+  function addUploadEntry() {
+    const firstEntry = uploadBlocks.querySelector("[data-upload-entry]");
+    const newEntry = firstEntry.cloneNode(true);
+    const newInput = newEntry.querySelector(".file-input");
+    const newLabel = newEntry.querySelector(".form-label");
+    const newUploadBox = newEntry.querySelector("[data-upload-box]");
+    const newId = `document_file_${++uploadCount}`;
+
+    newInput.id = newId;
+    newInput.value = "";
+    newLabel.setAttribute("for", newId);
+    newUploadBox.setAttribute("for", newId);
+    newEntry.querySelector(".selected-file").textContent = "No file selected";
+    newEntry.querySelector(".selected-files-list").replaceChildren();
+
+    uploadBlocks.appendChild(newEntry);
+    setupUploadEntry(newEntry);
+  }
+
+  document.querySelectorAll("[data-upload-entry]").forEach(setupUploadEntry);
+  addUploadButton.addEventListener("click", function () {
+    addUploadEntry();
   });
 </script>
 {% endblock %}
