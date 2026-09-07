@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Log in | Your space</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>Log in | AXIODY</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="{{ url_for('static', filename='js/client.js') }}" defer></script>
 </head>
 <body>
   <div class="layout">
     <aside class="story" aria-label="Welcome">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span> AXIODY</div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">&#10035;</span> AXIODY</div>
       <div class="story-content">
         <div class="eyebrow">A little space. A fresh start.</div>
         <h1>Good to have<br>you <span>back.</span></h1>
@@ -24,10 +24,10 @@
         <p class="step">Welcome back</p>
         <h2 id="form-title">Log in to your account</h2>
         <p class="intro">Enter your details below to get started.</p>
-        <form>
+        <form method="post" action="{{ url_for('auth.login') }}">
           <div class="field">
             <label for="email">Email address</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required>
+            <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" value="{{ email | default('') }}" required>
           </div>
           <div class="field">
             <label for="password">Password</label>
@@ -37,11 +37,18 @@
             </div>
           </div>
           <button class="primary" type="submit">Log in <span aria-hidden="true">&rarr;</span></button>
-          <div class="message" role="status" aria-live="polite"></div>
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="message message-{{ category }}" role="status" aria-live="polite">{{ message }}</div>
+              {% endfor %}
+            {% else %}
+              <div class="message" role="status" aria-live="polite"></div>
+            {% endif %}
+          {% endwith %}
         </form>
         <div class="divider">New here?</div>
-        <a class="secondary" href="sign-up.html">Create an account</a>
-        <p class="preview-note">Design preview · Authentication is not connected.</p>
+        <a class="secondary" href="{{ url_for('auth.register') }}">Create an account</a>
       </section>
     </main>
   </div>
