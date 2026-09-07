@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notifications | AXIODY</title>
+  <link rel="stylesheet" href="../../static/css/style.css">
+  <script src="../../static/js/client.js" defer></script>
+</head>
+<body class="notifications-page">
+  <a class="skip-link" href="#main-content">Skip to notifications</a>
+  <aside class="sidebar" aria-label="Sidebar">
+    <a class="brand" href="dashboard.html" aria-label="AXIODY dashboard">
+      <svg class="brand-mark" viewBox="0 0 42 44" aria-hidden="true"><path d="M18 4a4 4 0 0 1 7 0l8 15-12 22H5a4 4 0 0 1-3-6Z" fill="#0864ff"/><path d="m29 21 11 17a3 3 0 0 1-3 4H18Z" fill="#398aff" stroke="white" stroke-width="2"/></svg>
+      <span><strong>AXIODY</strong><small>Documents In. Clarity Out.</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="dashboard.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="m3 10 9-7 9 7v11h-7v-7h-4v7H3Z"/>
+</svg><span>Dashboard</span></a>
+      <span class="nav-unavailable" aria-disabled="true" title="Document uploads are not available yet"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/>
+</svg><span>Upload Documents<small>Coming soon</small></span></span>
+      <span class="nav-unavailable" aria-disabled="true" title="Submissions are not available yet"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span>My Submissions<small>Coming soon</small></span></span>
+      <a class="active" href="notifications.html" aria-current="page"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>
+</svg><span>Notifications</span><span class="count">5</span></a>
+      <button type="button" data-open-help><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 5 2c-2 1-2 2-2 3m0 3h.01"/>
+</svg><span>Help &amp; Support</span></button>
+    </nav>
+    <div class="sidebar-note">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="m12 2 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/>
+</svg>
+      <h2>Keep your<br>bookkeeping on track</h2>
+      <p>Upload your documents monthly to help us keep your records accurate and up to date.</p>
+      <span>You've got this!</span>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <label class="search" for="notification-search"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
+</svg><span class="sr-only">Search notifications or documents</span><input id="notification-search" type="search" placeholder="Search notifications or documents…" autocomplete="off"></label>
+      <details class="profile"><summary><span class="avatar">AT</span><span class="profile-name"><strong>Alex Tan</strong><small>Client</small></span><span aria-hidden="true">⌄</span></summary><div class="profile-menu"><span>Sample client profile</span></div></details>
+    </header>
+    <main id="main-content" tabindex="-1">
+      <div class="page-heading"><h1>Notifications</h1><p>See the results of AI classification and validation for your uploaded supporting documents.</p></div>
+      <p class="demo-note"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="M12 11v6m0-10h.01" stroke="white"/>
+</svg> <span>Sample illustration · These are example results, not reviews of your documents.</span></p>
+      <section class="summary-grid" aria-label="Notification overview">
+        <div class="summary-card"><span class="icon-tile green"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
+</svg></span><div><h2>Successful</h2><strong class="metric">2</strong><p>Reviews validated and accepted</p></div></div>
+        <div class="summary-card"><span class="icon-tile red"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
+</svg></span><div><h2>Needs Changes</h2><strong class="metric">2</strong><p>Reviews require your attention</p></div></div>
+        <div class="summary-card"><span class="icon-tile blue"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/>
+</svg></span><div><h2>Files to Re-upload</h2><strong class="metric">1</strong><p>Files need a clearer copy</p></div></div>
+        <div class="summary-card"><span class="icon-tile purple"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
+</svg></span><div><h2>Deadline</h2><strong class="metric date">Sep 25, 2026</strong><p>After this, review will be postponed</p></div></div>
+      </section>
+      <div class="toolbar">
+        <div class="filters" role="group" aria-label="Filter notifications">
+          <button type="button" data-filter="all" aria-pressed="true">All (5)</button>
+          <button type="button" data-filter="successful" aria-pressed="false">Successful (2)</button>
+          <button type="button" data-filter="changes" aria-pressed="false">Needs Changes (2)</button>
+          <button type="button" data-filter="deadlines" aria-pressed="false">Deadlines (1)</button>
+        </div>
+        <label class="sort"><span class="sr-only">Sort notifications</span><select id="notification-sort"><option value="recent">Most recent</option><option value="oldest">Oldest first</option><option value="deadline">Deadline first</option></select></label>
+      </div>
+      <p class="sr-only" id="results-count" role="status" aria-live="polite">5 notifications shown</p>
+      <section class="notification-list" aria-label="Document review notifications">
+        <article class="notification-card" data-category="successful" data-created="2026-09-07T09:00:00+08:00" data-deadline="" aria-labelledby="title-invoices">
+          <span class="icon-tile green"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
+</svg></span>
+          <div class="notification-copy">
+            <h2 id="title-invoices">Classification and validation completed</h2>
+            <p>Your 2 invoices and 1 bank statement were successfully classified and contain all required information.</p>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>Files:</strong> invoice_sep_01.pdf, invoice_sep_02.pdf, bank_statement_sep.pdf</span></div>
+          </div>
+          <div class="notification-meta">
+            <span class="badge green">Successful</span>
+            <time datetime="2026-09-07T09:00:00+08:00">Sep 07, 09:00 SGT</time>
+          </div>
+          <button class="action " type="button" data-details="details-invoices">View details</button>
+          <template id="details-invoices">
+            <span class="badge green">Successful</span>
+            <h2 id="detail-title">Classification and validation completed</h2><p>Your 2 invoices and 1 bank statement were successfully classified and contain all required information.</p>
+            <h3>Affected documents</h3><ul><li>invoice_sep_01.pdf</li><li>invoice_sep_02.pdf</li><li>bank_statement_sep.pdf</li></ul>
+            <p class="accepted-note">No changes are needed for these documents.</p>
+            <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
+          </template>
+        </article>
+        <article class="notification-card" data-category="changes" data-created="2026-09-07T08:00:00+08:00" data-deadline="2026-09-25" aria-labelledby="title-receipt">
+          <span class="icon-tile red"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
+</svg></span>
+          <div class="notification-copy">
+            <h2 id="title-receipt">Receipt requires changes</h2>
+            <p>Validation could not confirm the vendor name and total amount because the image is blurry.</p>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>File:</strong> receipt_lunch_sep.jpg</span></div>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>Required change:</strong> Re-upload a clearer file with a readable vendor name and total amount.</span></div>
+            <p class="postponement">Unresolved changes after the deadline will postpone your submission to the next review cycle.</p>
+          </div>
+          <div class="notification-meta">
+            <span class="badge red">Unsuccessful</span>
+            <time datetime="2026-09-07T08:00:00+08:00">Sep 07, 08:00 SGT</time>
+            <span class="due"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
+</svg><span>Due by: Sep 25, 2026<small>11:59 pm SGT</small></span></span>
+          </div>
+          <button class="action primary" type="button" data-details="details-receipt">View required changes</button>
+          <template id="details-receipt">
+            <span class="badge red">Unsuccessful</span>
+            <h2 id="detail-title">Receipt requires changes</h2><p>Validation could not confirm the vendor name and total amount because the image is blurry.</p>
+            <h3>Affected documents</h3><ul><li>receipt_lunch_sep.jpg</li></ul>
+            <h3>What you need to change</h3><p>Re-upload a clearer file with a readable vendor name and total amount.</p>
+            <div class="deadline-note"><strong>Deadline: Sep 25, 2026, 11:59 pm SGT</strong><p>If the required changes are not completed by this deadline, your submission will be postponed to the next review cycle.</p></div>
+            <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
+          </template>
+        </article>
+        <article class="notification-card" data-category="changes" data-created="2026-09-07T06:00:00+08:00" data-deadline="2026-09-25" aria-labelledby="title-statement">
+          <span class="icon-tile amber"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
+</svg></span>
+          <div class="notification-copy">
+            <h2 id="title-statement">Bank statement has insufficient information</h2>
+            <p>Validation found that pages 3–4 are missing, so the statement cannot be accepted yet.</p>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>File:</strong> bank_statement_sep_partial.pdf</span></div>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>Required change:</strong> Upload the complete statement, including the missing pages 3–4.</span></div>
+            <p class="postponement">Unresolved changes after the deadline will postpone your submission to the next review cycle.</p>
+          </div>
+          <div class="notification-meta">
+            <span class="badge amber">Unsuccessful</span>
+            <time datetime="2026-09-07T06:00:00+08:00">Sep 07, 06:00 SGT</time>
+            <span class="due"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
+</svg><span>Due by: Sep 25, 2026<small>11:59 pm SGT</small></span></span>
+          </div>
+          <button class="action primary" type="button" data-details="details-statement">View required changes</button>
+          <template id="details-statement">
+            <span class="badge amber">Unsuccessful</span>
+            <h2 id="detail-title">Bank statement has insufficient information</h2><p>Validation found that pages 3–4 are missing, so the statement cannot be accepted yet.</p>
+            <h3>Affected documents</h3><ul><li>bank_statement_sep_partial.pdf</li></ul>
+            <h3>What you need to change</h3><p>Upload the complete statement, including the missing pages 3–4.</p>
+            <div class="deadline-note"><strong>Deadline: Sep 25, 2026, 11:59 pm SGT</strong><p>If the required changes are not completed by this deadline, your submission will be postponed to the next review cycle.</p></div>
+            <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
+          </template>
+        </article>
+        <article class="notification-card" data-category="deadlines" data-created="2026-09-07T04:00:00+08:00" data-deadline="2026-09-25" aria-labelledby="title-deadline">
+          <span class="icon-tile blue"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="M12 11v6m0-10h.01" stroke="white"/>
+</svg></span>
+          <div class="notification-copy">
+            <h2 id="title-deadline">Deadline reminder</h2>
+            <p>Please complete the required changes before the monthly deadline.</p>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>Files:</strong> receipt_lunch_sep.jpg, bank_statement_sep_partial.pdf</span></div>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>Required change:</strong> Resolve the outstanding document issues before the deadline to stay in this review cycle.</span></div>
+            <p class="postponement">Unresolved changes after the deadline will postpone your submission to the next review cycle.</p>
+          </div>
+          <div class="notification-meta">
+            <span class="badge blue">Deadline</span>
+            <time datetime="2026-09-07T04:00:00+08:00">Sep 07, 04:00 SGT</time>
+            <span class="due"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
+</svg><span>Due by: Sep 25, 2026<small>11:59 pm SGT</small></span></span>
+          </div>
+          <button class="action " type="button" data-details="details-deadline">View deadline</button>
+          <template id="details-deadline">
+            <span class="badge blue">Deadline</span>
+            <h2 id="detail-title">Deadline reminder</h2><p>Please complete the required changes before the monthly deadline.</p>
+            <h3>Affected documents</h3><ul><li>receipt_lunch_sep.jpg</li><li>bank_statement_sep_partial.pdf</li></ul>
+            <h3>What you need to change</h3><p>Resolve the outstanding document issues before the deadline to stay in this review cycle.</p>
+            <div class="deadline-note"><strong>Deadline: Sep 25, 2026, 11:59 pm SGT</strong><p>If the required changes are not completed by this deadline, your submission will be postponed to the next review cycle.</p></div>
+            <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
+          </template>
+        </article>
+        <article class="notification-card" data-category="successful" data-created="2026-09-06T10:00:00+08:00" data-deadline="" aria-labelledby="title-utility">
+          <span class="icon-tile green"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
+</svg></span>
+          <div class="notification-copy">
+            <h2 id="title-utility">Supporting document accepted</h2>
+            <p>Your utility bill was correctly classified and contains all required information.</p>
+            <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+</svg><span><strong>File:</strong> utility_bill_sep.pdf</span></div>
+          </div>
+          <div class="notification-meta">
+            <span class="badge green">Accepted</span>
+            <time datetime="2026-09-06T10:00:00+08:00">Sep 06, 10:00 SGT</time>
+          </div>
+          <button class="action " type="button" data-details="details-utility">View details</button>
+          <template id="details-utility">
+            <span class="badge green">Accepted</span>
+            <h2 id="detail-title">Supporting document accepted</h2><p>Your utility bill was correctly classified and contains all required information.</p>
+            <h3>Affected documents</h3><ul><li>utility_bill_sep.pdf</li></ul>
+            <p class="accepted-note">No changes are needed for these documents.</p>
+            <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
+          </template>
+        </article>
+      </section>
+      <div class="empty-state" id="empty-state" hidden><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
+</svg><h2>No matching notifications</h2><p>Try another search or choose a different filter.</p><button class="action" type="button" id="reset-filters">Clear filters</button></div>
+    </main>
+  </div>
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><button class="close-dialog" type="button" aria-label="Close details">×</button><div id="detail-content"></div><button class="action primary dialog-done" type="button">Done</button></dialog>
+  <dialog id="help-dialog" aria-labelledby="help-title"><button class="close-dialog" type="button" aria-label="Close help">×</button><h2 id="help-title">Understanding your notifications</h2><p>Results appear after document classification and information validation have both completed.</p><ul><li><strong>Successful:</strong> your documents contain the required information.</li><li><strong>Unsuccessful:</strong> check the reason, affected filenames, and required changes.</li><li><strong>Deadline:</strong> complete any changes by 11:59 pm SGT on the date shown. Otherwise, your submission will be postponed to the next review cycle.</li></ul><button class="action primary dialog-done" type="button">Got it</button></dialog>
+</body>
+</html>
