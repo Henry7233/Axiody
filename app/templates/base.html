@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}AXIODY{% endblock %}</title>
 
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
   <!-- Navbar styles for the AXIODY header -->
   <style>
@@ -284,7 +284,7 @@
         <!-- Submit -->
         <li>
           <a class="nav-link"
-             href="{{ submissions_url | default('/submissions') }}"
+             href="{{ submissions_url | default(url_for('client.upload')) }}"
              {% if active_page | default('') == 'submit' %}aria-current="page"{% endif %}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 3h8l4 4v14H6Z"/>

@@ -165,64 +165,15 @@
     overflow-wrap: anywhere;
   }
 
+  .selected-file:empty {
+    display: none;
+  }
+
   .supported-files {
     margin: 10px 0 0;
     color: #617394;
     font-size: 0.88rem;
     line-height: 1.5;
-  }
-
-  .document-options {
-    display: grid;
-    gap: 10px;
-  }
-
-  .document-option {
-    position: relative;
-  }
-
-  .document-option input {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .document-option label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 15px;
-    border: 1px solid #cfd9e8;
-    border-radius: 10px;
-    color: #14203f;
-    background: #ffffff;
-    cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
-  }
-
-  .document-option label::before {
-    content: "";
-    width: 20px;
-    height: 20px;
-    border: 2px solid #98a9c2;
-    border-radius: 50%;
-    flex: 0 0 auto;
-    box-sizing: border-box;
-  }
-
-  .document-option input:checked + label {
-    border-color: #6ba8ff;
-    background: #f1f6ff;
-  }
-
-  .document-option input:checked + label::before {
-    border: 6px solid #0d63e8;
-  }
-
-  .section-divider {
-    border: 0;
-    border-top: 1px solid #e6ebf3;
-    margin: 28px 0 24px;
   }
 
   .date-help {
@@ -231,29 +182,17 @@
     font-size: 0.86rem;
   }
 
-  .submission-actions {
-    grid-column: 1 / -1;
-    background: #ffffff;
-    border: 1px solid #e7edf6;
-    border-radius: 18px;
-    padding: 18px 24px;
-    box-shadow: 0 10px 28px rgba(48, 76, 121, 0.06);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
   .submit-btn {
     border: 0;
     border-radius: 11px;
     background: #0d63e8;
     color: #ffffff;
-    min-width: 230px;
+    width: 100%;
     padding: 14px 22px;
     font: inherit;
     font-weight: 700;
     cursor: pointer;
+    margin-top: 20px;
   }
 
   .submit-btn:hover {
@@ -264,7 +203,57 @@
     color: #617394;
     font-size: 0.9rem;
     line-height: 1.45;
-    max-width: 460px;
+    margin-top: 12px;
+  }
+
+  .selected-files-list {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+
+  .selected-files-list:empty {
+    display: none;
+  }
+
+  .selected-files-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #d9e3f2;
+    border-radius: 10px;
+    background: #f8fbff;
+    color: #101b3a;
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .file-name {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .remove-file-btn {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 50%;
+    background: #e8eff9;
+    color: #31415f;
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .remove-file-btn:hover {
+    background: #ffdede;
+    color: #b42318;
   }
 
   @media (max-width: 880px) {
@@ -272,15 +261,6 @@
       grid-template-columns: 1fr;
     }
 
-    .submission-actions {
-      grid-column: 1;
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    .submit-btn {
-      width: 100%;
-    }
   }
 </style>
 {% endblock %}
@@ -332,6 +312,38 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="document_date">
+          Date <span class="required">*</span>
+        </label>
+
+        <input
+          class="form-control"
+          type="date"
+          id="document_date"
+          name="document_date"
+          required
+        >
+
+        <div class="date-help">
+          Select the date of the document.
+        </div>
+
+        <button class="submit-btn" type="submit">
+          Submit Document
+        </button>
+
+        <div class="submit-note">
+          After submission, AXIODY will classify and validate the uploaded document.
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT CARD -->
+    <div class="form-card">
+
+      <div class="form-group">
         <label class="form-label" for="document_file">
           File Upload <span class="required">*</span>
         </label>
@@ -350,6 +362,7 @@
           <span class="upload-or">or</span>
           <span class="choose-file-btn">Choose File</span>
           <span class="selected-file" id="selected-file">No file selected</span>
+          <ul class="selected-files-list" id="selected-files-list" aria-label="Selected files"></ul>
         </label>
 
         <input
@@ -358,95 +371,18 @@
           id="document_file"
           name="document_file"
           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+          multiple
           required
         >
 
         <p class="supported-files">
           <strong>Supported files:</strong>
           PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX.<br>
-          Bank statements, invoices, and receipts may be uploaded in different supported file formats.
+          Bank statements, invoices, and receipts may be uploaded in different file formats.
+          You can upload more than one file at a time.
         </p>
       </div>
 
-    </div>
-
-    <!-- RIGHT CARD -->
-    <div class="form-card">
-
-      <div class="form-group">
-        <span class="form-label">
-          Document Type <span class="required">*</span>
-        </span>
-
-        <div class="document-options">
-
-          <div class="document-option">
-            <input type="radio"
-                   id="bank_statement"
-                   name="document_type"
-                   value="bank_statement"
-                   required>
-            <label for="bank_statement">Bank Statement</label>
-          </div>
-
-          <div class="document-option">
-            <input type="radio"
-                   id="invoice"
-                   name="document_type"
-                   value="invoice">
-            <label for="invoice">Invoice</label>
-          </div>
-
-          <div class="document-option">
-            <input type="radio"
-                   id="receipt"
-                   name="document_type"
-                   value="receipt">
-            <label for="receipt">Receipt</label>
-          </div>
-
-          <div class="document-option">
-            <input type="radio"
-                   id="others"
-                   name="document_type"
-                   value="others">
-            <label for="others">Others</label>
-          </div>
-
-        </div>
-      </div>
-
-      <hr class="section-divider">
-
-      <div class="form-group">
-        <label class="form-label" for="document_date">
-          Date <span class="required">*</span>
-        </label>
-
-        <input
-          class="form-control"
-          type="date"
-          id="document_date"
-          name="document_date"
-          required
-        >
-
-        <div class="date-help">
-          Select the date of the document.
-        </div>
-      </div>
-
-    </div>
-
-    <!-- SUBMIT AREA -->
-    <div class="submission-actions">
-      <button class="submit-btn" type="submit">
-        Submit Document
-      </button>
-
-      <div class="submit-note">
-        After submission, AXIODY can classify and validate the uploaded document.
-      </div>
     </div>
 
   </form>
@@ -464,14 +400,56 @@
 
   const fileInput = document.getElementById("document_file");
   const selectedFile = document.getElementById("selected-file");
+  const selectedFilesList = document.getElementById("selected-files-list");
   const uploadBox = document.getElementById("upload-box");
 
-  function showFile(file) {
-    selectedFile.textContent = file ? file.name : "No file selected";
+  function showFiles(files) {
+    if (!files || files.length === 0) {
+      selectedFile.textContent = "No file selected";
+      selectedFilesList.replaceChildren();
+      return;
+    }
+
+    selectedFile.textContent = "";
+    selectedFilesList.replaceChildren(...Array.from(files).map((file, index) => {
+      const item = document.createElement("li");
+      const fileName = document.createElement("span");
+      const removeButton = document.createElement("button");
+
+      fileName.className = "file-name";
+      fileName.textContent = file.name;
+
+      removeButton.className = "remove-file-btn";
+      removeButton.type = "button";
+      removeButton.textContent = "X";
+      removeButton.setAttribute("aria-label", `Remove ${file.name}`);
+      removeButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        removeFile(index);
+      });
+
+      item.append(fileName, removeButton);
+      return item;
+    }));
+  }
+
+  function removeFile(removeIndex) {
+    const remainingFiles = Array.from(fileInput.files).filter(function (file, index) {
+      return index !== removeIndex;
+    });
+    const transfer = new DataTransfer();
+
+    remainingFiles.forEach(function (file) {
+      transfer.items.add(file);
+    });
+
+    fileInput.files = transfer.files;
+    showFiles(fileInput.files);
   }
 
   fileInput.addEventListener("change", function () {
-    showFile(fileInput.files[0]);
+    showFiles(fileInput.files);
   });
 
   ["dragenter", "dragover"].forEach(function (eventName) {
@@ -493,7 +471,7 @@
 
     if (files.length > 0) {
       fileInput.files = files;
-      showFile(files[0]);
+      showFiles(files);
     }
   });
 </script>
