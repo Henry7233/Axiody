@@ -52,15 +52,16 @@ if (loginForm) {
   "use strict";
 
   // Shared with the login page; initialize only on notifications.html.
-  if (!document.querySelector(".notifications-page")) return;
+  const page = document.querySelector(".notifications-page");
+  if (!page) return;
 
-  const search = document.querySelector("#notification-search");
-  const sort = document.querySelector("#notification-sort");
-  const list = document.querySelector(".notification-list");
+  const search = page.querySelector("#notification-search");
+  const sort = page.querySelector("#notification-sort");
+  const list = page.querySelector(".notification-list");
   const cards = Array.from(list.querySelectorAll(".notification-card"));
-  const filters = Array.from(document.querySelectorAll("[data-filter]"));
-  const empty = document.querySelector("#empty-state");
-  const count = document.querySelector("#results-count");
+  const filters = Array.from(page.querySelectorAll("[data-filter]"));
+  const empty = page.querySelector("#empty-state");
+  const count = page.querySelector("#results-count");
   let activeFilter = "all";
 
   function updateResults() {
@@ -97,7 +98,7 @@ if (loginForm) {
   }
   search.addEventListener("input", updateResults);
   sort.addEventListener("change", updateResults);
-  document.querySelector("#reset-filters").addEventListener("click", () => {
+  page.querySelector("#reset-filters").addEventListener("click", () => {
     activeFilter = "all";
     search.value = "";
     sort.value = "recent";
@@ -105,19 +106,16 @@ if (loginForm) {
     search.focus();
   });
 
-  const detailDialog = document.querySelector("#detail-dialog");
-  const detailContent = document.querySelector("#detail-content");
-  for (const button of document.querySelectorAll("[data-details]")) {
+  const detailDialog = page.querySelector("#detail-dialog");
+  const detailContent = page.querySelector("#detail-content");
+  for (const button of page.querySelectorAll("[data-details]")) {
     button.addEventListener("click", () => {
       const template = document.getElementById(button.dataset.details);
       detailContent.replaceChildren(template.content.cloneNode(true));
       detailDialog.showModal();
     });
   }
-  document.querySelector("[data-open-help]").addEventListener("click", () => {
-    document.querySelector("#help-dialog").showModal();
-  });
-  for (const dialog of document.querySelectorAll("dialog")) {
+  for (const dialog of page.querySelectorAll("dialog")) {
     for (const button of dialog.querySelectorAll(".close-dialog, .dialog-done")) {
       button.addEventListener("click", () => dialog.close());
     }
