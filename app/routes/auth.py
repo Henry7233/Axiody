@@ -2,6 +2,7 @@ from flask import (
     Blueprint,
     current_app,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -15,6 +16,10 @@ from app.models.users import create_user, verify_user
 auth_bp = Blueprint("auth", __name__)
 
 
+def wants_json_response():
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -23,12 +28,24 @@ def login():
 
         user = verify_user(current_app.config["DATABASE"], email, password)
         if user is None:
+            if wants_json_response():
+                return jsonify({"message": "Invalid email or password."}), 401
+
             flash("Invalid email or password.", "error")
             return render_template("auth/login.html", email=email), 401
 
         session.clear()
         session["user_id"] = user["id"]
         session["user_email"] = user["email"]
+
+        if wants_json_response():
+            return jsonify(
+                {
+                    "message": "Your login is successful.",
+                    "redirect_url": url_for("auth.dashboard"),
+                }
+            )
+
         flash("You are logged in.", "success")
         return redirect(url_for("auth.dashboard"))
 
