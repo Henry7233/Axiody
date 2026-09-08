@@ -194,5 +194,5 @@
 
 {% block scripts %}
   {{ super() }}
-  <script src="../../static/js/client.js" defer></script>
+  <script src="{{ url_for('static', filename='js/client.js') }}" defer></script>
 {% endblock %}
