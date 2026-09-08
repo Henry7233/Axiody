@@ -1,0 +1,404 @@
+<!-- {# -->
+<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Client Settings | AXIODY</title>
+  <link rel="stylesheet" href="../../static/css/style.css">
+</head>
+<body>
+  <!-- Static Live Server snapshot of settings_panel; keep synchronized with the macro below. -->
+  <main id="main-content" class="site-content" tabindex="-1">
+
+
+
+
+
+<div class="settings-page" data-settings-role="client" data-user-id="live-preview" data-account-url="">
+  <p class="settings-save-note"><span data-en="Live Server preview · Profile and preferences are saved in this browser only." data-zh="Live Server 预览 · 资料和偏好仅保存在此浏览器中。" data-ms="Pratonton Live Server · Profil dan pilihan disimpan dalam pelayar ini sahaja.">Live Server preview · Profile and preferences are saved in this browser only.</span></p>
+  <header class="settings-heading">
+    <div><h1><span data-en="Settings" data-zh="设置" data-ms="Tetapan">Settings</span></h1><p><span data-en="Manage your account and personalize your experience." data-zh="管理您的账户，打造个性化体验。" data-ms="Urus akaun dan peribadikan pengalaman anda.">Manage your account and personalize your experience.</span></p></div>
+    
+  </header>
+  <noscript><p class="settings-notice">JavaScript is required to edit settings. / 编辑设置需要 JavaScript。 / JavaScript diperlukan untuk mengedit tetapan.</p></noscript>
+  <div class="settings-shell">
+    <div class="settings-banner">
+      <span class="settings-role-icon"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3Z"/>
+</svg></span>
+      <div>
+        <p class="settings-eyebrow"><span data-en="CLIENT SETTINGS" data-zh="客户设置" data-ms="TETAPAN PELANGGAN">CLIENT SETTINGS</span></p>
+        <h2><span data-en="A smoother way to manage your documents" data-zh="让文档管理更轻松" data-ms="Cara lebih mudah untuk mengurus dokumen anda">A smoother way to manage your documents</span></h2>
+        <p><span data-en="Personalize your experience, stay updated on important deadlines, and get the help you need to submit your documents with ease." data-zh="打造个性化体验，及时了解重要截止日期，获取帮助，轻松提交文档。" data-ms="Peribadikan pengalaman, ikuti tarikh akhir penting dan dapatkan bantuan untuk menyerahkan dokumen dengan mudah.">Personalize your experience, stay updated on important deadlines, and get the help you need to submit your documents with ease.</span></p>
+      </div>
+    </div>
+
+    <section class="settings-section" id="account-information" aria-labelledby="account-title">
+      <div class="settings-section-heading"><div><h2 id="account-title"><span data-en="Account Information" data-zh="账户信息" data-ms="Maklumat Akaun">Account Information</span></h2><p><span data-en="Update your personal details and keep your account secure." data-zh="更新个人资料，保障账户安全。" data-ms="Kemas kini maklumat peribadi dan pastikan akaun anda selamat.">Update your personal details and keep your account secure.</span></p></div>
+      <button type="button" class="settings-button" data-edit-account hidden><span data-en="Edit account" data-zh="编辑账户" data-ms="Edit akaun">Edit account</span></button></div>
+      <div class="settings-record" data-account-record hidden><strong data-record-name></strong><span data-record-email></span></div>
+      <form data-account-form>
+        
+        <div class="settings-fields">
+          <div><label for="settings-name"><span data-en="Full Name" data-zh="姓名" data-ms="Nama Penuh">Full Name</span></label><div class="settings-input-wrap"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3Z"/>
+</svg><input id="settings-name" name="full_name" autocomplete="name" value="" required maxlength="100" disabled></div></div>
+          <div><label for="settings-email"><span data-en="Email Address" data-zh="电子邮箱" data-ms="Alamat E-mel">Email Address</span></label><div class="settings-input-wrap"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>
+</svg><input id="settings-email" name="email" type="email" autocomplete="email" value="" required maxlength="254" disabled></div></div>
+          <div><label for="settings-password"><span data-en="New Password" data-zh="新密码" data-ms="Kata Laluan Baharu">New Password</span></label><div class="settings-input-wrap"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2"/>
+</svg><input id="settings-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="settings-password-hint" disabled><button type="button" class="settings-password-toggle" aria-controls="settings-password" aria-label="Show password" aria-pressed="false" disabled><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+</svg></button></div></div>
+          <div><label for="settings-confirm"><span data-en="Confirm New Password" data-zh="确认新密码" data-ms="Sahkan Kata Laluan Baharu">Confirm New Password</span></label><div class="settings-input-wrap"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2"/>
+</svg><input id="settings-confirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="settings-password-hint" disabled><button type="button" class="settings-password-toggle" aria-controls="settings-confirm" aria-label="Show password" aria-pressed="false" disabled><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+</svg></button></div></div>
+        </div>
+        <div class="settings-account-actions"><p id="settings-password-hint" class="settings-hint"><span data-en="Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password." data-zh="请使用至少8个字符，包含字母、数字和符号。留空则保留原密码。" data-ms="Gunakan sekurang-kurangnya 8 aksara dengan huruf, nombor dan simbol. Biarkan kosong untuk mengekalkan kata laluan.">Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password.</span></p><div class="settings-actions"><button class="settings-button" type="button" data-close-account><span data-en="Close" data-zh="关闭" data-ms="Tutup">Close</span></button><button class="settings-button settings-button-primary" type="submit" disabled><span data-en="Save Changes" data-zh="保存更改" data-ms="Simpan Perubahan">Save Changes</span></button></div></div>
+      </form>
+      <p class="settings-hint settings-local-note"><span data-en="Name and email edits are saved on this browser only. Sign-in details and passwords cannot be changed here yet." data-zh="姓名和邮箱更改仅保存在此浏览器中。目前无法在此更改登录信息和密码。" data-ms="Perubahan nama dan e-mel disimpan dalam pelayar ini sahaja. Maklumat log masuk dan kata laluan belum boleh diubah di sini.">Name and email edits are saved on this browser only. Sign-in details and passwords cannot be changed here yet.</span></p>
+      <p class="settings-status" data-account-status role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="settings-section" aria-labelledby="appearance-title">
+      <h2 id="appearance-title"><span data-en="Appearance" data-zh="外观" data-ms="Penampilan">Appearance</span></h2><p><span data-en="Choose your preferred theme, font size and display settings." data-zh="选择您喜欢的主题、字号和显示设置。" data-ms="Pilih tema, saiz fon dan tetapan paparan pilihan anda.">Choose your preferred theme, font size and display settings.</span></p>
+      <div class="settings-appearance">
+        <fieldset><legend><span data-en="Theme" data-zh="主题" data-ms="Tema">Theme</span></legend><div class="settings-options">
+          <label class="settings-choice"><input type="radio" name="theme" value="light" data-preference checked><span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="12" r="4"/><path d="M12 1v2m0 18v2M1 12h2m18 0h2M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/>
+</svg><span data-en="Light" data-zh="浅色" data-ms="Cerah">Light</span></span></label><label class="settings-choice"><input type="radio" name="theme" value="dark" data-preference ><span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M20.5 14.5A9 9 0 0 1 9.5 3.5a9 9 0 1 0 11 11Z"/>
+</svg><span data-en="Dark" data-zh="深色" data-ms="Gelap">Dark</span></span></label><label class="settings-choice"><input type="radio" name="theme" value="system" data-preference ><span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v4m-5 0h10"/>
+</svg><span data-en="System" data-zh="跟随系统" data-ms="Sistem">System</span></span></label>
+        </div></fieldset>
+        <fieldset><legend><span data-en="Font Size" data-zh="字号" data-ms="Saiz Fon">Font Size</span></legend><p class="settings-hint"><span data-en="Adjust the text size on this settings page." data-zh="调整此设置页面的文字大小。" data-ms="Laraskan saiz teks pada halaman tetapan ini.">Adjust the text size on this settings page.</span></p><div class="settings-options">
+          <label class="settings-choice"><input type="radio" name="fontSize" value="small" data-preference ><span><span class="settings-font-sample settings-font-small" aria-hidden="true">Aa</span><span data-en="Small" data-zh="小" data-ms="Kecil">Small</span></span></label><label class="settings-choice"><input type="radio" name="fontSize" value="medium" data-preference checked><span><span class="settings-font-sample settings-font-medium" aria-hidden="true">Aa</span><span data-en="Medium" data-zh="中" data-ms="Sederhana">Medium</span></span></label><label class="settings-choice"><input type="radio" name="fontSize" value="large" data-preference ><span><span class="settings-font-sample settings-font-large" aria-hidden="true">Aa</span><span data-en="Large" data-zh="大" data-ms="Besar">Large</span></span></label>
+        </div></fieldset>
+      </div>
+    </section>
+
+    <section class="settings-section settings-notifications" aria-labelledby="notifications-title">
+      <div><h2 id="notifications-title"><span data-en="Notifications" data-zh="通知" data-ms="Pemberitahuan">Notifications</span></h2><p><span data-en="Stay informed about important updates and deadlines." data-zh="及时了解重要更新和截止日期。" data-ms="Ikuti kemas kini penting dan tarikh akhir.">Stay informed about important updates and deadlines.</span></p>
+      <button class="settings-text-button" type="button" data-help="notification-preview"><span data-en="Preview selected alerts" data-zh="预览所选提醒" data-ms="Pratonton makluman dipilih">Preview selected alerts</span> <span aria-hidden="true">↗</span></button></div>
+      <div class="settings-checkboxes ">
+        
+        <label><input type="checkbox" name="reminders" data-notification checked><span data-en="Submission reminders" data-zh="提交提醒" data-ms="Peringatan penyerahan">Submission reminders</span></label><label><input type="checkbox" name="status" data-notification checked><span data-en="Document status updates" data-zh="文档状态更新" data-ms="Kemas kini status dokumen">Document status updates</span></label><label><input type="checkbox" name="announcements" data-notification checked><span data-en="Important announcements" data-zh="重要公告" data-ms="Pengumuman penting">Important announcements</span></label><label><input type="checkbox" name="promotions" data-notification ><span data-en="Promotional emails" data-zh="推广邮件" data-ms="E-mel promosi">Promotional emails</span></label>
+      </div>
+    </section>
+
+    
+
+    <section class="settings-section settings-language" aria-labelledby="language-title">
+      <div><h2 id="language-title"><span data-en="Language" data-zh="语言" data-ms="Bahasa">Language</span></h2><p><span data-en="Choose your preferred language for settings and help." data-zh="选择设置与帮助内容的首选语言。" data-ms="Pilih bahasa untuk tetapan dan bantuan.">Choose your preferred language for settings and help.</span></p></div>
+      <select name="language" data-preference aria-labelledby="language-title"><option value="en-SG" lang="en-SG">English (Singapore)</option><option value="zh-Hans" lang="zh-Hans">简体中文</option><option value="ms" lang="ms">Bahasa Melayu</option></select>
+    </section>
+
+    <section class="settings-section" aria-labelledby="help-title">
+      <h2 id="help-title"><span data-en="Help &amp; Support" data-zh="帮助与支持" data-ms="Bantuan &amp; Sokongan">Help &amp; Support</span></h2><p><span data-en="Find answers to common questions or get in touch with our team." data-zh="查找常见问题的答案，或联系我们的团队。" data-ms="Cari jawapan kepada soalan lazim atau hubungi pasukan kami.">Find answers to common questions or get in touch with our team.</span></p>
+      <div class="settings-help-grid">
+        
+<button type="button" class="settings-help-card" data-help="help-centre">
+  <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M12 5v16M12 5C8 2 4 3 1 4v16c4-2 7-2 11 1 4-3 7-3 11-1V4c-3-1-7-2-11 1Z"/>
+</svg><span><strong><span data-en="Help Centre" data-zh="帮助中心" data-ms="Pusat Bantuan">Help Centre</span></strong><small><span data-en="Guides and FAQs" data-zh="指南与常见问题" data-ms="Panduan dan soalan lazim">Guides and FAQs</span></small></span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 5 7 7-7 7"/>
+</svg>
+</button>
+
+        
+        
+<button type="button" class="settings-help-card" data-help="contact-support">
+  <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M21 11a9 9 0 0 1-9 9 11 11 0 0 1-4-1l-6 3 2-6a9 9 0 1 1 17-5Z"/>
+</svg><span><strong><span data-en="Contact Support" data-zh="联系支持" data-ms="Hubungi Sokongan">Contact Support</span></strong><small><span data-en="Get assistance" data-zh="获取帮助" data-ms="Dapatkan bantuan">Get assistance</span></small></span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 5 7 7-7 7"/>
+</svg>
+</button>
+
+        
+<button type="button" class="settings-help-card" data-help="submission-tips">
+  <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M8 17c0-3-4-4-4-8a8 8 0 0 1 16 0c0 4-4 5-4 8Zm1 3h6m-5 3h4"/>
+</svg><span><strong><span data-en="Submission Tips" data-zh="提交建议" data-ms="Petua Penyerahan">Submission Tips</span></strong><small><span data-en="Learn best practices" data-zh="了解最佳实践" data-ms="Pelajari amalan terbaik">Learn best practices</span></small></span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 5 7 7-7 7"/>
+</svg>
+</button>
+
+        
+<button type="button" class="settings-help-card" data-help="file-types">
+  <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M14 2H4v20h16V8Zm0 0v6h6M8 12h8m-8 4h5"/>
+</svg><span><strong><span data-en="Accepted File Types" data-zh="支持的文件类型" data-ms="Jenis Fail Diterima">Accepted File Types</span></strong><small><span data-en="Check requirements" data-zh="查看要求" data-ms="Semak keperluan">Check requirements</span></small></span><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="m9 5 7 7-7 7"/>
+</svg>
+</button>
+
+        
+      </div>
+    </section>
+    <div class="settings-save-note"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>
+</svg><span><span data-en="Preferences save automatically on this browser. Notification delivery is not connected yet." data-zh="偏好自动保存在此浏览器中。通知发送功能尚未连接。" data-ms="Pilihan disimpan secara automatik dalam pelayar ini. Penghantaran pemberitahuan belum disambungkan.">Preferences save automatically on this browser. Notification delivery is not connected yet.</span></span></div>
+    <p class="settings-status" data-preference-status role="status" aria-live="polite"></p>
+  </div>
+
+  <dialog class="settings-dialog" aria-labelledby="settings-dialog-title">
+    <div class="settings-dialog-heading"><h2 id="settings-dialog-title"></h2><button class="settings-dialog-x" type="button" data-dismiss aria-label="Close help">×</button></div>
+    <div data-help-content></div>
+    <div class="settings-dialog-footer"><button class="settings-button settings-button-primary" type="button" data-dismiss><span data-en="Done" data-zh="完成" data-ms="Selesai">Done</span></button></div>
+  </dialog>
+
+  <template id="help-centre">
+    <h3><span data-en="General guides &amp; FAQs" data-zh="通用指南与常见问题" data-ms="Panduan umum &amp; soalan lazim">General guides &amp; FAQs</span></h3>
+    <details open><summary><span data-en="How do I get started?" data-zh="如何开始使用？" data-ms="Bagaimanakah saya bermula?">How do I get started?</span></summary><p><span data-en="Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below." data-zh="使用自己的账户登录。检查账户信息，选择合适的主题和字号，然后阅读下方对应角色的指南。" data-ms="Log masuk dengan akaun sendiri. Semak maklumat akaun, pilih tema dan saiz teks yang selesa, kemudian baca panduan peranan anda di bawah.">Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below.</span></p></details>
+    <details><summary><span data-en="Where are my settings saved?" data-zh="设置保存在哪里？" data-ms="Di manakah tetapan saya disimpan?">Where are my settings saved?</span></summary><p><span data-en="Preferences are stored in this browser separately for each signed-in account and role. Clearing browser data resets them. They do not sync to another device or change another user’s settings." data-zh="偏好按登录账户和角色分别保存在此浏览器中。清除浏览器数据会重置偏好。偏好不会同步到其他设备，也不会更改其他用户的设置。" data-ms="Pilihan disimpan dalam pelayar ini mengikut akaun dan peranan. Mengosongkan data pelayar akan menetapkannya semula. Ia tidak disegerakkan ke peranti lain atau mengubah tetapan pengguna lain.">Preferences are stored in this browser separately for each signed-in account and role. Clearing browser data resets them. They do not sync to another device or change another user’s settings.</span></p></details>
+    <details><summary><span data-en="What do Save Changes and Close do?" data-zh="“保存更改”和“关闭”有什么作用？" data-ms="Apakah fungsi Simpan Perubahan dan Tutup?">What do Save Changes and Close do?</span></summary><p><span data-en="Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance, language and notification choices save immediately." data-zh="“保存更改”会验证并保存账户表单。“关闭”会放弃上次保存后的编辑并返回账户摘要。外观、语言和通知选项会立即保存。" data-ms="Simpan Perubahan mengesahkan dan menyimpan borang akaun. Tutup membuang suntingan sejak simpanan terakhir dan kembali ke ringkasan akaun. Pilihan penampilan, bahasa dan pemberitahuan disimpan serta-merta.">Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance, language and notification choices save immediately.</span></p></details>
+    <h3><span data-en="Client guides &amp; FAQs" data-zh="客户指南与常见问题" data-ms="Panduan pelanggan &amp; soalan lazim">Client guides &amp; FAQs</span></h3>
+    
+    <details open><summary><span data-en="How do I submit documents?" data-zh="如何提交文档？" data-ms="Bagaimanakah saya menyerahkan dokumen?">How do I submit documents?</span></summary><p><span data-en="Open Submit, enter a title and the document date, add a description if helpful, then choose your files. Check the selected files before submitting. Use Add + for another document entry." data-zh="打开“提交”，填写标题和文档日期，按需添加说明，然后选择文件。提交前检查所选文件。使用“Add +”添加另一条文档记录。" data-ms="Buka Submit, masukkan tajuk dan tarikh dokumen, tambah penerangan jika perlu, kemudian pilih fail. Semak fail sebelum menyerahkan. Gunakan Add + untuk entri dokumen lain.">Open Submit, enter a title and the document date, add a description if helpful, then choose your files. Check the selected files before submitting. Use Add + for another document entry.</span></p></details>
+    <details><summary><span data-en="What if my document needs changes?" data-zh="文档需要修改时怎么办？" data-ms="Bagaimana jika dokumen saya perlu diubah?">What if my document needs changes?</span></summary><p><span data-en="Read the review feedback, correct the specific issue and provide a complete, readable copy. Check the requested reporting period and deadline. Contact support if the request is unclear." data-zh="阅读审核反馈，修正具体问题，并提供完整清晰的副本。检查所要求的报告期间和截止日期。如有疑问，请联系支持。" data-ms="Baca maklum balas semakan, betulkan isu dan sediakan salinan lengkap yang jelas. Semak tempoh laporan dan tarikh akhir yang diminta. Hubungi sokongan jika permintaan kurang jelas.">Read the review feedback, correct the specific issue and provide a complete, readable copy. Check the requested reporting period and deadline. Contact support if the request is unclear.</span></p></details>
+    
+  </template>
+
+  
+  <template id="contact-support">
+    <p><span data-en="Contact our workplace team for help with your account or document submission." data-zh="如需账户或文档提交方面的帮助，请联系我们的工作团队。" data-ms="Hubungi pasukan tempat kerja kami untuk bantuan akaun atau penyerahan dokumen.">Contact our workplace team for help with your account or document submission.</span></p>
+    
+    
+    
+    <dl class="settings-contact"><dt><span data-en="Workplace email" data-zh="工作邮箱" data-ms="E-mel tempat kerja">Workplace email</span></dt><dd><a href="mailto:Axiody123@gmail.com">Axiody123@gmail.com</a></dd><dt><span data-en="Phone number" data-zh="电话号码" data-ms="Nombor telefon">Phone number</span></dt><dd><a href="tel:+65 8851 0177">+65 8851 0177</a></dd></dl>
+    <p><span data-en="Include your document reference and a brief description of the issue. Never include your password. If contact details are unavailable, ask the team that invited you to AXIODY." data-zh="请提供文档编号和问题简述。切勿提供密码。如无联系方式，请咨询邀请您使用 AXIODY 的团队。" data-ms="Sertakan rujukan dokumen dan penerangan ringkas isu. Jangan sertakan kata laluan. Jika maklumat hubungan tiada, tanya pasukan yang menjemput anda ke AXIODY.">Include your document reference and a brief description of the issue. Never include your password. If contact details are unavailable, ask the team that invited you to AXIODY.</span></p>
+  </template>
+  <template id="submission-tips"><ol>
+    <li><span data-en="Use a clear title with the document type and reporting period. Select the date shown on the document." data-zh="标题应清晰注明文档类型和报告期间。选择文档上显示的日期。" data-ms="Gunakan tajuk jelas dengan jenis dokumen dan tempoh laporan. Pilih tarikh yang tertera pada dokumen.">Use a clear title with the document type and reporting period. Select the date shown on the document.</span></li>
+    <li><span data-en="Upload every page with readable text and visible edges. Avoid glare, cropped totals and blurred photographs." data-zh="上传所有页面，确保文字清晰、边缘可见。避免反光、金额被裁切和照片模糊。" data-ms="Muat naik setiap halaman dengan teks jelas dan tepi yang kelihatan. Elakkan silau, jumlah terpotong dan foto kabur.">Upload every page with readable text and visible edges. Avoid glare, cropped totals and blurred photographs.</span></li>
+    <li><span data-en="Check the client name, dates, amounts and selected files before submitting. Remove duplicate or unrelated files." data-zh="提交前检查客户姓名、日期、金额和所选文件。删除重复或无关的文件。" data-ms="Semak nama pelanggan, tarikh, jumlah dan fail dipilih sebelum menyerahkan. Buang fail pendua atau tidak berkaitan.">Check the client name, dates, amounts and selected files before submitting. Remove duplicate or unrelated files.</span></li>
+    <li><span data-en="Read any review feedback and respond before the stated deadline. Keep the original document for your records." data-zh="阅读审核反馈，并在规定截止日期前回复。保留原始文档备查。" data-ms="Baca maklum balas semakan dan balas sebelum tarikh akhir yang dinyatakan. Simpan dokumen asal untuk rekod anda.">Read any review feedback and respond before the stated deadline. Keep the original document for your records.</span></li>
+  </ol></template>
+  <template id="file-types"><p><span data-en="The submission form currently accepts these file extensions:" data-zh="提交表单目前接受以下文件扩展名：" data-ms="Borang penyerahan menerima sambungan fail berikut:">The submission form currently accepts these file extensions:</span></p>
+    <ul><li>PDF (.pdf)</li><li><span data-en="Images" data-zh="图片" data-ms="Imej">Images</span> (.jpg, .jpeg, .png)</li><li>Word (.doc, .docx)</li><li>Excel (.xls, .xlsx)</li></ul>
+    <p><span data-en="You can select multiple files. Provide complete, readable documents that open without a password. Renaming an extension does not convert a file. No upload size limit is published in the current form; ask support if a file cannot be uploaded." data-zh="可以选择多个文件。请提供无需密码即可打开的完整清晰文档。重命名扩展名不会转换文件。当前表单未公布上传大小限制；如无法上传，请咨询支持。" data-ms="Anda boleh memilih beberapa fail. Sediakan dokumen lengkap dan jelas yang boleh dibuka tanpa kata laluan. Menamakan semula sambungan tidak menukar format fail. Had saiz muat naik belum diterbitkan dalam borang semasa; hubungi sokongan jika fail gagal dimuat naik.">You can select multiple files. Provide complete, readable documents that open without a password. Renaming an extension does not convert a file. No upload size limit is published in the current form; ask support if a file cannot be uploaded.</span></p>
+  </template>
+  
+  <template id="notification-preview"><p><span data-en="Example alerts for your selected categories. These are previews, not new account events; email and automatic delivery are not connected yet." data-zh="以下为所选类别的提醒示例，并非新的账户事件。邮件和自动发送功能尚未连接。" data-ms="Contoh makluman untuk kategori dipilih. Ini ialah pratonton, bukan peristiwa akaun baharu; e-mel dan penghantaran automatik belum disambungkan.">Example alerts for your selected categories. These are previews, not new account events; email and automatic delivery are not connected yet.</span></p><ul data-alert-preview></ul></template>
+</div>
+
+  </main>
+<script src="../../static/js/client.js" defer></script>
+  <template id="settings-flask-source">
+<!-- #} -->
+{% extends "base.html" %}
+{% set active_page = 'settings' %}
+{% set home_url = url_for('auth.dashboard') %}
+{% set profile_url = '#account-information' %}
+{% set settings_url = request.path %}
+{% set username = session.get('user_name') or session.get('user_email', 'U') %}
+
+{% block title %}Client Settings | AXIODY{% endblock %}
+
+{# Shared markup stays in the requested files. Admin imports these macros with context. #}
+{% macro tr(en, zh, ms) -%}
+<span data-en="{{ en }}" data-zh="{{ zh }}" data-ms="{{ ms }}">{{ en }}</span>
+{%- endmacro %}
+
+{% macro icon(name) -%}
+<svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if name == 'user' %}<circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3Z"/>
+{% elif name == 'team' %}<circle cx="9" cy="7" r="4"/><path d="M2 21v-3a7 7 0 0 1 14 0v3ZM16 3a4 4 0 0 1 0 8m3 3a7 7 0 0 1 3 6"/>
+{% elif name == 'mail' %}<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>
+{% elif name == 'lock' %}<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2"/>
+{% elif name == 'eye' %}<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+{% elif name == 'sun' %}<circle cx="12" cy="12" r="4"/><path d="M12 1v2m0 18v2M1 12h2m18 0h2M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/>
+{% elif name == 'moon' %}<path d="M20.5 14.5A9 9 0 0 1 9.5 3.5a9 9 0 1 0 11 11Z"/>
+{% elif name == 'screen' %}<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v4m-5 0h10"/>
+{% elif name == 'book' %}<path d="M12 5v16M12 5C8 2 4 3 1 4v16c4-2 7-2 11 1 4-3 7-3 11-1V4c-3-1-7-2-11 1Z"/>
+{% elif name == 'chat' %}<path d="M21 11a9 9 0 0 1-9 9 11 11 0 0 1-4-1l-6 3 2-6a9 9 0 1 1 17-5Z"/>
+{% elif name == 'bulb' %}<path d="M8 17c0-3-4-4-4-8a8 8 0 0 1 16 0c0 4-4 5-4 8Zm1 3h6m-5 3h4"/>
+{% elif name == 'file' %}<path d="M14 2H4v20h16V8Zm0 0v6h6M8 12h8m-8 4h5"/>
+{% elif name == 'wrench' %}<path d="m14 6 4 4 4-4a7 7 0 0 1-9 9l-8 7-3-3 7-8a7 7 0 0 1 9-9Z"/>
+{% elif name == 'bot' %}<rect x="3" y="7" width="18" height="14" rx="4"/><path d="M12 7V3m-3 13h6M1 12v4m22-4v4"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/>
+{% elif name == 'check' %}<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>
+{% elif name == 'chevron' %}<path d="m9 5 7 7-7 7"/>
+{% endif %}</svg>
+{%- endmacro %}
+
+{% macro help_card(id, glyph, title, zh, ms, subtitle, subzh, subms) %}
+<button type="button" class="settings-help-card" data-help="{{ id }}">
+  {{ icon(glyph) }}<span><strong>{{ tr(title, zh, ms) }}</strong><small>{{ tr(subtitle, subzh, subms) }}</small></span>{{ icon('chevron') }}
+</button>
+{% endmacro %}
+
+{% macro settings_panel(role) %}
+{% set admin = role == 'admin' %}
+{% set account = settings_account | default({}) %}
+{% set record_name = account.get('full_name', session.get('user_name', '')) %}
+{% set record_email = account.get('email', session.get('user_email', '')) %}
+<div class="settings-page" data-settings-role="{{ role }}" data-user-id="{{ session.get('user_id', '') }}" data-account-url="{{ account_update_url | default('') }}">
+  <header class="settings-heading">
+    <div><h1>{{ tr('Settings', '设置', 'Tetapan') }}</h1><p>{{ tr('Manage your account and personalize your experience.', '管理您的账户，打造个性化体验。', 'Urus akaun dan peribadikan pengalaman anda.') }}</p></div>
+    {% if admin %}<p class="settings-account-note">{{ icon('check') }}{{ tr('These settings apply only to your account and do not affect other users.', '这些设置仅适用于您的账户，不会影响其他用户。', 'Tetapan ini hanya untuk akaun anda dan tidak menjejaskan pengguna lain.') }}</p>{% endif %}
+  </header>
+  <noscript><p class="settings-notice">JavaScript is required to edit settings. / 编辑设置需要 JavaScript。 / JavaScript diperlukan untuk mengedit tetapan.</p></noscript>
+  <div class="settings-shell">
+    <div class="settings-banner">
+      <span class="settings-role-icon">{{ icon('team' if admin else 'user') }}</span>
+      <div>
+        <p class="settings-eyebrow">{{ tr('ADMIN SETTINGS', '管理员设置', 'TETAPAN PENTADBIR') if admin else tr('CLIENT SETTINGS', '客户设置', 'TETAPAN PELANGGAN') }}</p>
+        <h2>{{ tr('Manage your workspace with ease', '轻松管理您的工作空间', 'Urus ruang kerja anda dengan mudah') if admin else tr('A smoother way to manage your documents', '让文档管理更轻松', 'Cara lebih mudah untuk mengurus dokumen anda') }}</h2>
+        <p>{{ tr('Configure your account, preferences, and tools to efficiently oversee clients and documents.', '配置账户、偏好与工具，高效管理客户和文档。', 'Konfigurasi akaun, pilihan dan alat untuk mengurus pelanggan dan dokumen dengan cekap.') if admin else tr('Personalize your experience, stay updated on important deadlines, and get the help you need to submit your documents with ease.', '打造个性化体验，及时了解重要截止日期，获取帮助，轻松提交文档。', 'Peribadikan pengalaman, ikuti tarikh akhir penting dan dapatkan bantuan untuk menyerahkan dokumen dengan mudah.') }}</p>
+      </div>
+    </div>
+
+    <section class="settings-section" id="account-information" aria-labelledby="account-title">
+      <div class="settings-section-heading"><div><h2 id="account-title">{{ tr('Account Information', '账户信息', 'Maklumat Akaun') }}</h2><p>{{ tr('Update your personal details and keep your account secure.', '更新个人资料，保障账户安全。', 'Kemas kini maklumat peribadi dan pastikan akaun anda selamat.') }}</p></div>
+      <button type="button" class="settings-button" data-edit-account hidden>{{ tr('Edit account', '编辑账户', 'Edit akaun') }}</button></div>
+      <div class="settings-record" data-account-record hidden><strong data-record-name>{{ record_name }}</strong><span data-record-email>{{ record_email }}</span></div>
+      <form data-account-form>
+        {% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
+        <div class="settings-fields">
+          <div><label for="settings-name">{{ tr('Full Name', '姓名', 'Nama Penuh') }}</label><div class="settings-input-wrap">{{ icon('user') }}<input id="settings-name" name="full_name" autocomplete="name" value="{{ record_name }}" required maxlength="100" disabled></div></div>
+          <div><label for="settings-email">{{ tr('Email Address', '电子邮箱', 'Alamat E-mel') }}</label><div class="settings-input-wrap">{{ icon('mail') }}<input id="settings-email" name="email" type="email" autocomplete="email" value="{{ record_email }}" required maxlength="254" disabled></div></div>
+          <div><label for="settings-password">{{ tr('New Password', '新密码', 'Kata Laluan Baharu') }}</label><div class="settings-input-wrap">{{ icon('lock') }}<input id="settings-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="settings-password-hint" disabled><button type="button" class="settings-password-toggle" aria-controls="settings-password" aria-label="Show password" aria-pressed="false" disabled>{{ icon('eye') }}</button></div></div>
+          <div><label for="settings-confirm">{{ tr('Confirm New Password', '确认新密码', 'Sahkan Kata Laluan Baharu') }}</label><div class="settings-input-wrap">{{ icon('lock') }}<input id="settings-confirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="settings-password-hint" disabled><button type="button" class="settings-password-toggle" aria-controls="settings-confirm" aria-label="Show password" aria-pressed="false" disabled>{{ icon('eye') }}</button></div></div>
+        </div>
+        <div class="settings-account-actions"><p id="settings-password-hint" class="settings-hint">{{ tr('Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password.', '请使用至少8个字符，包含字母、数字和符号。留空则保留原密码。', 'Gunakan sekurang-kurangnya 8 aksara dengan huruf, nombor dan simbol. Biarkan kosong untuk mengekalkan kata laluan.') }}</p><div class="settings-actions"><button class="settings-button" type="button" data-close-account>{{ tr('Close', '关闭', 'Tutup') }}</button><button class="settings-button settings-button-primary" type="submit" disabled>{{ tr('Save Changes', '保存更改', 'Simpan Perubahan') }}</button></div></div>
+      </form>
+      {% if not account_update_url | default('') %}<p class="settings-hint settings-local-note">{{ tr('Name and email edits are saved on this browser only. Sign-in details and passwords cannot be changed here yet.', '姓名和邮箱更改仅保存在此浏览器中。目前无法在此更改登录信息和密码。', 'Perubahan nama dan e-mel disimpan dalam pelayar ini sahaja. Maklumat log masuk dan kata laluan belum boleh diubah di sini.') }}</p>{% endif %}
+      <p class="settings-status" data-account-status role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="settings-section" aria-labelledby="appearance-title">
+      <h2 id="appearance-title">{{ tr('Appearance', '外观', 'Penampilan') }}</h2><p>{{ tr('Choose your preferred theme, font size and display settings.', '选择您喜欢的主题、字号和显示设置。', 'Pilih tema, saiz fon dan tetapan paparan pilihan anda.') }}</p>
+      <div class="settings-appearance">
+        <fieldset><legend>{{ tr('Theme', '主题', 'Tema') }}</legend><div class="settings-options">
+          {% for value, glyph, en, zh, ms in [('light', 'sun', 'Light', '浅色', 'Cerah'), ('dark', 'moon', 'Dark', '深色', 'Gelap'), ('system', 'screen', 'System', '跟随系统', 'Sistem')] %}<label class="settings-choice"><input type="radio" name="theme" value="{{ value }}" data-preference {% if value == 'light' %}checked{% endif %}><span>{{ icon(glyph) }}{{ tr(en, zh, ms) }}</span></label>{% endfor %}
+        </div></fieldset>
+        <fieldset><legend>{{ tr('Font Size', '字号', 'Saiz Fon') }}</legend><p class="settings-hint">{{ tr('Adjust the text size on this settings page.', '调整此设置页面的文字大小。', 'Laraskan saiz teks pada halaman tetapan ini.') }}</p><div class="settings-options">
+          {% for value, en, zh, ms in [('small', 'Small', '小', 'Kecil'), ('medium', 'Medium', '中', 'Sederhana'), ('large', 'Large', '大', 'Besar')] %}<label class="settings-choice"><input type="radio" name="fontSize" value="{{ value }}" data-preference {% if value == 'medium' %}checked{% endif %}><span><span class="settings-font-sample settings-font-{{ value }}" aria-hidden="true">Aa</span>{{ tr(en, zh, ms) }}</span></label>{% endfor %}
+        </div></fieldset>
+      </div>
+    </section>
+
+    <section class="settings-section settings-notifications" aria-labelledby="notifications-title">
+      <div><h2 id="notifications-title">{{ tr('Notifications', '通知', 'Pemberitahuan') }}</h2><p>{{ tr('Stay informed about important updates within the admin portal.', '及时了解管理平台的重要更新。', 'Ikuti kemas kini penting dalam portal pentadbir.') if admin else tr('Stay informed about important updates and deadlines.', '及时了解重要更新和截止日期。', 'Ikuti kemas kini penting dan tarikh akhir.') }}</p>
+      <button class="settings-text-button" type="button" data-help="notification-preview">{{ tr('Preview selected alerts', '预览所选提醒', 'Pratonton makluman dipilih') }} <span aria-hidden="true">↗</span></button></div>
+      <div class="settings-checkboxes {% if admin %}settings-checkboxes-admin{% endif %}">
+        {% set notices = [('registrations', 'New client registrations', '新客户注册', 'Pendaftaran pelanggan baharu'), ('submissions', 'Document submissions', '文档提交', 'Penyerahan dokumen'), ('lowConfidence', 'Low-confidence classification alerts', '低置信度分类提醒', 'Makluman pengelasan keyakinan rendah'), ('humanReview', 'Documents requiring human review', '需要人工审核的文档', 'Dokumen memerlukan semakan manusia'), ('overdue', 'Overdue client alerts', '客户逾期提醒', 'Makluman pelanggan lewat'), ('escalations', 'Reminder escalation notifications', '提醒升级通知', 'Pemberitahuan eskalasi peringatan'), ('weekly', 'Weekly summary reports', '每周摘要报告', 'Laporan ringkasan mingguan')] if admin else [('reminders', 'Submission reminders', '提交提醒', 'Peringatan penyerahan'), ('status', 'Document status updates', '文档状态更新', 'Kemas kini status dokumen'), ('announcements', 'Important announcements', '重要公告', 'Pengumuman penting'), ('promotions', 'Promotional emails', '推广邮件', 'E-mel promosi')] %}
+        {% for key, en, zh, ms in notices %}<label><input type="checkbox" name="{{ key }}" data-notification {% if key not in ['weekly', 'promotions'] %}checked{% endif %}>{{ tr(en, zh, ms) }}</label>{% endfor %}
+      </div>
+    </section>
+
+    {% if admin %}
+    <section class="settings-section" aria-labelledby="workspace-title">
+      <h2 id="workspace-title">{{ tr('Workspace Preferences', '工作空间偏好', 'Pilihan Ruang Kerja') }}</h2><p>{{ tr('Set your preferred view and display options for managing client documents.', '设置管理客户文档时的首选视图和显示选项。', 'Tetapkan paparan dan pilihan untuk mengurus dokumen pelanggan.') }}</p>
+      <div class="settings-workspace-fields">
+        <div><label for="settings-view">{{ tr('Default dashboard view', '默认仪表板视图', 'Paparan papan pemuka lalai') }}</label><select id="settings-view" name="dashboardView" data-preference><option value="needs-review" data-en="Needs Review" data-zh="待审核" data-ms="Perlu Semakan">Needs Review</option><option value="all" data-en="All Documents" data-zh="所有文档" data-ms="Semua Dokumen">All Documents</option><option value="overdue" data-en="Overdue" data-zh="已逾期" data-ms="Lewat">Overdue</option></select></div>
+        <div><label for="settings-sorting">{{ tr('Default document sorting', '默认文档排序', 'Susunan dokumen lalai') }}</label><select id="settings-sorting" name="documentSort" data-preference><option value="recent" data-en="Most Recent" data-zh="最新优先" data-ms="Terkini">Most Recent</option><option value="oldest" data-en="Oldest First" data-zh="最早优先" data-ms="Terlama Dahulu">Oldest First</option><option value="client" data-en="Client Name (A–Z)" data-zh="客户姓名（A–Z）" data-ms="Nama Pelanggan (A–Z)">Client Name (A–Z)</option><option value="deadline" data-en="Nearest Deadline" data-zh="最近截止日期" data-ms="Tarikh Akhir Terdekat">Nearest Deadline</option></select></div>
+        <div><label for="settings-page-size">{{ tr('Items shown per page', '每页显示条数', 'Item setiap halaman') }}</label><select id="settings-page-size" name="pageSize" data-preference><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option></select></div>
+      </div>
+      <p class="settings-hint" data-workspace-summary aria-live="polite"></p>
+      <p class="settings-hint">{{ tr('Preferences are saved for this browser. The document dashboard is not connected yet.', '偏好保存在此浏览器中。文档仪表板尚未连接。', 'Pilihan disimpan untuk pelayar ini. Papan pemuka dokumen belum disambungkan.') }}</p>
+    </section>
+    {% endif %}
+
+    <section class="settings-section settings-language" aria-labelledby="language-title">
+      <div><h2 id="language-title">{{ tr('Language', '语言', 'Bahasa') }}</h2><p>{{ tr('Choose your preferred language for settings and help.', '选择设置与帮助内容的首选语言。', 'Pilih bahasa untuk tetapan dan bantuan.') }}</p></div>
+      <select name="language" data-preference aria-labelledby="language-title"><option value="en-SG" lang="en-SG">English (Singapore)</option><option value="zh-Hans" lang="zh-Hans">简体中文</option><option value="ms" lang="ms">Bahasa Melayu</option></select>
+    </section>
+
+    <section class="settings-section" aria-labelledby="help-title">
+      <h2 id="help-title">{{ tr('Help & Support', '帮助与支持', 'Bantuan & Sokongan') }}</h2><p>{{ tr('Find resources and guidance to make the most of AXIODY.', '查找资源和指南，充分使用 AXIODY。', 'Cari sumber dan panduan untuk menggunakan AXIODY sepenuhnya.') if admin else tr('Find answers to common questions or get in touch with our team.', '查找常见问题的答案，或联系我们的团队。', 'Cari jawapan kepada soalan lazim atau hubungi pasukan kami.') }}</p>
+      <div class="settings-help-grid">
+        {{ help_card('help-centre', 'book', 'Help Centre', '帮助中心', 'Pusat Bantuan', 'Guides and FAQs', '指南与常见问题', 'Panduan dan soalan lazim') }}
+        {% if admin %}
+        {{ help_card('troubleshooting', 'wrench', 'Troubleshooting Guide', '故障排除指南', 'Panduan Penyelesaian Masalah', 'Resolve common issues', '解决常见问题', 'Selesaikan masalah biasa') }}
+        {{ help_card('admin-guide', 'team', 'Admin Guide', '管理员指南', 'Panduan Pentadbir', 'Learn the admin workflow', '了解管理工作流程', 'Pelajari aliran kerja pentadbir') }}
+        {{ help_card('agent-guide', 'bot', 'Agent Guide', '智能代理指南', 'Panduan Ejen', 'Understand our AI agents', '了解我们的 AI 代理', 'Fahami ejen AI kami') }}
+        {% else %}
+        {{ help_card('contact-support', 'chat', 'Contact Support', '联系支持', 'Hubungi Sokongan', 'Get assistance', '获取帮助', 'Dapatkan bantuan') }}
+        {{ help_card('submission-tips', 'bulb', 'Submission Tips', '提交建议', 'Petua Penyerahan', 'Learn best practices', '了解最佳实践', 'Pelajari amalan terbaik') }}
+        {{ help_card('file-types', 'file', 'Accepted File Types', '支持的文件类型', 'Jenis Fail Diterima', 'Check requirements', '查看要求', 'Semak keperluan') }}
+        {% endif %}
+      </div>
+    </section>
+    <div class="settings-save-note">{{ icon('check') }}<span>{{ tr('Preferences save automatically on this browser. Notification delivery is not connected yet.', '偏好自动保存在此浏览器中。通知发送功能尚未连接。', 'Pilihan disimpan secara automatik dalam pelayar ini. Penghantaran pemberitahuan belum disambungkan.') }}</span></div>
+    <p class="settings-status" data-preference-status role="status" aria-live="polite"></p>
+  </div>
+
+  <dialog class="settings-dialog" aria-labelledby="settings-dialog-title">
+    <div class="settings-dialog-heading"><h2 id="settings-dialog-title"></h2><button class="settings-dialog-x" type="button" data-dismiss aria-label="Close help">×</button></div>
+    <div data-help-content></div>
+    <div class="settings-dialog-footer"><button class="settings-button settings-button-primary" type="button" data-dismiss>{{ tr('Done', '完成', 'Selesai') }}</button></div>
+  </dialog>
+
+  <template id="help-centre">
+    <h3>{{ tr('General guides & FAQs', '通用指南与常见问题', 'Panduan umum & soalan lazim') }}</h3>
+    <details open><summary>{{ tr('How do I get started?', '如何开始使用？', 'Bagaimanakah saya bermula?') }}</summary><p>{{ tr('Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below.', '使用自己的账户登录。检查账户信息，选择合适的主题和字号，然后阅读下方对应角色的指南。', 'Log masuk dengan akaun sendiri. Semak maklumat akaun, pilih tema dan saiz teks yang selesa, kemudian baca panduan peranan anda di bawah.') }}</p></details>
+    <details><summary>{{ tr('Where are my settings saved?', '设置保存在哪里？', 'Di manakah tetapan saya disimpan?') }}</summary><p>{{ tr('Preferences are stored in this browser separately for each signed-in account and role. Clearing browser data resets them. They do not sync to another device or change another user’s settings.', '偏好按登录账户和角色分别保存在此浏览器中。清除浏览器数据会重置偏好。偏好不会同步到其他设备，也不会更改其他用户的设置。', 'Pilihan disimpan dalam pelayar ini mengikut akaun dan peranan. Mengosongkan data pelayar akan menetapkannya semula. Ia tidak disegerakkan ke peranti lain atau mengubah tetapan pengguna lain.') }}</p></details>
+    <details><summary>{{ tr('What do Save Changes and Close do?', '“保存更改”和“关闭”有什么作用？', 'Apakah fungsi Simpan Perubahan dan Tutup?') }}</summary><p>{{ tr('Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance, language and notification choices save immediately.', '“保存更改”会验证并保存账户表单。“关闭”会放弃上次保存后的编辑并返回账户摘要。外观、语言和通知选项会立即保存。', 'Simpan Perubahan mengesahkan dan menyimpan borang akaun. Tutup membuang suntingan sejak simpanan terakhir dan kembali ke ringkasan akaun. Pilihan penampilan, bahasa dan pemberitahuan disimpan serta-merta.') }}</p></details>
+    <h3>{{ tr('Administrator guides & FAQs', '管理员指南与常见问题', 'Panduan pentadbir & soalan lazim') if admin else tr('Client guides & FAQs', '客户指南与常见问题', 'Panduan pelanggan & soalan lazim') }}</h3>
+    {% if admin %}
+    <details open><summary>{{ tr('What should I review first?', '应先审核什么？', 'Apakah yang perlu disemak dahulu?') }}</summary><p>{{ tr('Prioritize overdue submissions and documents awaiting human review. Verify the client, reporting period and document contents before accepting a classification or requesting a correction.', '优先处理逾期提交和等待人工审核的文档。在接受分类或要求更正前，核实客户、报告期间和文档内容。', 'Utamakan penyerahan lewat dan dokumen yang menunggu semakan manusia. Sahkan pelanggan, tempoh laporan dan kandungan dokumen sebelum menerima pengelasan atau meminta pembetulan.') }}</p></details>
+    <details><summary>{{ tr('Does a low-confidence alert mean rejection?', '低置信度提醒意味着拒绝吗？', 'Adakah makluman keyakinan rendah bermaksud penolakan?') }}</summary><p>{{ tr('No. It asks for human verification. Compare the suggested type with the original document and check missing or unclear information before deciding.', '不是。这表示需要人工核实。请对照原始文档检查建议类型，并确认缺失或不清晰的信息后再作决定。', 'Tidak. Ia memerlukan pengesahan manusia. Bandingkan jenis yang dicadangkan dengan dokumen asal dan semak maklumat yang hilang atau tidak jelas sebelum membuat keputusan.') }}</p></details>
+    {% else %}
+    <details open><summary>{{ tr('How do I submit documents?', '如何提交文档？', 'Bagaimanakah saya menyerahkan dokumen?') }}</summary><p>{{ tr('Open Submit, enter a title and the document date, add a description if helpful, then choose your files. Check the selected files before submitting. Use Add + for another document entry.', '打开“提交”，填写标题和文档日期，按需添加说明，然后选择文件。提交前检查所选文件。使用“Add +”添加另一条文档记录。', 'Buka Submit, masukkan tajuk dan tarikh dokumen, tambah penerangan jika perlu, kemudian pilih fail. Semak fail sebelum menyerahkan. Gunakan Add + untuk entri dokumen lain.') }}</p></details>
+    <details><summary>{{ tr('What if my document needs changes?', '文档需要修改时怎么办？', 'Bagaimana jika dokumen saya perlu diubah?') }}</summary><p>{{ tr('Read the review feedback, correct the specific issue and provide a complete, readable copy. Check the requested reporting period and deadline. Contact support if the request is unclear.', '阅读审核反馈，修正具体问题，并提供完整清晰的副本。检查所要求的报告期间和截止日期。如有疑问，请联系支持。', 'Baca maklum balas semakan, betulkan isu dan sediakan salinan lengkap yang jelas. Semak tempoh laporan dan tarikh akhir yang diminta. Hubungi sokongan jika permintaan kurang jelas.') }}</p></details>
+    {% endif %}
+  </template>
+
+  {% if admin %}
+  <template id="troubleshooting">
+    <p>{{ tr('Your first-day checklist: confirm access with your team lead, review the Admin Guide, and work through one document together before reviewing independently.', '首日检查清单：与团队负责人确认权限，阅读管理员指南，并在独立审核前共同处理一份文档。', 'Senarai semak hari pertama: sahkan akses dengan ketua pasukan, baca Panduan Pentadbir dan semak satu dokumen bersama sebelum menyemak sendiri.') }}</p>
+    <details open><summary>{{ tr('I cannot see the expected client or document.', '看不到预期的客户或文档。', 'Saya tidak dapat melihat pelanggan atau dokumen yang dijangka.') }}</summary><p>{{ tr('Confirm you are using your assigned admin account. Check search terms, filters and the reporting period. Ask your team lead to verify access and whether the client has submitted the file.', '确认使用的是分配给您的管理员账户。检查搜索词、筛选条件和报告期间。请团队负责人核实权限及客户是否已提交文件。', 'Pastikan anda menggunakan akaun pentadbir yang diberikan. Semak carian, penapis dan tempoh laporan. Minta ketua pasukan mengesahkan akses dan penyerahan fail pelanggan.') }}</p></details>
+    <details><summary>{{ tr('A file will not open or looks incomplete.', '文件无法打开或内容不完整。', 'Fail tidak dapat dibuka atau tidak lengkap.') }}</summary><p>{{ tr('Check the file type and try downloading a fresh copy. Do not approve unreadable or password-protected documents. Request a readable replacement and record the reason for the client.', '检查文件类型并尝试重新下载。不要批准无法阅读或受密码保护的文档。请求清晰的替代文件，并记录原因供客户查看。', 'Semak jenis fail dan cuba muat turun salinan baharu. Jangan luluskan dokumen yang tidak boleh dibaca atau dilindungi kata laluan. Minta salinan yang jelas dan catat sebab untuk pelanggan.') }}</p></details>
+    <details><summary>{{ tr('AI results appear incorrect or are missing.', 'AI 结果似乎不正确或缺失。', 'Keputusan AI kelihatan salah atau tiada.') }}</summary><p>{{ tr('Compare against the original file and flag it for human review. Record the document reference, time and error message for your team lead. Do not assume a missing result means approval or repeatedly submit the same document.', '对照原始文件并标记为人工审核。记录文档编号、时间和错误消息，交给团队负责人。不要将缺失结果视为批准，也不要反复提交同一文档。', 'Bandingkan dengan fail asal dan tandakan untuk semakan manusia. Catat rujukan dokumen, masa dan mesej ralat untuk ketua pasukan. Jangan anggap keputusan yang tiada sebagai kelulusan atau hantar dokumen yang sama berulang kali.') }}</p></details>
+    <details><summary>{{ tr('My settings did not persist.', '设置未能保留。', 'Tetapan saya tidak disimpan.') }}</summary><p>{{ tr('Use the same browser and account, allow site storage and avoid private browsing. If a save error appears, keep the page open and try again after allowing browser storage.', '使用相同浏览器和账户，允许网站存储，并避免无痕浏览。如出现保存错误，请保持页面打开，允许浏览器存储后重试。', 'Gunakan pelayar dan akaun yang sama, benarkan storan laman dan elakkan pelayaran peribadi. Jika ralat simpanan muncul, kekalkan halaman terbuka dan cuba lagi selepas membenarkan storan pelayar.') }}</p></details>
+  </template>
+  <template id="admin-guide"><h3>{{ tr('A practical daily workflow', '实用的日常工作流程', 'Aliran kerja harian yang praktikal') }}</h3><ol>
+    <li>{{ tr('Start with overdue items and the human review queue. Check the client and reporting period.', '先处理逾期项目和人工审核队列。检查客户和报告期间。', 'Mulakan dengan item lewat dan barisan semakan manusia. Semak pelanggan dan tempoh laporan.') }}</li>
+    <li>{{ tr('Open the original document. Confirm readability, completeness and the suggested document type.', '打开原始文档。确认清晰度、完整性和建议的文档类型。', 'Buka dokumen asal. Sahkan kejelasan, kelengkapan dan jenis dokumen yang dicadangkan.') }}</li>
+    <li>{{ tr('Review validation findings. Record a clear reason for corrections so the client knows exactly what to provide.', '检查验证结果。清晰记录更正原因，让客户明确需要提供什么。', 'Semak hasil pengesahan. Catat sebab pembetulan dengan jelas supaya pelanggan tahu apa yang perlu diberikan.') }}</li>
+    <li>{{ tr('Check reminder history before following up to avoid duplicate messages. Escalate unresolved or sensitive issues to your team lead.', '跟进前检查提醒历史，避免重复消息。将未解决或敏感问题交给团队负责人。', 'Semak sejarah peringatan sebelum membuat susulan untuk mengelakkan mesej pendua. Rujuk isu yang belum selesai atau sensitif kepada ketua pasukan.') }}</li>
+  </ol><p>{{ tr('Workspace preferences belong to your account; they do not grant access or change a client’s document status.', '工作空间偏好属于您的账户，不会授予权限或更改客户文档的状态。', 'Pilihan ruang kerja adalah untuk akaun anda; ia tidak memberikan akses atau mengubah status dokumen pelanggan.') }}</p></template>
+  <template id="agent-guide"><p>{{ tr('Use this guide to understand the intended document workflow. Automated processing depends on the connected services being available.', '本指南介绍预期的文档工作流程。自动处理取决于相关服务是否可用。', 'Gunakan panduan ini untuk memahami aliran kerja dokumen. Pemprosesan automatik bergantung pada ketersediaan perkhidmatan yang disambungkan.') }}</p>
+    <h3>{{ tr('Classification agent', '分类代理', 'Ejen pengelasan') }}</h3><p>{{ tr('Suggests a document category, such as an invoice, receipt or bank statement. A low-confidence result needs a person to check the original file.', '建议文档类别，例如发票、收据或银行对账单。低置信度结果需要人工检查原始文件。', 'Mencadangkan kategori dokumen seperti invois, resit atau penyata bank. Keputusan keyakinan rendah memerlukan seseorang menyemak fail asal.') }}</p>
+    <h3>{{ tr('Validation agent', '验证代理', 'Ejen pengesahan') }}</h3><p>{{ tr('Checks document information against submission requirements and flags missing or inconsistent details. Review the evidence before accepting a result.', '根据提交要求检查文档信息，并标记缺失或不一致的细节。接受结果前请核实依据。', 'Menyemak maklumat dokumen mengikut keperluan penyerahan dan menandakan butiran yang hilang atau tidak konsisten. Semak bukti sebelum menerima keputusan.') }}</p>
+    <h3>{{ tr('Reminder agent', '提醒代理', 'Ejen peringatan') }}</h3><p>{{ tr('Supports follow-ups for pending or overdue documents and escalation when follow-up is needed. Confirm the recipient, deadline and previous reminders before taking action.', '协助跟进待处理或逾期文档，并在需要时升级处理。采取行动前确认收件人、截止日期和已有提醒。', 'Membantu susulan dokumen tertunda atau lewat dan eskalasi apabila perlu. Sahkan penerima, tarikh akhir dan peringatan terdahulu sebelum bertindak.') }}</p>
+  </template>
+  {% else %}
+  <template id="contact-support">
+    <p>{{ tr('Contact our workplace team for help with your account or document submission.', '如需账户或文档提交方面的帮助，请联系我们的工作团队。', 'Hubungi pasukan tempat kerja kami untuk bantuan akaun atau penyerahan dokumen.') }}</p>
+    {# Supply verified workplace details through template context or Flask configuration. #}
+    {% set workplace_email = support_email | default(config.get('SUPPORT_EMAIL') or 'Axiody123@gmail.com', true) %}
+    {% set workplace_phone = support_phone | default(config.get('SUPPORT_PHONE') or '+65 8851 0177', true) %}
+    <dl class="settings-contact"><dt>{{ tr('Workplace email', '工作邮箱', 'E-mel tempat kerja') }}</dt><dd>{% if workplace_email %}<a href="mailto:{{ workplace_email }}">{{ workplace_email }}</a>{% else %}{{ tr('Support email has not been provided.', '尚未提供支持邮箱。', 'E-mel sokongan belum diberikan.') }}{% endif %}</dd><dt>{{ tr('Phone number', '电话号码', 'Nombor telefon') }}</dt><dd>{% if workplace_phone %}<a href="tel:{{ workplace_phone }}">{{ workplace_phone }}</a>{% else %}{{ tr('Support phone number has not been provided.', '尚未提供支持电话号码。', 'Nombor telefon sokongan belum diberikan.') }}{% endif %}</dd></dl>
+    <p>{{ tr('Include your document reference and a brief description of the issue. Never include your password. If contact details are unavailable, ask the team that invited you to AXIODY.', '请提供文档编号和问题简述。切勿提供密码。如无联系方式，请咨询邀请您使用 AXIODY 的团队。', 'Sertakan rujukan dokumen dan penerangan ringkas isu. Jangan sertakan kata laluan. Jika maklumat hubungan tiada, tanya pasukan yang menjemput anda ke AXIODY.') }}</p>
+  </template>
+  <template id="submission-tips"><ol>
+    <li>{{ tr('Use a clear title with the document type and reporting period. Select the date shown on the document.', '标题应清晰注明文档类型和报告期间。选择文档上显示的日期。', 'Gunakan tajuk jelas dengan jenis dokumen dan tempoh laporan. Pilih tarikh yang tertera pada dokumen.') }}</li>
+    <li>{{ tr('Upload every page with readable text and visible edges. Avoid glare, cropped totals and blurred photographs.', '上传所有页面，确保文字清晰、边缘可见。避免反光、金额被裁切和照片模糊。', 'Muat naik setiap halaman dengan teks jelas dan tepi yang kelihatan. Elakkan silau, jumlah terpotong dan foto kabur.') }}</li>
+    <li>{{ tr('Check the client name, dates, amounts and selected files before submitting. Remove duplicate or unrelated files.', '提交前检查客户姓名、日期、金额和所选文件。删除重复或无关的文件。', 'Semak nama pelanggan, tarikh, jumlah dan fail dipilih sebelum menyerahkan. Buang fail pendua atau tidak berkaitan.') }}</li>
+    <li>{{ tr('Read any review feedback and respond before the stated deadline. Keep the original document for your records.', '阅读审核反馈，并在规定截止日期前回复。保留原始文档备查。', 'Baca maklum balas semakan dan balas sebelum tarikh akhir yang dinyatakan. Simpan dokumen asal untuk rekod anda.') }}</li>
+  </ol></template>
+  <template id="file-types"><p>{{ tr('The submission form currently accepts these file extensions:', '提交表单目前接受以下文件扩展名：', 'Borang penyerahan menerima sambungan fail berikut:') }}</p>
+    <ul><li>PDF (.pdf)</li><li>{{ tr('Images', '图片', 'Imej') }} (.jpg, .jpeg, .png)</li><li>Word (.doc, .docx)</li><li>Excel (.xls, .xlsx)</li></ul>
+    <p>{{ tr('You can select multiple files. Provide complete, readable documents that open without a password. Renaming an extension does not convert a file. No upload size limit is published in the current form; ask support if a file cannot be uploaded.', '可以选择多个文件。请提供无需密码即可打开的完整清晰文档。重命名扩展名不会转换文件。当前表单未公布上传大小限制；如无法上传，请咨询支持。', 'Anda boleh memilih beberapa fail. Sediakan dokumen lengkap dan jelas yang boleh dibuka tanpa kata laluan. Menamakan semula sambungan tidak menukar format fail. Had saiz muat naik belum diterbitkan dalam borang semasa; hubungi sokongan jika fail gagal dimuat naik.') }}</p>
+  </template>
+  {% endif %}
+  <template id="notification-preview"><p>{{ tr('Example alerts for your selected categories. These are previews, not new account events; email and automatic delivery are not connected yet.', '以下为所选类别的提醒示例，并非新的账户事件。邮件和自动发送功能尚未连接。', 'Contoh makluman untuk kategori dipilih. Ini ialah pratonton, bukan peristiwa akaun baharu; e-mel dan penghantaran automatik belum disambungkan.') }}</p><ul data-alert-preview></ul></template>
+</div>
+{% endmacro %}
+
+{% block content %}{{ settings_panel('client') }}{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/client.js') }}" defer></script>{% endblock %}
+
+<!-- {# -->
+  </template>
+</body>
+</html>
+<!-- #} -->
