@@ -1,6 +1,7 @@
 from flask import Flask, redirect, url_for
 
 from app.models.users import init_user_db
+from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
 from app.routes.client import client_bp
 from config import Config
@@ -12,10 +13,15 @@ def create_app():
 
     init_user_db(app.config["DATABASE"])
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
     app.register_blueprint(client_bp)
 
     @app.route("/")
     def index():
         return redirect(url_for("auth.login"))
+
+    @app.route("/settings")
+    def settings():
+        return redirect(url_for("client.settings"))
 
     return app

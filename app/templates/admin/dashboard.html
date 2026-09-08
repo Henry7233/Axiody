@@ -35,7 +35,7 @@
           </tr>
         </thead>
         <!-- This URL connects each generated Review button to VerifyDoc.html. -->
-        <tbody id="clientTableBody" data-review-url="{{ url_for('admin_verify') }}"></tbody>
+        <tbody id="clientTableBody" data-review-url="{{ url_for('admin.reviews') }}"></tbody>
       </table>
     </div>
   </section>
@@ -59,7 +59,7 @@
         </div>
         <div class="document-actions">
           <a class="btn btn--secondary"
-             href="{{ url_for('admin_verify', client=document.submitter, document=document.id) }}">Review</a>
+             href="{{ url_for('admin.reviews', client=document.submitter, document=document.id) }}">Review</a>
           <button type="button" class="btn btn--primary decision-button" data-decision="approved">Approve</button>
           <button type="button" class="btn btn--danger decision-button" data-decision="rejected">Reject</button>
         </div>
@@ -78,7 +78,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('javascript', filename='admin-dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
 <script>
   // Approve/reject interactivity carried over from adminMgmt.html,
   // adapted to this page's markup (decision-button, queueCount, documentsEmpty).

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Documents | AXIODY{% endblock %}
+
+{% block content %}
+<section class="admin-page" aria-labelledby="documents-title">
+  <header class="page-header">
+    <p class="page-eyebrow">Admin workspace</p>
+    <h1 id="documents-title">Documents</h1>
+    <p class="page-description">Track submitted documents waiting for review.</p>
+  </header>
+
+  <div class="document-list">
+    {% for document in documents %}
+    <article class="document-card">
+      <div>
+        <h2>{{ document.title }}</h2>
+        <p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
+      </div>
+      <div class="document-actions">
+        <a class="btn btn--secondary"
+           href="{{ url_for('admin.reviews', client=document.submitter, document=document.id) }}">Review</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

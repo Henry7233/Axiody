@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Clients | AXIODY{% endblock %}
+
+{% block content %}
+<section class="admin-page" aria-labelledby="clients-title">
+  <header class="page-header">
+    <p class="page-eyebrow">Admin workspace</p>
+    <h1 id="clients-title">Clients</h1>
+    <p class="page-description">Review client document activity and open items.</p>
+  </header>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Client</th>
+          <th scope="col">Status</th>
+          <th scope="col">Documents</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for client in clients %}
+        <tr>
+          <td>{{ client.name }}</td>
+          <td>{{ client.status }}</td>
+          <td>{{ client.documents }}</td>
+          <td><a class="btn btn--secondary" href="{{ url_for('admin.reviews', client=client.name) }}">Review</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
