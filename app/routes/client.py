@@ -11,3 +11,15 @@ def upload():
         return redirect(url_for("auth.login"))
 
     return render_template("client/upload.html", username=session.get("user_email"))
+
+
+@client_bp.route("/notifications")
+def notifications():
+    if "user_id" not in session:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    return render_template(
+        "client/notifications.html",
+        username=session.get("user_email"),
+    )
