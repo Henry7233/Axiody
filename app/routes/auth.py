@@ -16,6 +16,13 @@ from app.models.users import create_user, verify_user
 auth_bp = Blueprint("auth", __name__)
 
 
+def default_url_for_account(account_type):
+    if account_type == "admin":
+        return url_for("admin.dashboard")
+
+    return url_for("client.upload")
+
+
 def wants_json_response():
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
@@ -37,17 +44,19 @@ def login():
         session.clear()
         session["user_id"] = user["id"]
         session["user_email"] = user["email"]
+        session["account_type"] = user["account_type"]
+        redirect_url = default_url_for_account(user["account_type"])
 
         if wants_json_response():
             return jsonify(
                 {
                     "message": "Your login is successful.",
-                    "redirect_url": url_for("client.upload"),
+                    "redirect_url": redirect_url,
                 }
             )
 
         flash("You are logged in.", "success")
-        return redirect(url_for("client.upload"))
+        return redirect(redirect_url)
 
     return render_template("auth/login.html")
 
@@ -70,6 +79,7 @@ def register():
         session.clear()
         session["user_id"] = user["id"]
         session["user_email"] = user["email"]
+        session["account_type"] = user["account_type"]
         flash("Account created. You are logged in.", "success")
         return redirect(url_for("client.upload"))
 
@@ -82,7 +92,7 @@ def dashboard():
         flash("Please log in first.", "error")
         return redirect(url_for("auth.login"))
 
-    return render_template("auth/dashboard.html", email=session["user_email"])
+    return redirect(default_url_for_account(session.get("account_type")))
 
 
 @auth_bp.route("/logout")
