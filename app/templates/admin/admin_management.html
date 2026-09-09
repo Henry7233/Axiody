@@ -1,0 +1,121 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Admin Management | AXIODY{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-management.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard admin-management" aria-labelledby="admins-title">
+  <header class="page-header">
+    <div>
+      <p class="page-eyebrow">Administrator workspace</p>
+      <h1 id="admins-title">Admin management</h1>
+      <p class="page-description">Keep your admin team, roles, and account statuses in one place.</p>
+    </div>
+  </header>
+
+  <section class="stats-grid" aria-label="Admin summary">
+    <article class="stat-card"><span>Total admins</span><strong data-stat="total">{{ admins | length }}</strong></article>
+    {% for status, label in [('active', 'Active'), ('pending', 'Pending'), ('suspended', 'Suspended')] %}
+    <article class="stat-card"><span>{{ label }}</span><strong data-stat="{{ status }}">{{ admins | selectattr('status', 'equalto', status) | list | length }}</strong></article>
+    {% endfor %}
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="team-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="team-title">Admin team</h2>
+        <p>Find an administrator and review their role and status.</p>
+      </div>
+      <button type="button" class="btn btn--primary" id="addAdmin" hidden>Add admin</button>
+    </div>
+    <p class="admin-preview-note">Sample data preview. Changes last until you reload this page and do not change account access or send invitations.</p>
+
+    <div class="admin-controls" id="adminControls" hidden>
+      <div class="admin-search-field">
+        <label for="adminSearch">Search admins</label>
+        <input type="search" id="adminSearch" placeholder="Search by name or email" autocomplete="off">
+      </div>
+      <div>
+        <label for="roleFilter">Role</label>
+        <select id="roleFilter">
+          <option value="all">All roles</option>
+          <option value="Admin manager">Admin manager</option>
+          <option value="Administrator">Administrator</option>
+          <option value="Reviewer">Reviewer</option>
+        </select>
+      </div>
+      <div>
+        <label for="statusFilter">Status</label>
+        <select id="statusFilter">
+          <option value="all">All statuses</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn--secondary" id="clearFilters">Clear filters</button>
+    </div>
+
+    <div class="table-wrap" role="region" aria-label="Admin team table" tabindex="0">
+      <table>
+        <thead><tr>
+          <th scope="col">Administrator</th><th scope="col">Email</th>
+          <th scope="col">Role</th><th scope="col">Last active</th>
+          <th scope="col">Status</th><th scope="col">Actions</th>
+        </tr></thead>
+        <tbody id="adminTableBody">
+          {% for admin in admins %}
+          <tr data-admin-id="{{ admin.id }}" data-name="{{ admin.name }}" data-email="{{ admin.email }}" data-role="{{ admin.role }}" data-status="{{ admin.status }}">
+            <td><div class="admin-person"><span class="avatar admin-avatar" aria-hidden="true">{{ admin.name | first | upper }}</span><strong data-field="name">{{ admin.name }}</strong></div></td>
+            <td data-field="email">{{ admin.email }}</td>
+            <td data-field="role">{{ admin.role }}</td>
+            <td>{{ admin.last_active }}</td>
+            <td><span class="admin-status admin-status--{{ admin.status }}" data-field="status">{{ admin.status | capitalize }}</span></td>
+            <td><button type="button" class="btn btn--secondary admin-edit" aria-label="Edit {{ admin.name }}" hidden>Edit</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="adminsEmpty" {% if admins %}hidden{% endif %}>
+      <h3>No admins found</h3>
+      <p>Try a different search or filter, or add an admin to the preview.</p>
+    </div>
+    <p class="admin-results" id="adminResults" role="status" aria-live="polite">{{ admins | length }} admins</p>
+  </section>
+
+  <p class="dashboard-message" id="adminsMessage" role="status" aria-live="polite"></p>
+  <noscript><p>Enable JavaScript to search, filter, or edit the admin preview.</p></noscript>
+  <dialog class="admin-dialog" id="adminDialog" aria-labelledby="adminDialogTitle" aria-describedby="adminDialogDescription">
+    <form id="adminForm">
+      <h2 id="adminDialogTitle">Add admin</h2>
+      <p id="adminDialogDescription">Update the sample directory. Changes apply to this preview only.</p>
+      <label for="adminName">Full name</label>
+      <input id="adminName" name="name" required maxlength="100" autocomplete="name">
+      <label for="adminEmail">Email address</label>
+      <input id="adminEmail" name="email" type="email" required maxlength="254" autocomplete="email">
+      <label for="adminRole">Role</label>
+      <select id="adminRole" name="role">
+        <option value="Administrator">Administrator</option>
+        <option value="Admin manager">Admin manager</option>
+        <option value="Reviewer">Reviewer</option>
+      </select>
+      <label for="adminStatus">Status</label>
+      <select id="adminStatus" name="status">
+        <option value="pending">Pending</option>
+        <option value="active">Active</option>
+        <option value="suspended">Suspended</option>
+      </select>
+      <div class="document-actions">
+        <button type="button" class="btn btn--secondary" id="cancelAdmin">Cancel</button>
+        <button type="submit" class="btn btn--primary">Save preview</button>
+      </div>
+    </form>
+  </dialog>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin-management.js') }}" defer></script>
+{% endblock %}
