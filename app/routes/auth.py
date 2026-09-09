@@ -45,6 +45,7 @@ def login():
         session["user_id"] = user["id"]
         session["user_email"] = user["email"]
         session["account_type"] = user["account_type"]
+        session["protected"] = user["protected"]
         redirect_url = default_url_for_account(user["account_type"])
 
         if wants_json_response():
@@ -80,6 +81,7 @@ def register():
         session["user_id"] = user["id"]
         session["user_email"] = user["email"]
         session["account_type"] = user["account_type"]
+        session["protected"] = user["protected"]
         flash("Account created. You are logged in.", "success")
         return redirect(url_for("client.upload"))
 

@@ -1,4 +1,12 @@
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
+
+from app.models.users import (
+    create_user,
+    delete_unprotected_admin_users,
+    delete_user,
+    get_user_by_id,
+    list_admin_users,
+)
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -162,26 +170,107 @@ def admin_management():
     if redirect_response:
         return redirect_response
 
-    admins_data = [
-        {
-            "id": "admin-1001",
-            "name": "Alice Johnson",
-            "email": "alice.johnson@example.com",
-            "role": "Admin manager",
-            "status": "active",
-            "last_active": "2026-09-09",
-        },
-        {
-            "id": "admin-1002",
-            "name": "Bob Smith",
-            "email": "bob.smith@example.com",
-            "role": "Administrator",
-            "status": "pending",
-            "last_active": "Never",
-        },
-    ]
+    admins = list_admin_users(current_app.config["DATABASE"])
+    admin_roles = sorted({admin["role"] for admin in admins} | {"Admin manager", "Administrator", "Reviewer"})
+    standard_roles = {"Administrator", "Admin manager", "Reviewer"}
+    admin_role_counts = {
+        "total": len(admins),
+        "administrator": sum(1 for admin in admins if admin["role"] == "Administrator"),
+        "admin_manager": sum(1 for admin in admins if admin["role"] == "Admin manager"),
+        "reviewer": sum(1 for admin in admins if admin["role"] == "Reviewer"),
+        "other": sum(1 for admin in admins if admin["role"] not in standard_roles),
+    }
     return render_template(
         "admin/admin_management.html",
-        admins=admins_data,
+        admins=admins,
+        admin_roles=admin_roles,
+        admin_role_counts=admin_role_counts,
         **admin_context("admin_management"),
     )
+
+
+@admin_bp.route("/admin_management/admins", methods=["POST"])
+def create_admin():
+    redirect_response = require_admin()
+    if redirect_response:
+        return jsonify({"message": "Admin access is required."}), 403
+
+    data = request.get_json(silent=True) or request.form
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip().lower()
+    selected_role = data.get("role", "").strip()
+    custom_role = data.get("custom_role", "").strip()
+    role = custom_role if selected_role == "Other" else selected_role
+    password = data.get("password", "")
+    password_confirmation = data.get("password_confirmation", "")
+
+    if not name:
+        return jsonify({"message": "Enter a full name."}), 400
+    if not email:
+        return jsonify({"message": "Enter an email address."}), 400
+    if not role:
+        return jsonify({"message": "Enter a role."}), 400
+    if len(password) < 8:
+        return jsonify({"message": "Password must be at least 8 characters."}), 400
+    if password != password_confirmation:
+        return jsonify({"message": "Passwords must match."}), 400
+
+    user = create_user(
+        current_app.config["DATABASE"],
+        email,
+        password,
+        account_type="admin",
+        protected=0,
+        full_name=name,
+        role=role,
+    )
+    if user is None:
+        return jsonify({"message": "An account with that email already exists."}), 409
+
+    return jsonify(
+        {
+            "message": f"{name} was added.",
+            "admin": {
+                "id": user["id"],
+                "name": user["full_name"] or user["email"],
+                "email": user["email"],
+                "role": user["role"],
+                "date": user["date"],
+            },
+        }
+    ), 201
+
+
+@admin_bp.route("/admin_management/admins", methods=["DELETE"])
+def delete_unprotected_admins():
+    redirect_response = require_admin()
+    if redirect_response:
+        return jsonify({"message": "Admin access is required."}), 403
+
+    result = delete_unprotected_admin_users(current_app.config["DATABASE"])
+    return jsonify(
+        {
+            "message": f"{result['deleted']} unprotected admin account(s) were deleted.",
+            "deleted_ids": result["deleted_ids"],
+        }
+    )
+
+
+@admin_bp.route("/admin_management/admins/<int:user_id>", methods=["DELETE"])
+def delete_admin(user_id):
+    redirect_response = require_admin()
+    if redirect_response:
+        return jsonify({"message": "Admin access is required."}), 403
+
+    user = get_user_by_id(current_app.config["DATABASE"], user_id)
+    if user is None or user["account_type"] != "admin":
+        return jsonify({"message": "Admin account was not found."}), 404
+
+    result = delete_user(current_app.config["DATABASE"], user_id)
+    if result["deleted"]:
+        return jsonify({"message": "Admin account was deleted."})
+
+    if result["reason"] == "protected":
+        return jsonify({"message": "This admin account is protected and cannot be deleted."}), 403
+
+    return jsonify({"message": "Admin account was not found."}), 404
