@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, session, url_for
 
 from app.models.users import init_user_db
 from app.routes.admin import admin_bp
@@ -22,6 +22,12 @@ def create_app():
 
     @app.route("/settings")
     def settings():
+        if "user_id" not in session:
+            return redirect(url_for("auth.login"))
+
+        if session.get("account_type") == "admin":
+            return redirect(url_for("admin.settings"))
+
         return redirect(url_for("client.settings"))
 
     return app

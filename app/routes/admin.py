@@ -26,12 +26,16 @@ SAMPLE_DOCUMENTS = [
 ]
 
 
-def require_login():
-    if "user_id" in session:
+def require_admin():
+    if "user_id" not in session:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    if session.get("account_type") == "admin":
         return None
 
-    flash("Please log in first.", "error")
-    return redirect(url_for("auth.login"))
+    flash("Please log in with an admin account.", "error")
+    return redirect(url_for("client.upload"))
 
 
 def admin_context(active_page):
@@ -53,7 +57,7 @@ def index():
 @admin_bp.route("/dashboard.html")
 @admin_bp.route("/dashboard")
 def dashboard():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
@@ -67,7 +71,7 @@ def dashboard():
 @admin_bp.route("/reviews.html")
 @admin_bp.route("/reviews")
 def reviews():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
@@ -82,7 +86,7 @@ def reviews():
 @admin_bp.route("/clients.html")
 @admin_bp.route("/clients")
 def clients():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
@@ -101,7 +105,7 @@ def clients():
 @admin_bp.route("/documents.html")
 @admin_bp.route("/documents")
 def documents():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
@@ -115,7 +119,7 @@ def documents():
 @admin_bp.route("/reminders.html")
 @admin_bp.route("/reminders")
 def reminders():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
@@ -134,7 +138,7 @@ def reminders():
 @admin_bp.route("/settings.html")
 @admin_bp.route("/settings")
 def settings():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
@@ -154,7 +158,7 @@ def settings():
 @admin_bp.route("/admin_management.html")
 @admin_bp.route("/admin_management")
 def admin_management():
-    redirect_response = require_login()
+    redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
