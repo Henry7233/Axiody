@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Management | AXIODY{% endblock %}
+
+{% block content %}
+{# Both panels inherit the admin theme colours, including the Approve button. #}
+<section class="admin-dashboard" aria-labelledby="dashboard-title">
+{% include "admin/_admin_controls.html" %}
+{% include "admin/_admin_approvals.html" %}
+</section>
+{% endblock %}

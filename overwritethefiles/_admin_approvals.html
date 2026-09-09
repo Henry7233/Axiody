@@ -1,0 +1,33 @@
+{# Approval forms save decisions in SQLite and reload the queue after success. #}
+<section class="dashboard-section approval-panel" aria-labelledby="approval-title">
+  <div class="section-heading">
+    <div>
+      <h2 id="approval-title">Accounts awaiting approval</h2>
+      <p>Review the reason, then approve or reject admin access.</p>
+    </div>
+    <span class="queue-count" aria-live="polite">{{ pending_requests|length }} pending</span>
+  </div>
+  <div class="document-list">
+    {% for access_request in pending_requests %}
+    <article class="document-card" data-request-id="{{ access_request.id }}">
+      <div>
+        <h3>{{ access_request.email }}</h3>
+        <p>Requested on {{ access_request.requested_at[:10] }} (UTC).</p>
+        <p><strong>Reason:</strong> {{ access_request.reason }}</p>
+      </div>
+      <form class="document-actions" method="post" action="{{ url_for('admin.decide_access', request_id=access_request.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn--primary" name="decision" value="approved"
+                aria-label="Approve admin access for {{ access_request.email }}">Approve</button>
+        <button type="submit" class="btn btn--danger" name="decision" value="rejected"
+                aria-label="Reject admin access for {{ access_request.email }}">Reject</button>
+      </form>
+    </article>
+    {% else %}
+    <div class="empty-state" role="status">
+      <h3>No accounts awaiting approval</h3>
+      <p>New admin access requests will appear here.</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>

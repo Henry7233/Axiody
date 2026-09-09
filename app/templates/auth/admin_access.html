@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Request Admin Access | AXIODY{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard" aria-labelledby="access-title">
+  <header class="page-header">
+    <h1 id="access-title">Admin access</h1>
+    <p class="page-description">Request permission to manage clients and review submissions.</p>
+  </header>
+  <section class="dashboard-section" aria-labelledby="request-title">
+    {# Each account has one request; display its status once it has been submitted. #}
+    {% if access_request %}
+    <h2 id="request-title">Request {{ access_request.status }}</h2>
+    <p>Submitted on {{ access_request.requested_at[:10] }} (UTC).</p>
+    <p><strong>Your reason:</strong> {{ access_request.reason }}</p>
+    {% if access_request.status == 'pending' %}
+    <p role="status">Your request is awaiting review by an admin.</p>
+    {% elif access_request.status == 'rejected' %}
+    <p role="status">Your request was rejected. Contact your account manager if you need assistance.</p>
+    {% endif %}
+    {% else %}
+    <h2 id="request-title">Request admin access</h2>
+    <form method="post" action="{{ url_for('auth.admin_access') }}">
+      {# The server validates this session token before creating the request. #}
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="field">
+        <label for="access-reason">Why do you need admin access?</label>
+        <textarea id="access-reason" name="reason" rows="4" minlength="10" maxlength="1000"
+                  aria-describedby="reason-hint" required>{{ reason }}</textarea>
+        <p id="reason-hint">Include your role and responsibilities (10–1,000 characters).</p>
+      </div>
+      {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+      <button type="submit" class="btn btn--primary">Submit request</button>
+    </form>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

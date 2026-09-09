@@ -1,0 +1,132 @@
+new changes
+=============
+
+models:
+========
+users.py
+- Added the is_admin column with a migration that preserves existing accounts.
+- Added admin_access_requests to save each account's reason, status, request date,
+  reviewer, and decision date in SQLite.
+- Added helpers to find users by ID and list admin or non-admin accounts.
+- Added creation of new admin accounts and promotion of existing accounts.
+- Added email and password validation. Existing-account promotion preserves the
+  account's password and other data; new passwords are stored as hashes.
+- Added removal of admin access without deleting the account or its documents.
+- Prevented removal of the last admin or the acting admin's own access.
+- Added request submission, listing, approval, and rejection helpers. Duplicate
+  requests and repeated decisions do not overwrite the saved result.
+- Approval grants the admin role and saves the reviewer and UTC timestamp in
+  the same transaction. Self-approval and non-admin decisions are blocked.
+- Direct promotion also resolves an existing access request.
+- Used transactions and database role checks to protect concurrent role changes.
+- Updated login verification to return the account's admin role.
+- Closed SQLite connections after commit or rollback to avoid open file handles.
+- Added comments explaining migrations, permissions, and database operations.
+
+users.db (project root; local account setup)
+- Created admin@gmail.com as the initial admin account with a hashed password.
+- Created demo.alice@example.com, demo.ben@example.com, and
+  demo.chloe@example.com with pending admin-access requests for testing.
+- These were one-time database changes, not accounts recreated on app startup.
+- Later approvals or removals may have changed their current roles and statuses.
+
+routes:
+=======
+admin.py
+- Added the Admin Management page at /admin/management and
+  /admin/admin_management.html.
+- Made both /admin and /admin/ redirect to Admin Management.
+- Allowed any signed-in account to view those management pages without an admin
+  role. This does not grant that account admin permissions.
+- Kept admin-role checks for account-changing actions and other protected admin
+  pages. Non-admin access to those routes redirects to /admin-access.
+- Kept login checks and cleared sessions that reference a missing account.
+- Added POST routes to create/promote admins, remove admin access, and approve
+  or reject access requests, with CSRF validation and input/error handling.
+- Passed the current admins, available accounts, and pending requests to the page.
+- Excluded existing admins from the pending approval queue.
+- Added success messages and redirects after saving to avoid repeat submissions.
+- Restored the approval routes after the temporary commenting-out change.
+
+auth.py
+- Redirected admin logins to /admin/dashboard and client logins to /client/upload,
+  including AJAX login responses.
+- Added /admin-access for signed-in users to submit an access request or view
+  its saved status. Existing admins are redirected to the admin dashboard.
+- Checked the form token and required a reason of 10 to 1,000 characters.
+- Associated requests with the signed-in user instead of accepting a user ID
+  from the submitted form.
+
+templates:
+=========
+admin:
+_admin_approvals.html
+- Added the pending-account approval panel with email, request date, and reason.
+- Added Approve and Reject forms connected to the SQLite-backed decision route.
+- Included a CSRF token and account-specific accessible button labels.
+- Added the pending count and an empty state when no requests need review.
+- Replaced browser-only card removal with decisions saved by the server.
+
+_admin_controls.html
+- Added controls above the approval panel to promote an existing account or
+  create a new admin account using an email address and password.
+- Added the existing-admin list with email, account creation date, and removal.
+- Marked the signed-in admin's own row as "Your account" instead of offering
+  a removal button for that row.
+- Added validation messages, success messages, and protected submission forms.
+- Removed the separate outer theme wrapper so the parent template supplies
+  the same styling to both controls and approvals.
+
+admin_management.html
+- Added the parent page that includes _admin_controls.html first and
+  _admin_approvals.html below it.
+- Set the page title to Admin Management.
+- Wrapped both panels in one admin-dashboard container. This fixes the invisible
+  Approve button by making the blue background variable available to the panel.
+- Removed the old document-based approval markup and browser-only script.
+
+auth:
+admin_access.html
+- Added the admin-access request form with reason validation and a CSRF token.
+- Added pending and rejected request status messages and the submitted reason.
+- Added an "Admin access removed" message when a previously approved account
+  no longer has the admin role.
+- Added server feedback messages and restored the page after it was commented out.
+
+layout:
+base.html
+- Added Admin Management to the admin navigation.
+- Added Admin access to the client navigation for signed-in accounts.
+- Added active-page highlighting using aria-current for both links.
+- Restored the Admin access navigation link after temporarily commenting it out.
+
+app:
+======
+__init__.py
+- Initialized the user database and admin-role migration during app creation.
+- Added the grant-admin console command to promote an existing account by email.
+- Made console promotion update any existing access request to approved.
+- Added a Codex handoff comment asking which accounts should be admins before
+  replacing the initial account setup, with credentials kept out of source code.
+- Restored request synchronization after the temporary verification disablement.
+
+security.py
+- Added a random CSRF token stored in the user's session.
+- Added token validation for request, approval, and admin-management forms.
+- Used constant-time token comparison and rejected missing or invalid tokens.
+- Added comments explaining the form protection.
+
+config.py
+- Replaced the fixed session secret with the SECRET_KEY environment variable.
+- Added a random fallback key when no environment value is configured.
+- Documented that the fallback signs users out when the server process restarts.
+
+validation:
+===========
+- Created and ran SQLite-backed tests during implementation; the latest full run
+  passed 14 tests covering roles, requests, approvals, account management, CSRF,
+  redirects, and access to /admin without an admin role.
+- The test files are not present in the current workspace snapshot.
+- Verified that the rendered approval panel and its two Approve buttons inherit
+  the admin theme, and checked that the rendered HTML is balanced.
+- Checked the changes for whitespace errors with git diff --check.

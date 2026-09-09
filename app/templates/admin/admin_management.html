@@ -1,0 +1,92 @@
+<!--This is a test-->
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | AXIODY{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard" aria-labelledby="dashboard-title">
+  <header class="page-header">
+    <p class="page-eyebrow">Account manager</p>
+    <h1 id="dashboard-title">Admin Management</h1>
+  </header>
+
+  <!-- Merged from adminMgmt.html: documents awaiting an admin decision. -->
+  <section class="dashboard-section approval-panel" aria-labelledby="approval-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="approval-title">Accounts awaiting approval</h2>
+        <p>Approve or reject new admin account requests.</p>
+      </div>
+      <span class="queue-count" id="queueCount" aria-live="polite">{{ documents|length }} pending</span>
+    </div>
+
+    {# This version expects a documents collection from its Flask route. #}
+    <div class="document-list" id="documentList">
+      {% for document in documents %}
+      <article class="document-card" data-document-id="{{ document.id }}">
+        <div>
+          <h3>{{ document.title }}</h3>
+          <p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
+        </div>
+        <div class="document-actions">
+          <a class="btn btn--secondary"
+             href="{{ url_for('admin.reviews', client=document.submitter, document=document.id) }}">Review</a>
+          <button type="button" class="btn btn--primary decision-button" data-decision="approved">Approve</button>
+          <button type="button" class="btn btn--danger decision-button" data-decision="rejected">Reject</button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {# Hide the empty message on initial render when there are items to review. #}
+    <div class="empty-state" id="documentsEmpty" {% if documents %}hidden{% endif %} role="status">
+      <h3>No documents awaiting approval</h3>
+      <p>New submissions will appear here.</p>
+    </div>
+  </section>
+
+  <p class="dashboard-message" id="dashboardMessage" role="status" aria-live="polite"></p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
+<script>
+  // Approve/reject interactivity carried over from adminMgmt.html,
+  // adapted to this page's markup (decision-button, queueCount, documentsEmpty).
+  document.addEventListener('DOMContentLoaded', () => {
+    const documentList = document.getElementById('documentList');
+    const documentsEmpty = document.getElementById('documentsEmpty');
+    const queueCount = document.getElementById('queueCount');
+    const dashboardMessage = document.getElementById('dashboardMessage');
+
+    if (!documentList) return;
+
+    // Handle both decision buttons with one listener on their parent list.
+    documentList.addEventListener('click', (event) => {
+      const button = event.target.closest('.decision-button');
+      if (!button) return;
+
+      const card = button.closest('.document-card');
+      if (!card) return;
+
+      const decision = button.dataset.decision;
+      const title = card.querySelector('h3')?.textContent ?? 'Document';
+
+      // This only removes the card in the browser. It does not call the server's
+      // admin decision endpoint, save a decision, or grant an admin role.
+      card.remove();
+
+      // Keep the visible count, empty state, and status announcement in sync.
+      const remaining = documentList.querySelectorAll('.document-card').length;
+      if (queueCount) queueCount.textContent = `${remaining} pending`;
+      if (documentsEmpty) documentsEmpty.hidden = remaining > 0;
+      if (dashboardMessage) {
+        dashboardMessage.textContent = decision === 'approved'
+          ? `${title} was approved.`
+          : `${title} was rejected.`;
+      }
+    });
+  });
+</script>
+{% endblock %}

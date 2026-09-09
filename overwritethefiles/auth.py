@@ -10,7 +10,8 @@ from flask import (
     url_for,
 )
 
-from app.models.users import create_user, get_admin_request, get_user_by_id, request_admin_access, verify_user
+from app.models.users import create_user, verify_user
+from app.models.users import get_admin_request, get_user_by_id, request_admin_access
 from app.security import csrf_token, validate_csrf
 
 

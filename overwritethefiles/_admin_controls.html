@@ -1,0 +1,89 @@
+{# Direct admin management appears above the account approval queue. #}
+  <header class="page-header">
+    <p class="page-eyebrow">Account manager</p>
+    <h1 id="dashboard-title">Admin Management</h1>
+    <p class="page-description">Add admins and manage existing admin access.</p>
+  </header>
+
+  {% if error %}<p class="dashboard-message" role="alert">{{ error }}</p>{% endif %}
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+  <p class="dashboard-message" role="status">{{ message }}</p>
+  {% endfor %}
+
+  <section class="dashboard-section" aria-labelledby="add-admin-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="add-admin-title">Add an admin</h2>
+        <p>Admins can manage clients, review documents, and manage other admins.</p>
+      </div>
+    </div>
+    <h3>Add existing account</h3>
+    {% if available_accounts %}
+    <form method="post" action="{{ url_for('admin.add_account') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="mode" value="existing">
+      <div class="field">
+        <label for="existing-admin-email">Account</label>
+        <select id="existing-admin-email" name="email" required>
+          <option value="">Choose an account</option>
+          {% for account in available_accounts %}
+          <option value="{{ account.email }}" {% if account.email == email %}selected{% endif %}>{{ account.email }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn--primary" type="submit">Add as admin</button>
+    </form>
+    {% else %}
+    <p>All existing accounts already have admin access.</p>
+    {% endif %}
+
+    <h3>Create new admin account</h3>
+    <form method="post" action="{{ url_for('admin.add_account') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="mode" value="new">
+      <div class="field">
+        <label for="new-admin-email">Email address</label>
+        <input id="new-admin-email" type="email" name="email" value="{{ email }}" maxlength="254" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <label for="new-admin-password">Password</label>
+        <input id="new-admin-password" type="password" name="password" minlength="8" maxlength="128"
+               autocomplete="new-password" aria-describedby="admin-password-hint" required>
+        <p id="admin-password-hint">Use 8 to 128 characters.</p>
+      </div>
+      <button class="btn btn--primary" type="submit">Create admin account</button>
+    </form>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="existing-admins-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="existing-admins-title">Existing admins</h2>
+        <p>Removing admin access keeps the account and its documents. Your own access cannot be removed here.</p>
+      </div>
+      <span class="queue-count">{{ admins|length }} admins</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Email</th><th scope="col">Account created (UTC)</th><th scope="col">Action</th></tr></thead>
+        <tbody>
+          {% for admin in admins %}
+          <tr>
+            <td>{{ admin.email }}</td>
+            <td>{{ admin.created_at[:10] }}</td>
+            <td>
+              {% if admin.id == session.get('user_id') %}
+              Your account
+              {% else %}
+              <form method="post" action="{{ url_for('admin.remove_account', user_id=admin.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="btn btn--danger" type="submit" aria-label="Remove admin access for {{ admin.email }}">Remove admin access</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>

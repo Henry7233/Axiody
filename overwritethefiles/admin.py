@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, session, url_for
 
-from app.models.users import decide_admin_request, get_user_by_id, list_admin_requests
+from app.models.users import add_admin_account, get_user_by_id, list_accounts_by_role, remove_admin_access
+from app.models.users import decide_admin_request, list_admin_requests
 from app.security import csrf_token, validate_csrf
 
 
@@ -35,33 +36,20 @@ def require_login():
     if "user_id" in session:
         # Recheck the saved role so permission changes affect existing sessions.
         user = get_user_by_id(current_app.config["DATABASE"], session["user_id"])
-        if user is None or not user["is_admin"]:
-            abort(403, description="Approved admin access is required.")
-        return None
+        if user is not None:
+            # Any signed-in account can view Admin Management through /admin or
+            # its page aliases. Role checks still apply to account-changing actions.
+            if request.method in ("GET", "HEAD") and request.endpoint in ("admin.index", "admin.management"):
+                return None
+            if not user["is_admin"]:
+                # Show the access-request page instead of a Forbidden error.
+                # A 303 also prevents an attempted admin POST from being replayed.
+                return redirect(url_for("auth.admin_access"), code=303)
+            return None
+        session.clear()
 
     flash("Please log in first.", "error")
     return redirect(url_for("auth.login"))
-
-
-@admin_bp.route("/admin_management.html")
-@admin_bp.route("/management")
-def management():
-    # Supply all requests for the history table and pending requests for the queue.
-    access_requests = list_admin_requests(current_app.config["DATABASE"])
-    pending_requests = [item for item in access_requests if item["status"] == "pending"]
-    return render_template(
-        "admin/admin_management.html",
-        access_requests=access_requests,
-        pending_requests=pending_requests,
-        summary={
-            "Total requests": len(access_requests),
-            "Pending": len(pending_requests),
-            "Approved": sum(item["status"] == "approved" for item in access_requests),
-            "Rejected": sum(item["status"] == "rejected" for item in access_requests),
-        },
-        csrf_token=csrf_token(),
-        **admin_context("management"),
-    )
 
 
 @admin_bp.post("/access-requests/<int:request_id>/decision")
@@ -80,6 +68,54 @@ def decide_access(request_id):
     return redirect(url_for("admin.management"), code=303)
 
 
+def render_management(error=None, email="", status=200):
+    access_requests = list_admin_requests(current_app.config["DATABASE"])
+    return render_template(
+        "admin/admin_management.html",
+        admins=list_accounts_by_role(current_app.config["DATABASE"], True),
+        available_accounts=list_accounts_by_role(current_app.config["DATABASE"], False),
+        pending_requests=[item for item in access_requests if item["status"] == "pending" and not item["is_admin"]],
+        csrf_token=csrf_token(), error=error, email=email,
+        **admin_context("management"),
+    ), status
+
+
+@admin_bp.route("/admin_management.html")
+@admin_bp.route("/management")
+def management():
+    return render_management()
+
+
+@admin_bp.post("/admins/add")
+def add_account():
+    validate_csrf()
+    try:
+        email = add_admin_account(
+            current_app.config["DATABASE"], session["user_id"],
+            request.form.get("mode"), request.form.get("email", ""),
+            request.form.get("password", ""),
+        )
+    except ValueError as error:
+        return render_management(error=str(error), email=request.form.get("email", ""), status=400)
+    except PermissionError:
+        return redirect(url_for("auth.admin_access"), code=303)
+    flash(f"Admin access added for {email}.", "success")
+    return redirect(url_for("admin.management"), code=303)
+
+
+@admin_bp.post("/admins/<int:user_id>/remove")
+def remove_account(user_id):
+    validate_csrf()
+    try:
+        email = remove_admin_access(current_app.config["DATABASE"], session["user_id"], user_id)
+    except ValueError as error:
+        return render_management(error=str(error), status=400)
+    except PermissionError:
+        return redirect(url_for("auth.admin_access"), code=303)
+    flash(f"Admin access removed for {email}. Their account remains available.", "success")
+    return redirect(url_for("admin.management"), code=303)
+
+
 def admin_context(active_page):
     # Supply shared navigation links and highlight the current admin page.
     return {
@@ -92,9 +128,11 @@ def admin_context(active_page):
     }
 
 
+@admin_bp.route("")
 @admin_bp.route("/")
 def index():
-    return redirect(url_for("admin.dashboard"))
+    # Both /admin and /admin/ open the admin account management page.
+    return redirect(url_for("admin.management"))
 
 
 @admin_bp.route("/dashboard.html")
