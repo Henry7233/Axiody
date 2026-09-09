@@ -150,3 +150,34 @@ def settings():
         submissions_url=url_for("client.upload"),
         **admin_context("settings"),
     )
+
+@admin_bp.route("/admin_management.html")
+@admin_bp.route("/admin_management")
+def admin_management():
+    redirect_response = require_login()
+    if redirect_response:
+        return redirect_response
+
+    admins_data = [
+        {
+            "id": "admin-1001",
+            "name": "Alice Johnson",
+            "email": "alice.johnson@example.com",
+            "role": "Admin manager",
+            "status": "active",
+            "last_active": "2026-09-09",
+        },
+        {
+            "id": "admin-1002",
+            "name": "Bob Smith",
+            "email": "bob.smith@example.com",
+            "role": "Administrator",
+            "status": "pending",
+            "last_active": "Never",
+        },
+    ]
+    return render_template(
+        "admin/admin_management.html",
+        admins=admins_data,
+        **admin_context("admin_management"),
+    )
