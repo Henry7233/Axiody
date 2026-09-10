@@ -13,7 +13,7 @@
 }
 .admin-stat-card:hover,
 .admin-stat-card:focus-visible {
-  border-color: #bdd0ec;
+  border-color: light-dark(#bdd0ec, #35415a);
   box-shadow: 0 12px 30px #10164312;
 }
 .admin-preview-note {
@@ -21,8 +21,8 @@
   margin: 0 0 20px;
   border-radius: 8px;
   background: var(--admin-soft);
-  color: #50618a;
-  font-size: 13px;
+  color: light-dark(#50618a, #d8dde9);
+  font-size: 0.8125rem;
   line-height: 1.6;
 }
 .admin-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 20px; }
@@ -30,7 +30,7 @@
 .admin-controls label, .admin-dialog label {
   display: block;
   margin: 0 0 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .admin-controls input, .admin-controls select, .admin-dialog input, .admin-dialog select {
@@ -38,17 +38,17 @@
   min-height: 42px;
   margin: 0;
   padding: 10px 12px;
-  border: 1px solid #bdd0ec;
+  border: 1px solid light-dark(#bdd0ec, #35415a);
   border-radius: 8px;
-  background: #fff;
+  background: light-dark(#fff, #212836);
   color: var(--admin-text);
   font: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .admin-management :focus-visible { outline: 3px solid #0864ff; outline-offset: 3px; }
 .admin-person { display: flex; align-items: center; gap: 10px; min-width: 180px; }
-.admin-person strong { font-size: 14px; overflow-wrap: anywhere; }
-.admin-management .admin-avatar { width: 34px; height: 34px; flex: 0 0 34px; font-size: 14px; }
+.admin-person strong { font-size: 0.875rem; overflow-wrap: anywhere; }
+.admin-management .admin-avatar { width: 34px; height: 34px; flex: 0 0 34px; font-size: 0.875rem; }
 .admin-management th { text-align: center; }
 .admin-management th:last-child, .admin-management td:last-child { text-align: center; }
 .admin-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -75,11 +75,11 @@
   border-color: #8c1d18;
   color: #fff;
 }
-.admin-status { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-.admin-status--active { background: #e6f6ec; color: #16794b; }
-.admin-status--pending { background: #fff4e0; color: #9a6400; }
-.admin-status--suspended { background: #fde9e9; color: #b3261e; }
-.admin-results { color: var(--admin-muted); font-size: 13px; margin: 16px 0 0; }
+.admin-status { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+.admin-status--active { background: light-dark(#e6f6ec, #214a30); color: light-dark(#16794b, #93ebc2); }
+.admin-status--pending { background: light-dark(#fff4e0, #4a3b21); color: light-dark(#9a6400, #f5cf89); }
+.admin-status--suspended { background: light-dark(#fde9e9, #3c1b1b); color: light-dark(#b3261e, #ed9792); }
+.admin-results { color: var(--admin-muted); font-size: 0.8125rem; margin: 16px 0 0; }
 .admin-management .empty-state { margin-top: 16px; }
 .admin-management .dashboard-message:empty { display: none; }
 .admin-dialog {
@@ -88,20 +88,20 @@
   padding: 26px;
   border: 1px solid var(--admin-border);
   border-radius: 14px;
-  background: #fff;
+  background: light-dark(#fff, #212836);
   color: var(--admin-text);
   box-shadow: 0 24px 70px #10164333;
 }
 .admin-dialog::backdrop { background: #10164366; }
-.admin-dialog h2 { margin: 0 0 8px; font-size: 24px; letter-spacing: 0; }
-.admin-dialog p { color: var(--admin-muted); margin: 0 0 20px; font-size: 14px; }
+.admin-dialog h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: 0; }
+.admin-dialog p { color: var(--admin-muted); margin: 0 0 20px; font-size: 0.875rem; }
 .admin-dialog input, .admin-dialog select { margin-bottom: 16px; }
 .admin-password-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .admin-dialog .admin-password-input {
   min-height: 38px;
   padding: 8px 10px;
   margin-bottom: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .admin-dialog .document-actions { margin-top: 8px; }
 @media (min-width: 561px) and (max-width: 900px) {

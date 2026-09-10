@@ -163,6 +163,8 @@ window.AxiodySettings = (() => {
   "use strict";
   const messages = {
     saved: ['Preferences saved on this browser.', '偏好已保存在此浏览器中。', 'Pilihan disimpan dalam pelayar ini.'],
+    appearanceSaved: ['Appearance saved to your account for all pages.', '外观已保存到账户，适用于所有页面。', 'Penampilan disimpan ke akaun anda untuk semua halaman.'],
+    appearanceError: ['Appearance could not be saved. Select an option again to retry.', '无法保存外观。请重新选择选项以重试。', 'Penampilan tidak dapat disimpan. Pilih pilihan semula untuk mencuba lagi.'],
     temporary: ['Changes apply for this visit only. Sign in to save preferences for your account.', '更改仅在本次访问中生效。请登录以保存账户偏好。', 'Perubahan untuk lawatan ini sahaja. Log masuk untuk menyimpan pilihan akaun.'],
     storageError: ['Browser storage is unavailable. Your changes are temporary; allow site storage and try again.', '浏览器存储不可用。更改为临时更改；请允许网站存储后重试。', 'Storan pelayar tidak tersedia. Perubahan bersifat sementara; benarkan storan laman dan cuba lagi.'],
     localSaved: ['Profile saved on this browser. Your sign-in email and password have not changed.', '资料已保存在此浏览器中。登录邮箱和密码未更改。', 'Profil disimpan dalam pelayar ini. E-mel log masuk dan kata laluan tidak berubah.'],
@@ -189,6 +191,7 @@ window.AxiodySettings = (() => {
     const form = page.querySelector('[data-account-form]');
     const name = form.elements.full_name;
     const email = form.elements.email;
+    const roleInput = form.elements.role;
     const password = form.elements.password;
     const confirmation = form.elements.password_confirmation;
     const accountStatus = page.querySelector('[data-account-status]');
@@ -202,7 +205,7 @@ window.AxiodySettings = (() => {
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
     const storageKey = page.dataset.userId ? `axiody.settings.v1.${role}.${page.dataset.userId}` : null;
     const state = { preferences: {}, notifications: {}, profile: null };
-    let savedProfile = { full_name: name.value, email: email.value };
+    let savedProfile = { full_name: name.value, email: email.value, role: roleInput?.value || '' };
     let saving = false;
     let activeHelp = '';
     let helpTrigger = null;
@@ -250,12 +253,15 @@ window.AxiodySettings = (() => {
             if (typeof stored.notifications?.[control.name] === 'boolean') state.notifications[control.name] = stored.notifications[control.name];
           }
           if (!accountUrl && typeof stored.profile?.full_name === 'string' && typeof stored.profile?.email === 'string') {
-            savedProfile = { full_name: stored.profile.full_name.slice(0, 100), email: stored.profile.email.slice(0, 254) };
+            savedProfile = { full_name: stored.profile.full_name.slice(0, 100), email: stored.profile.email.slice(0, 254), role: typeof stored.profile.role === 'string' ? stored.profile.role.slice(0, 100) : savedProfile.role };
             state.profile = { ...savedProfile };
           }
         }
       } catch (_) { storageFailed = true; }
     }
+
+    // The database is authoritative for appearance, even after browser storage is cleared.
+    if (window.AxiodyAppearance) Object.assign(state.preferences, window.AxiodyAppearance.get());
 
     function persist() {
       if (!storageKey) return false;
@@ -271,6 +277,8 @@ window.AxiodySettings = (() => {
     function updateRecord() {
       record.querySelector('[data-record-name]').textContent = savedProfile.full_name || message('noName');
       record.querySelector('[data-record-email]').textContent = savedProfile.email || message('noEmail');
+      const roleRecord = record.querySelector('[data-record-role]');
+      if (roleRecord) roleRecord.textContent = savedProfile.role || '';
     }
     function passwordLabels() {
       for (const button of form.querySelectorAll('.settings-password-toggle')) {
@@ -283,6 +291,7 @@ window.AxiodySettings = (() => {
     }
     function applyTheme() {
       page.dataset.theme = state.preferences.theme === 'system' ? (systemTheme.matches ? 'dark' : 'light') : state.preferences.theme;
+      window.AxiodyAppearance?.apply({ theme: state.preferences.theme, fontSize: state.preferences.fontSize });
     }
     function renderPreview() {
       const list = helpContent.querySelector('[data-alert-preview]');
@@ -331,10 +340,22 @@ window.AxiodySettings = (() => {
         bubbles: true, detail: { role, preferences: { ...state.preferences }, notifications: { ...state.notifications } }
       }));
     }
-    function changedPreference() {
+    let appearanceRequest = 0;
+    async function changedPreference(event) {
       readPreferences();
       const saved = persist();
       applyPreferences();
+      if (window.AxiodyAppearance && ['theme', 'fontSize'].includes(event.target.name)) {
+        const requestId = ++appearanceRequest;
+        status(preferenceStatus, 'saving');
+        try {
+          await window.AxiodyAppearance.save(state.preferences);
+          if (requestId === appearanceRequest) status(preferenceStatus, 'appearanceSaved');
+        } catch (_) {
+          if (requestId === appearanceRequest) status(preferenceStatus, 'appearanceError', true);
+        }
+        return;
+      }
       status(preferenceStatus, saved ? 'saved' : storageKey ? 'storageError' : 'temporary', !saved && !!storageKey);
     }
     for (const control of [...preferenceControls, ...notificationControls]) control.addEventListener('change', changedPreference);
@@ -360,12 +381,13 @@ window.AxiodySettings = (() => {
     function resetAccount() {
       name.value = savedProfile.full_name;
       email.value = savedProfile.email;
+      if (roleInput) roleInput.value = savedProfile.role || '';
       name.setCustomValidity('');
       clearPasswords();
       updateRecord();
     }
     function dirty() {
-      return name.value !== savedProfile.full_name || email.value !== savedProfile.email || password.value !== '' || confirmation.value !== '';
+      return name.value !== savedProfile.full_name || email.value !== savedProfile.email || (roleInput && roleInput.value !== savedProfile.role) || password.value !== '' || confirmation.value !== '';
     }
     for (const button of form.querySelectorAll('.settings-password-toggle')) {
       button.addEventListener('click', () => {
@@ -411,7 +433,7 @@ window.AxiodySettings = (() => {
         confirmation.setCustomValidity(password.value !== confirmation.value ? message('passwordMismatch') : '');
       }
       if (!form.reportValidity()) return;
-      const nextProfile = { full_name: name.value, email: email.value };
+      const nextProfile = { full_name: name.value, email: email.value, role: roleInput?.value.trim() || savedProfile.role };
       if (!accountUrl) {
         const previousProfile = state.profile;
         state.profile = nextProfile;
@@ -444,7 +466,7 @@ window.AxiodySettings = (() => {
         if (!response.ok) throw new Error('Account update failed');
         const result = await response.json();
         if (typeof result.account?.full_name !== 'string' || typeof result.account?.email !== 'string') throw new Error('Account update was not confirmed');
-        savedProfile = { full_name: result.account.full_name, email: result.account.email };
+        savedProfile = { full_name: result.account.full_name, email: result.account.email, role: result.account.role || '' };
         resetAccount();
         status(accountStatus, 'accountSaved');
       } catch (_) {

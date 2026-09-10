@@ -11,7 +11,7 @@ from flask import (
     url_for,
 )
 
-from app.models.users import create_user, get_user_by_id, update_user_account, verify_user
+from app.models.users import create_user, get_user_by_id, update_user_account, update_user_appearance, verify_user
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -31,7 +31,7 @@ def load_account():
 
     g.account = {
         key: user[key]
-        for key in ("id", "full_name", "email", "account_type", "role", "created_at")
+        for key in ("id", "full_name", "email", "account_type", "role", "created_at", "theme", "font_size")
     }
     role = (user["role"] or "").strip()
     g.account["role"] = role if role and role.casefold() not in {"null", "none", "undefined"} else None
@@ -191,6 +191,21 @@ def update_account():
     session["user_email"] = result["account"]["email"]
     session["user_role"] = result["account"]["role"]
     return jsonify({"message": "Account changes saved.", "account": result["account"]})
+
+
+@auth_bp.post("/account/appearance")
+def update_appearance():
+    if g.get("account") is None:
+        return jsonify({"message": "Please log in first."}), 401
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"message": "Choose a valid theme and font size."}), 400
+    theme, font_size = data.get("theme"), data.get("fontSize")
+    if not isinstance(theme, str) or not isinstance(font_size, str) or not update_user_appearance(
+        current_app.config["DATABASE"], g.account["id"], theme, font_size
+    ):
+        return jsonify({"message": "Choose a valid theme and font size."}), 400
+    return jsonify({"theme": theme, "fontSize": font_size})
 
 
 @auth_bp.route("/dashboard")
