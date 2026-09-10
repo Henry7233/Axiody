@@ -38,9 +38,9 @@
 
     <section class="settings-section" id="account-information" aria-labelledby="account-title">
       <div class="settings-section-heading"><div><h2 id="account-title"><span data-en="Account Information" data-zh="账户信息" data-ms="Maklumat Akaun">Account Information</span></h2><p><span data-en="Update your personal details and keep your account secure." data-zh="更新个人资料，保障账户安全。" data-ms="Kemas kini maklumat peribadi dan pastikan akaun anda selamat.">Update your personal details and keep your account secure.</span></p></div>
-      <button type="button" class="settings-button" data-edit-account hidden><span data-en="Edit account" data-zh="编辑账户" data-ms="Edit akaun">Edit account</span></button></div>
-      <div class="settings-record" data-account-record hidden><strong data-record-name></strong><span data-record-email></span></div>
-      <form data-account-form>
+      <button type="button" class="settings-button" data-edit-account aria-controls="settings-account-form" aria-expanded="false"><span data-en="Edit account" data-zh="编辑账户" data-ms="Edit akaun">Edit account</span></button></div>
+      <div class="settings-record" data-account-record><strong data-record-name></strong><span data-record-email></span></div>
+      <form id="settings-account-form" data-account-form hidden>
         
         <div class="settings-fields">
           <div><label for="settings-name"><span data-en="Full Name" data-zh="姓名" data-ms="Nama Penuh">Full Name</span></label><div class="settings-input-wrap"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -60,7 +60,7 @@
 <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
 </svg></button></div></div>
         </div>
-        <div class="settings-account-actions"><p id="settings-password-hint" class="settings-hint"><span data-en="Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password." data-zh="请使用至少8个字符，包含字母、数字和符号。留空则保留原密码。" data-ms="Gunakan sekurang-kurangnya 8 aksara dengan huruf, nombor dan simbol. Biarkan kosong untuk mengekalkan kata laluan.">Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password.</span></p><div class="settings-actions"><button class="settings-button" type="button" data-close-account><span data-en="Close" data-zh="关闭" data-ms="Tutup">Close</span></button><button class="settings-button settings-button-primary" type="submit" disabled><span data-en="Save Changes" data-zh="保存更改" data-ms="Simpan Perubahan">Save Changes</span></button></div></div>
+        <div class="settings-account-actions"><p id="settings-password-hint" class="settings-hint"><span data-en="Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password." data-zh="请使用至少8个字符，包含字母、数字和符号。留空则保留原密码。" data-ms="Gunakan sekurang-kurangnya 8 aksara dengan huruf, nombor dan simbol. Biarkan kosong untuk mengekalkan kata laluan.">Use at least 8 characters with letters, numbers and symbols. Leave blank to keep your password.</span></p><div class="settings-actions"><button class="settings-button settings-button-primary" type="submit" disabled><span data-en="Save Changes" data-zh="保存更改" data-ms="Simpan Perubahan">Save Changes</span></button><button class="settings-button" type="button" data-close-account><span data-en="Close" data-zh="关闭" data-ms="Tutup">Close</span></button></div></div>
       </form>
       <p class="settings-hint settings-local-note"><span data-en="Name and email edits are saved on this browser only. Sign-in details and passwords cannot be changed here yet." data-zh="姓名和邮箱更改仅保存在此浏览器中。目前无法在此更改登录信息和密码。" data-ms="Perubahan nama dan e-mel disimpan dalam pelayar ini sahaja. Maklumat log masuk dan kata laluan belum boleh diubah di sini.">Name and email edits are saved on this browser only. Sign-in details and passwords cannot be changed here yet.</span></p>
       <p class="settings-status" data-account-status role="status" aria-live="polite"></p>

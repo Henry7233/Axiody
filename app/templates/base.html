@@ -173,6 +173,23 @@
       border-bottom-color: transparent;
     }
 
+    .account-menu { position: relative; order: 3; }
+    .account-menu summary { cursor: pointer; list-style: none; }
+    .account-menu summary::-webkit-details-marker { display: none; }
+    .account-popover {
+      position: absolute; right: 0; top: calc(100% + 8px); width: 240px;
+      padding: 18px; border: 1px solid var(--axiody-border); border-radius: 14px;
+      background: #fff; color: var(--axiody-text); box-shadow: 0 12px 32px #18335a24;
+      z-index: 1002;
+    }
+    .account-popover dl { margin: 0; }
+    .account-popover dt { color: var(--axiody-muted); font-size: 13px; margin-bottom: 4px; }
+    .account-popover dd { margin: 0 0 16px; font-weight: 600; overflow-wrap: anywhere; }
+    .account-logout { display: block; padding: 10px 14px; border-radius: 8px; background: #eef5ff; color: #0b5bc9; text-decoration: none; text-align: center; font-weight: 600; }
+    @media (max-width: 1100px) {
+      .account-menu { order: 2; margin-left: auto; }
+    }
+
     .avatar {
       width: 42px;
       height: 42px;
@@ -331,14 +348,26 @@
         <span>AXIODY</span>
       </a>
 
-      <!-- User avatar -->
-      <a class="nav-link avatar-link"
-         href="{{ profile_url | default('/profile') }}"
-         aria-label="Open profile">
-        <span class="avatar" aria-hidden="true">
-          {{ username | default('U', true) | first | upper }}
-        </span>
-      </a>
+      {% if current_account %}
+      <details class="account-menu" data-account-url="{{ url_for('auth.account_menu') }}">
+        <summary class="nav-link avatar-link" aria-label="Account menu" aria-controls="account-popover">
+          <span class="avatar" aria-hidden="true">{{ (current_account.full_name or current_account.email or 'U') | first | upper }}</span>
+        </summary>
+        <div class="account-popover" id="account-popover">
+          <dl>
+            <dt>Account type</dt><dd data-account-type>{{ current_account.account_type | title }}</dd>
+            {% set account_role = current_account.role | default('', true) | trim %}
+            {% set has_account_role = account_role and account_role | lower not in ['null', 'none', 'undefined', 'client'] %}
+            <div data-account-role {% if not has_account_role %}hidden{% endif %}>
+              {% if has_account_role %}
+              <dt>Role</dt><dd>{{ account_role }}</dd>
+              {% endif %}
+            </div>
+          </dl>
+          <a class="account-logout" href="{{ url_for('auth.logout') }}">Log out</a>
+        </div>
+      </details>
+      {% endif %}
 
       <button class="mobile-menu-toggle"
               type="button"
@@ -528,6 +557,52 @@
 
   {% block scripts %}{% endblock %}
   <script>
+    const accountMenu = document.querySelector('.account-menu');
+    if (accountMenu) {
+      let accountRequest = 0;
+      accountMenu.addEventListener('toggle', async () => {
+        const requestId = ++accountRequest;
+        if (!accountMenu.open) return;
+        const roleRow = accountMenu.querySelector('[data-account-role]');
+        // Remove the page-load role while checking the current database value.
+        roleRow.hidden = true;
+        roleRow.replaceChildren();
+        try {
+          const response = await fetch(accountMenu.dataset.accountUrl, {
+            cache: 'no-store', credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' }
+          });
+          if (!response.ok) return;
+          const account = await response.json();
+          if (requestId !== accountRequest || !accountMenu.open) return;
+          if (typeof account.account_type === 'string') {
+            accountMenu.querySelector('[data-account-type]').textContent =
+              account.account_type.charAt(0).toUpperCase() + account.account_type.slice(1);
+          }
+          const role = typeof account.role === 'string' ? account.role.trim() : '';
+          const normalizedRole = role.toLowerCase();
+          if (role && !['null', 'none', 'undefined', 'client'].includes(normalizedRole)) {
+            const label = document.createElement('dt');
+            const value = document.createElement('dd');
+            label.textContent = 'Role';
+            value.textContent = role;
+            roleRow.replaceChildren(label, value);
+            roleRow.hidden = false;
+          }
+        } catch (_) {
+          // Keep unverified role information out of the menu; logout remains usable.
+        }
+      });
+      document.addEventListener('click', event => {
+        if (!accountMenu.contains(event.target)) accountMenu.open = false;
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && accountMenu.open) {
+          accountMenu.open = false;
+          accountMenu.querySelector('summary').focus();
+        }
+      });
+    }
     const mobileMenuToggle = document.querySelector(".mobile-menu-toggle");
     const navbar = document.querySelector(".navbar");
 

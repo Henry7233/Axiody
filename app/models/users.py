@@ -1,13 +1,19 @@
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
+@contextmanager
 def get_connection(database_path):
     connection = sqlite3.connect(database_path)
     connection.row_factory = sqlite3.Row
-    return connection
+    try:
+        with connection:
+            yield connection
+    finally:
+        connection.close()
 
 
 def format_created_date(created_at):

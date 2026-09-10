@@ -2,6 +2,7 @@ from flask import (
     Blueprint,
     current_app,
     flash,
+    g,
     jsonify,
     redirect,
     render_template,
@@ -10,17 +11,51 @@ from flask import (
     url_for,
 )
 
-from app.models.users import create_user, verify_user
+from app.models.users import create_user, get_user_by_id, verify_user
 
 
 auth_bp = Blueprint("auth", __name__)
+
+
+@auth_bp.before_app_request
+def load_account():
+    """Load the signed-in database account for client and admin requests."""
+    g.account = None
+    if "user_id" not in session:
+        return
+
+    user = get_user_by_id(current_app.config["DATABASE"], session["user_id"])
+    if user is None:
+        session.clear()
+        return
+
+    g.account = {
+        key: user[key]
+        for key in ("id", "full_name", "email", "account_type", "role", "created_at")
+    }
+    role = (user["role"] or "").strip()
+    g.account["role"] = role if role and role.casefold() not in {"null", "none", "undefined"} else None
+    session["account_type"] = user["account_type"]
+    session["user_name"] = user["full_name"]
+    session["user_email"] = user["email"]
+
+
+@auth_bp.app_context_processor
+def account_context():
+    """Supply base.html with the shared account menu and navigation data."""
+    account = g.get("account")
+    return {
+        "current_account": account,
+        "home_url": default_url_for_account(account["account_type"] if account else "client"),
+        "admin_nav": bool(account and account["account_type"] == "admin"),
+    }
 
 
 def default_url_for_account(account_type):
     if account_type == "admin":
         return url_for("admin.dashboard")
 
-    return url_for("client.upload")
+    return url_for("client.dashboard")
 
 
 def wants_json_response():
@@ -83,7 +118,7 @@ def register():
         session["account_type"] = user["account_type"]
         session["protected"] = user["protected"]
         flash("Account created. You are logged in.", "success")
-        return redirect(url_for("client.upload"))
+        return redirect(url_for("client.dashboard"))
 
     return render_template("auth/register.html")
 
@@ -102,3 +137,16 @@ def logout():
     session.clear()
     flash("You are logged out.", "success")
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.get("/account-menu")
+def account_menu():
+    # load_account reads this signed-in user's database record on every request.
+    account = g.get("account")
+    if account is None:
+        response = jsonify({"message": "Please log in first."})
+        response.status_code = 401
+    else:
+        response = jsonify({"account_type": account["account_type"], "role": account["role"]})
+    response.headers["Cache-Control"] = "no-store"
+    return response
