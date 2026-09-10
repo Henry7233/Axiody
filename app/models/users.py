@@ -335,6 +335,15 @@ def update_user_appearance(database_path, user_id, theme, font_size):
         return bool(cursor.rowcount)
 
 
+def update_user_password(database_path, user_id, password):
+    with get_connection(database_path) as connection:
+        cursor = connection.execute(
+            "UPDATE users SET password_hash = ? WHERE id = ?",
+            (generate_password_hash(password), user_id),
+        )
+        return bool(cursor.rowcount)
+
+
 def verify_user(database_path, email, password):
     user = get_user_by_email(database_path, email)
     if user is None:

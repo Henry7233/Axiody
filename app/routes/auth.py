@@ -16,12 +16,13 @@ import hmac
 import smtplib
 import secrets
 
-from app.models.users import create_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, verify_user
-from app.services.email_servie import send_account_update_otp
+from app.models.users import create_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, update_user_password, verify_user
+from app.services.email_servie import send_account_update_otp, send_password_reset_otp
 
 
 auth_bp = Blueprint("auth", __name__)
 PENDING_ACCOUNT_UPDATES = {}
+PENDING_PASSWORD_RESETS = {}
 
 
 @auth_bp.before_app_request
@@ -88,6 +89,15 @@ def generate_otp():
     return f"{secrets.randbelow(1_000_000):06d}"
 
 
+def password_is_strong(password):
+    return (
+        len(password) >= 8
+        and any(character.isalpha() for character in password)
+        and any(character.isdigit() for character in password)
+        and any(not character.isalnum() for character in password)
+    )
+
+
 def send_account_otp(pending):
     code = generate_otp()
     expiry_minutes = current_app.config.get("OTP_EXPIRY_MINUTES", 5)
@@ -108,6 +118,32 @@ def otp_send_error_response(error):
     else:
         message = "Unable to send the verification code. Please try again."
     return jsonify({"message": message}), 500
+
+
+def send_password_reset_code(email):
+    code = generate_otp()
+    expiry_minutes = current_app.config.get("OTP_EXPIRY_MINUTES", 5)
+    pending = {
+        "email": email,
+        "otp_hash": otp_digest(code),
+        "expires_at": (otp_now() + timedelta(minutes=expiry_minutes)).isoformat(),
+        "attempts": 0,
+    }
+    send_password_reset_otp(current_app.config, email, code, expiry_minutes)
+    reset_id = secrets.token_urlsafe(24)
+    PENDING_PASSWORD_RESETS[reset_id] = pending
+    session["password_reset_id"] = reset_id
+    return pending
+
+
+def get_password_reset():
+    return PENDING_PASSWORD_RESETS.get(session.get("password_reset_id"))
+
+
+def forget_password_reset():
+    reset_id = session.pop("password_reset_id", None)
+    if reset_id:
+        PENDING_PASSWORD_RESETS.pop(reset_id, None)
 
 
 def remember_pending_account_update(pending):
@@ -227,6 +263,90 @@ def login():
         return redirect(redirect_url)
 
     return render_template("auth/login.html")
+
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        user = get_user_by_email(current_app.config["DATABASE"], email) if email else None
+        if user is None:
+            return render_template(
+                "auth/forgot_password.html",
+                email=email,
+                error="No account was found with that email address.",
+            ), 404
+        try:
+            pending = send_password_reset_code(email)
+        except Exception as error:
+            return otp_send_error_response(error)
+        return redirect(url_for("auth.verify_otp", email=pending["email"]))
+
+    return render_template("auth/forgot_password.html", email="")
+
+
+@auth_bp.route("/verify-otp", methods=["GET", "POST"])
+def verify_otp():
+    pending = get_password_reset()
+    if not pending:
+        return redirect(url_for("auth.forgot_password"))
+    if request.method == "POST":
+        data = request.get_json(silent=True) or request.form
+        code = str(data.get("otp", "")).strip()
+        try:
+            expires_at = datetime.fromisoformat(pending["expires_at"])
+        except (KeyError, ValueError, TypeError):
+            forget_password_reset()
+            return jsonify({"success": False, "message": "The verification code expired. Start again."}), 400
+        if otp_now() > expires_at:
+            forget_password_reset()
+            return jsonify({"success": False, "message": "The verification code expired. Start again."}), 400
+        if not code.isdigit() or len(code) != 6:
+            return jsonify({"success": False, "message": "Enter the 6-digit verification code."}), 400
+        pending["attempts"] += 1
+        if pending["attempts"] > current_app.config.get("OTP_MAX_ATTEMPTS", 5):
+            forget_password_reset()
+            return jsonify({"success": False, "message": "Too many attempts. Start again."}), 429
+        if not hmac.compare_digest(pending["otp_hash"], otp_digest(code)):
+            return jsonify({"success": False, "message": "Invalid verification code."}), 400
+        session["password_reset_verified"] = True
+        return jsonify({"success": True, "redirect_url": url_for("auth.reset_password")})
+    return render_template("auth/verify_otp.html", masked_email=pending["email"])
+
+
+@auth_bp.post("/resend-otp")
+def resend_otp():
+    pending = get_password_reset()
+    if not pending:
+        return jsonify({"success": False, "message": "Start the password reset again."}), 400
+    try:
+        updated = send_password_reset_code(pending["email"])
+    except Exception as error:
+        return otp_send_error_response(error)
+    return jsonify({"success": True, "expires_at": updated["expires_at"]})
+
+
+@auth_bp.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    pending = get_password_reset()
+    if not pending or not session.get("password_reset_verified"):
+        return redirect(url_for("auth.forgot_password"))
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirmation = request.form.get("confirm_password", "")
+        if not password_is_strong(password):
+            return render_template("auth/reset_password.html", error="Use at least 8 characters with a letter, number, and symbol."), 400
+        if password != confirmation:
+            return render_template("auth/reset_password.html", error="The passwords must match."), 400
+        user = get_user_by_email(current_app.config["DATABASE"], pending["email"])
+        if user is None or not update_user_password(current_app.config["DATABASE"], user["id"], password):
+            forget_password_reset()
+            session.pop("password_reset_verified", None)
+            return render_template("auth/reset_password.html", error="Unable to reset the password. Start again."), 400
+        forget_password_reset()
+        session.pop("password_reset_verified", None)
+        return redirect(url_for("auth.login", reset="success"))
+    return render_template("auth/reset_password.html")
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])

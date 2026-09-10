@@ -46,5 +46,22 @@ def send_account_update_otp(config, recipient, code, expiry_minutes):
         otp=code,
         expiry_minutes=expiry_minutes,
         logo_url=config.get("MAIL_LOGO_URL", ""),
+        password_reset=False,
     )
     send_email(config, recipient, "Your AXIODY verification code", body, html=html)
+
+
+def send_password_reset_otp(config, recipient, code, expiry_minutes):
+    body = (
+        "Your AXIODY password reset code is:\n\n"
+        f"{code}\n\n"
+        f"This code expires in {expiry_minutes} minutes. "
+        "If you did not request a password reset, you can ignore this email."
+    )
+    html = current_app.jinja_env.get_template("otp_email.html").render(
+        otp=code,
+        expiry_minutes=expiry_minutes,
+        logo_url=config.get("MAIL_LOGO_URL", ""),
+        password_reset=True,
+    )
+    send_email(config, recipient, "Your AXIODY password reset code", body, html=html)

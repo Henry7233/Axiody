@@ -352,6 +352,10 @@ body:has(.settings-page[data-theme="dark"]) .nav-link[aria-current="page"] { bac
 .settings-page .settings-otp-actions .settings-button-primary { width: 100%; min-height: 48px; font-size: 1.05em; }
 .settings-page .settings-otp-resend { margin: 25px 0 0 !important; font-size: .92em !important; }
 .settings-page .settings-otp-resend .settings-text-button { display: inline; padding: 0; margin: 0 0 0 5px; font-size: inherit; font-weight: 650; }
+.layout .primary { background: #0667ff; border-color: #0667ff; color: #fff; }
+.layout .primary:hover { background: #0058df; border-color: #0058df; color: #fff; }
+.forgot-password { display: block; margin-top: 14px; color: #0667ff; text-align: right; font-size: .9em; text-decoration: none; }
+.forgot-password:hover { text-decoration: underline; }
 .settings-page .settings-contact { background: var(--settings-soft); border-radius: 9px; padding: 18px; }
 .settings-page .settings-contact dt { color: var(--settings-muted); font-size: .9em; }
 .settings-page .settings-contact dd { margin: 4px 0 16px; overflow-wrap: anywhere; }
