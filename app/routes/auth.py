@@ -31,7 +31,7 @@ def load_account():
 
     g.account = {
         key: user[key]
-        for key in ("id", "full_name", "email", "account_type", "role", "created_at", "theme", "font_size")
+        for key in ("id", "full_name", "email", "account_type", "role", "protected", "created_at", "theme", "font_size")
     }
     role = (user["role"] or "").strip()
     g.account["role"] = role if role and role.casefold() not in {"null", "none", "undefined"} else None
@@ -39,17 +39,20 @@ def load_account():
     session["user_name"] = user["full_name"]
     session["user_email"] = user["email"]
     session["user_role"] = user["role"]
-    session["user_role"] = user["role"]
+    session["protected"] = user["protected"]
 
 
 @auth_bp.app_context_processor
 def account_context():
     """Supply base.html with the shared account menu and navigation data."""
     account = g.get("account")
+    is_admin = bool(account and account["account_type"] == "admin")
+    is_super_admin = bool(is_admin and account["protected"] in (1, True, "1", "true", "on", "yes"))
     return {
         "current_account": account,
         "home_url": default_url_for_account(account["account_type"] if account else "client"),
-        "admin_nav": bool(account and account["account_type"] == "admin"),
+        "admin_nav": is_admin,
+        "admin_can_manage_admins": is_super_admin,
     }
 
 

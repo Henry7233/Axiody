@@ -479,6 +479,7 @@
         </li>
 
         <!-- Admin management -->
+        {% if admin_can_manage_admins | default(false) %}
         <li>
            <a class="nav-link admin-management-link"
              href="{{ url_for('admin.admin_management') }}"
@@ -490,6 +491,7 @@
             <span>Admin <br>Management</span>
           </a>
         </li>
+        {% endif %}
 
         <!-- Settings -->
         <li>

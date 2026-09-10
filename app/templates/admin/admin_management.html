@@ -68,7 +68,7 @@
         </tr></thead>
         <tbody id="adminTableBody" data-delete-base-url="{{ url_for('admin.delete_admin', user_id=0) }}" data-delete-all-url="{{ url_for('admin.delete_unprotected_admins') }}">
           {% for admin in admins %}
-          <tr data-admin-id="{{ admin.id }}" data-name="{{ admin.name }}" data-email="{{ admin.email }}" data-role="{{ admin.role }}" data-date="{{ admin.date }}">
+          <tr data-admin-id="{{ admin.id }}" data-name="{{ admin.name }}" data-email="{{ admin.email }}" data-role="{{ admin.role }}" data-date="{{ admin.date }}" data-protected="{{ admin.protected }}">
             <td><div class="admin-person"><span class="avatar admin-avatar" aria-hidden="true">{{ admin.name | first | upper }}</span><strong data-field="name">{{ admin.name }}</strong></div></td>
             <td data-field="email">{{ admin.email }}</td>
             <td data-field="role">{{ admin.role }}</td>
@@ -122,6 +122,10 @@
           <input id="adminPasswordConfirm" name="password_confirmation" class="admin-password-input" type="password" minlength="8" autocomplete="new-password">
         </div>
       </div>
+      <label class="admin-checkbox" id="superAdminGroup" for="adminSuperAdmin">
+        <input id="adminSuperAdmin" name="super_admin" type="checkbox" value="1">
+        <span>Super Admin</span>
+      </label>
       <div class="document-actions">
         <button type="button" class="btn btn--secondary" id="cancelAdmin">Cancel</button>
         <button type="submit" class="btn btn--primary">Create admin</button>

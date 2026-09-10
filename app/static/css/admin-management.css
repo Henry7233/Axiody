@@ -96,6 +96,21 @@
 .admin-dialog h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: 0; }
 .admin-dialog p { color: var(--admin-muted); margin: 0 0 20px; font-size: 0.875rem; }
 .admin-dialog input, .admin-dialog select { margin-bottom: 16px; }
+.admin-dialog .admin-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.admin-dialog .admin-checkbox input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 18px;
+}
 .admin-password-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .admin-dialog .admin-password-input {
   min-height: 38px;

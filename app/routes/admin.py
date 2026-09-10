@@ -57,10 +57,28 @@ def require_admin():
     return redirect(url_for("client.upload"))
 
 
+def is_super_admin():
+    protected = session.get("protected")
+    return session.get("account_type") == "admin" and protected in (1, True, "1", "true", "on", "yes")
+
+
+def require_super_admin():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    if is_super_admin():
+        return None
+
+    flash("Super admin access is required.", "error")
+    return redirect(url_for("admin.dashboard"))
+
+
 def admin_context(active_page):
     return {
         "active_page": active_page,
         "admin_nav": True,
+        "admin_can_manage_admins": is_super_admin(),
         "home_url": url_for("admin.dashboard"),
         "profile_url": url_for("admin.settings") + "#account-information",
         "settings_url": url_for("admin.settings"),
@@ -281,7 +299,7 @@ def settings():
 @admin_bp.route("/admin_management.html")
 @admin_bp.route("/admin_management")
 def admin_management():
-    redirect_response = require_admin()
+    redirect_response = require_super_admin()
     if redirect_response:
         return redirect_response
 
@@ -306,9 +324,9 @@ def admin_management():
 
 @admin_bp.route("/admin_management/admins", methods=["POST"])
 def create_admin():
-    redirect_response = require_admin()
+    redirect_response = require_super_admin()
     if redirect_response:
-        return jsonify({"message": "Admin access is required."}), 403
+        return jsonify({"message": "Super admin access is required."}), 403
 
     data = request.get_json(silent=True) or request.form
     name = data.get("name", "").strip()
@@ -318,6 +336,8 @@ def create_admin():
     role = custom_role if selected_role == "Other" else selected_role
     password = data.get("password", "")
     password_confirmation = data.get("password_confirmation", "")
+    super_admin = data.get("super_admin", False)
+    protected = 1 if super_admin in (True, "true", "1", "on", "yes") else 0
 
     if not name:
         return jsonify({"message": "Enter a full name."}), 400
@@ -335,7 +355,7 @@ def create_admin():
         email,
         password,
         account_type="admin",
-        protected=0,
+        protected=protected,
         full_name=name,
         role=role,
     )
@@ -351,6 +371,7 @@ def create_admin():
                 "email": user["email"],
                 "role": user["role"],
                 "date": user["date"],
+                "protected": user["protected"],
             },
         }
     ), 201
@@ -358,9 +379,9 @@ def create_admin():
 
 @admin_bp.route("/admin_management/admins", methods=["DELETE"])
 def delete_unprotected_admins():
-    redirect_response = require_admin()
+    redirect_response = require_super_admin()
     if redirect_response:
-        return jsonify({"message": "Admin access is required."}), 403
+        return jsonify({"message": "Super admin access is required."}), 403
 
     result = delete_unprotected_admin_users(current_app.config["DATABASE"])
     return jsonify(
@@ -373,9 +394,9 @@ def delete_unprotected_admins():
 
 @admin_bp.route("/admin_management/admins/<int:user_id>", methods=["DELETE"])
 def delete_admin(user_id):
-    redirect_response = require_admin()
+    redirect_response = require_super_admin()
     if redirect_response:
-        return jsonify({"message": "Admin access is required."}), 403
+        return jsonify({"message": "Super admin access is required."}), 403
 
     user = get_user_by_id(current_app.config["DATABASE"], user_id)
     if user is None or user["account_type"] != "admin":
@@ -393,8 +414,8 @@ def delete_admin(user_id):
 
 @admin_bp.route("/admin_management/admins/<int:user_id>", methods=["PUT"])
 def update_admin(user_id):
-    if require_admin():
-        return jsonify({"message": "Admin access is required."}), 403
+    if require_super_admin():
+        return jsonify({"message": "Super admin access is required."}), 403
 
     data = request.get_json(silent=True) or request.form
     fields = ("name", "email", "role", "custom_role", "password", "password_confirmation")
@@ -428,5 +449,6 @@ def update_admin(user_id):
             "email": user["email"],
             "role": user["role"],
             "date": format_created_date(user["created_at"]),
+            "protected": user["protected"],
         },
     })
