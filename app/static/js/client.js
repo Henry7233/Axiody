@@ -1,3 +1,31 @@
+// Show all three record categories in the dashboard's HTML subview.
+(() => {
+  const dashboard = document.querySelector('.client-dashboard');
+  if (!dashboard) return;
+  const viewAll = dashboard.querySelector('[data-view-all-records]');
+  const dialog = dashboard.querySelector('#client-records-dialog');
+  if (!viewAll || !dialog) return;
+
+  viewAll.addEventListener('click', () => {
+    if (dialog.open) return;
+    dialog.showModal();
+    dialog.scrollTop = 0;
+    document.body.classList.add('client-records-open');
+  });
+  dialog.querySelector('[data-close-records]').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => {
+    const bounds = dialog.getBoundingClientRect();
+    if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
+      dialog.close();
+    }
+  });
+  // Native dialog behavior also handles Escape and keeps focus inside the overlay.
+  dialog.addEventListener('close', () => {
+    document.body.classList.remove('client-records-open');
+    viewAll.focus({ preventScroll: true });
+  });
+})();
+
 document.querySelectorAll('.toggle').forEach(button => {
   button.addEventListener('click', () => {
     const input = document.getElementById(button.getAttribute('aria-controls'));
@@ -359,6 +387,7 @@ window.AxiodySettings = (() => {
       form.hidden = true;
       record.hidden = false;
       editButton.hidden = false;
+      editButton.setAttribute('aria-expanded', 'false');
       status(accountStatus, 'discarded');
       editButton.focus();
     });
@@ -366,6 +395,7 @@ window.AxiodySettings = (() => {
       form.hidden = false;
       record.hidden = true;
       editButton.hidden = true;
+      editButton.setAttribute('aria-expanded', 'true');
       status(accountStatus, '');
       name.focus();
     });

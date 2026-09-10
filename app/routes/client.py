@@ -1,3 +1,6 @@
+from datetime import date, datetime
+
+from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
@@ -5,6 +8,52 @@ from app.models.documents import create_document
 
 
 client_bp = Blueprint("client", __name__, url_prefix="/client")
+
+
+# Shared by the dashboard preview and its all-records overlay.
+DOCUMENT_CATEGORIES = [
+    {"id": "sales-revenue-records", "name": "Sales & Revenue Records", "icon": "chart", "documents": ["Sales invoices", "Payment receipts", "Bank transaction proof"]},
+    {"id": "business-expenses", "name": "Business Expenses", "icon": "cart", "documents": ["Expense invoices", "Expense receipts", "Payment proof"]},
+    {"id": "bank-reconciliation", "name": "Bank Reconciliation", "icon": "bank", "documents": ["Bank statements", "Transaction records", "Reconciliation reports"]},
+]
+
+
+def bookkeeping_periods():
+    today = date.today()
+    periods = []
+    for offset in range(12):
+        year, month = divmod(today.year * 12 + today.month - 1 - offset, 12)
+        period = date(year, month + 1, 1)
+        periods.append({"value": period.strftime("%Y-%m"), "label": period.strftime("%B %Y")})
+    selected_period = request.args.get("period", periods[0]["value"])
+    if selected_period not in {period["value"] for period in periods}:
+        selected_period = periods[0]["value"]
+    return periods, selected_period
+
+
+@client_bp.route("/")
+@client_bp.route("/dashboard.html")
+@client_bp.route("/dashboard")
+def dashboard():
+    """Render templates/client/dashboard.html with the current client's data."""
+    redirect_response = require_client()
+    if redirect_response:
+        return redirect_response
+
+    periods, selected_period = bookkeeping_periods()
+
+    account = g.account
+    try:
+        member_since = datetime.fromisoformat(account["created_at"]).strftime("%b %Y")
+    except (TypeError, ValueError):
+        member_since = "Not provided"
+
+    return render_template(
+        "client/dashboard.html", account=account, member_since=member_since,
+        periods=periods, selected_period=selected_period, categories=DOCUMENT_CATEGORIES,
+        period_label=next(period["label"] for period in periods if period["value"] == selected_period),
+        username=account["full_name"] or account["email"],
+    )
 
 
 def require_client():
