@@ -24,7 +24,6 @@
     .map((option) => option.value)
     .filter((value) => value !== "Other");
   let editingRow = null;
-  let nextId = 0;
 
   function updateCustomRoleField() {
     const usesCustomRole = roleInput.value === "Other";
@@ -144,6 +143,10 @@
     passwordInput.required = !row;
     passwordConfirmInput.required = !row;
     document.getElementById("adminDialogTitle").textContent = row ? "Edit admin" : "Add admin";
+    document.getElementById("adminDialogDescription").textContent = row
+      ? "Update this admin's details and role. Leave passwords blank to keep the current password."
+      : "Create an admin account with a role and password.";
+    form.querySelector('[type="submit"]').textContent = row ? "Save changes" : "Create admin";
     if (row) {
       nameInput.value = row.dataset.name;
       emailInput.value = row.dataset.email;
@@ -248,58 +251,46 @@
     validatePasswords(isNew);
     if (!form.reportValidity()) return;
 
-    if (isNew) {
-      const submitButton = form.querySelector('[type="submit"]');
-      submitButton.disabled = true;
-      try {
-        const response = await fetch(form.dataset.createUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
-          body: JSON.stringify({
-            name,
-            email,
-            role: roleInput.value,
-            custom_role: customRoleInput.value.trim(),
-            password: passwordInput.value,
-            password_confirmation: passwordConfirmInput.value,
-          }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          emailInput.setCustomValidity(result.message || "Unable to create this admin.");
-          form.reportValidity();
-          return;
-        }
-
-        const row = createAdminRow(result.admin);
-        table.append(row);
-        ensureRoleFilterOption(result.admin.role);
-        dialog.close();
-        refresh();
-        document.getElementById("adminsMessage").textContent = result.message;
-      } catch (error) {
-        emailInput.setCustomValidity("Unable to create this admin right now.");
+    const targetRow = editingRow;
+    const submitButton = form.querySelector('[type="submit"]');
+    submitButton.disabled = true;
+    try {
+      const saveUrl = isNew ? form.dataset.createUrl
+        : form.dataset.updateBaseUrl.replace(/0$/, targetRow.dataset.adminId);
+      const response = await fetch(saveUrl, {
+        method: isNew ? "POST" : "PUT",
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({
+          name,
+          email,
+          role: roleInput.value,
+          custom_role: customRoleInput.value.trim(),
+          password: passwordInput.value,
+          password_confirmation: passwordConfirmInput.value,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        emailInput.setCustomValidity(result.message || "Unable to save this admin.");
         form.reportValidity();
-      } finally {
-        submitButton.disabled = false;
+        return;
       }
-      return;
-    }
 
-    const row = editingRow;
-    Object.assign(row.dataset, { name, email, role });
-    fillAdminRow(row, {
-      id: row.dataset.adminId || `preview-${++nextId}`,
-      name,
-      email,
-      role,
-      date: row.dataset.date,
-    });
-    ensureRoleFilterOption(role);
-    dialog.close();
-    refresh();
-    if (editingRow.hidden) search.focus();
-    document.getElementById("adminsMessage").textContent = `${name} updated in this view.`;
+      if (isNew) {
+        table.append(createAdminRow(result.admin));
+      } else {
+        fillAdminRow(targetRow, result.admin);
+      }
+      ensureRoleFilterOption(result.admin.role);
+      dialog.close();
+      refresh();
+      document.getElementById("adminsMessage").textContent = result.message;
+    } catch (error) {
+      emailInput.setCustomValidity("Unable to save this admin right now.");
+      form.reportValidity();
+    } finally {
+      submitButton.disabled = false;
+    }
   });
 
   search.addEventListener("input", refresh);
