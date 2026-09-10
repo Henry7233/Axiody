@@ -1,5 +1,6 @@
 from flask import Flask, redirect, session, url_for
 
+from app.models.documents import init_document_db
 from app.models.users import init_user_db
 from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
@@ -12,6 +13,7 @@ def create_app():
     app.config.from_object(Config)
 
     init_user_db(app.config["DATABASE"])
+    init_document_db(app.config["DATABASE"])
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(client_bp)
