@@ -1,19 +1,104 @@
-import os
+import io
 import json
-import boto3
-from dotenv import load_dotenv
+import os
+import re
+import zipfile
+from xml.etree import ElementTree
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv():
+        return False
 
 load_dotenv()
 
-bedrock = boto3.client(
-    "bedrock-runtime",
-    region_name=os.getenv("AWS_REGION")
-)
-
 MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID")
+ALLOWED_DOCUMENT_TYPES = {"Invoice", "Receipt", "Bank Statement", "Other"}
+SUCCESS_DOCUMENT_TYPES = ALLOWED_DOCUMENT_TYPES - {"Other"}
 
 
-def classify_document(document_text, title="", description=""):
+def extract_document_text(file_data, filename="", content_type=""):
+    extension = os.path.splitext(filename)[1].lower()
+
+    if extension == ".docx":
+        return _extract_zip_xml_text(file_data, "word/document.xml")
+    if extension in {".xlsx", ".xlsm"}:
+        return _extract_zip_xml_text(file_data, "xl/sharedStrings.xml")
+    if extension == ".pdf" or content_type == "application/pdf":
+        return _extract_pdf_text(file_data)
+    if content_type.startswith("text/") or extension in {".txt", ".csv"}:
+        return file_data.decode("utf-8", errors="ignore")
+    return ""
+
+
+def _extract_zip_xml_text(file_data, member_name):
+    try:
+        with zipfile.ZipFile(io.BytesIO(file_data)) as archive:
+            xml_data = archive.read(member_name)
+        root = ElementTree.fromstring(xml_data)
+        return " ".join(value.strip() for value in root.itertext() if value.strip())
+    except (ElementTree.ParseError, KeyError, OSError, zipfile.BadZipFile):
+        return ""
+
+
+def _extract_pdf_text(file_data):
+    text = file_data.decode("latin-1", errors="ignore")
+    text = re.sub(r"\\([()])", r"\1", text)
+    return " ".join(re.findall(r"\(([^()]*)\)", text))
+
+
+def _normalize_result(result):
+    document_type = str(result.get("document_type", "Other")).strip()
+    aliases = {
+        "bank statement": "Bank Statement",
+        "bank statements": "Bank Statement",
+        "invoice": "Invoice",
+        "receipt": "Receipt",
+        "other": "Other",
+    }
+    document_type = aliases.get(document_type.lower(), "Other")
+    try:
+        confidence = float(result.get("confidence", 0))
+    except (TypeError, ValueError):
+        confidence = 0
+    if 0 <= confidence <= 1:
+        confidence *= 100
+    confidence = max(0, min(100, round(confidence, 2)))
+    status = "Success" if document_type in SUCCESS_DOCUMENT_TYPES and confidence > 70 else "Under review"
+    return {
+        "document_type": document_type,
+        "ai_document_type": document_type,
+        "ai_confidence": confidence,
+        "classification_status": status,
+    }
+
+
+def _fallback_classification(document_text, title, description, filename):
+    evidence = " ".join((document_text, title, description, filename)).lower()
+    keyword_groups = {
+        "Bank Statement": ("bank statement", "account statement", "opening balance", "closing balance", "transaction date"),
+        "Invoice": ("invoice", "bill to", "amount due", "due date", "subtotal"),
+        "Receipt": ("receipt", "payment received", "paid", "change due", "thank you for your purchase"),
+    }
+    scores = {
+        document_type: sum(1 for keyword in keywords if keyword in evidence)
+        for document_type, keywords in keyword_groups.items()
+    }
+    document_type, score = max(scores.items(), key=lambda item: item[1])
+    if score == 0:
+        return {"document_type": "Other", "confidence": 0}
+    return {"document_type": document_type, "confidence": min(95, 70 + score * 5)}
+
+
+def classify_document(
+    document_text,
+    title="",
+    description="",
+    filename="",
+    content_type="",
+    document_bytes=None,
+):
 
     prompt = f"""
 You are the Classification Agent for AXIODY,
@@ -45,7 +130,8 @@ Document content:
 Return ONLY valid JSON using this format:
 
 {{
-    "document_type": "Invoice"
+    "document_type": "Invoice",
+    "confidence": 0.87
 }}
 
 Rules:
@@ -53,28 +139,37 @@ Rules:
 - Use "Receipt" for proof that payment has already been made.
 - Use "Bank Statement" for bank account transaction statements.
 - Use "Other" when the document does not clearly belong to the three categories.
+- Confidence must be a number from 0 to 1.
 """
 
-    response = bedrock.converse(
-        modelId=MODEL_ID,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "text": prompt
-                    }
-                ]
+    result = None
+    if MODEL_ID:
+        try:
+            import boto3
+
+            bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION"))
+            message_content = [{"text": prompt}]
+            image_formats = {
+                "image/jpeg": "jpeg",
+                "image/png": "png",
+                "image/gif": "gif",
+                "image/webp": "webp",
             }
-        ],
-        inferenceConfig={
-            "maxTokens": 100,
-            "temperature": 0
-        }
-    )
+            image_format = image_formats.get(content_type)
+            if image_format and document_bytes:
+                message_content.append(
+                    {"image": {"format": image_format, "source": {"bytes": document_bytes}}}
+                )
 
-    result_text = response["output"]["message"]["content"][0]["text"]
+            response = bedrock.converse(
+                modelId=MODEL_ID,
+                messages=[{"role": "user", "content": message_content}],
+                inferenceConfig={"maxTokens": 150, "temperature": 0},
+            )
+            result = json.loads(response["output"]["message"]["content"][0]["text"])
+        except Exception:
+            result = None
 
-    result = json.loads(result_text)
-
-    return result
+    if not isinstance(result, dict):
+        result = _fallback_classification(document_text, title, description, filename)
+    return _normalize_result(result)

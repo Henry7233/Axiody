@@ -4,7 +4,8 @@ from flask import Blueprint, flash, g, redirect, render_template, request, sessi
 from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
-from app.models.documents import create_document
+from app.agents.classification_agent import classify_document, extract_document_text
+from app.models.documents import create_document, update_document_classification
 
 
 client_bp = Blueprint("client", __name__, url_prefix="/client")
@@ -96,15 +97,29 @@ def upload():
                 if not file_data:
                     continue
 
-                create_document(
+                filename = secure_filename(uploaded_file.filename) or uploaded_file.filename
+                content_type = uploaded_file.mimetype or ""
+                document_id = create_document(
                     current_app.config["DATABASE"],
                     session["user_id"],
                     title,
                     description,
                     document_date,
-                    secure_filename(uploaded_file.filename) or uploaded_file.filename,
-                    uploaded_file.mimetype,
+                    filename,
+                    content_type,
                     file_data,
+                )
+                document_text = extract_document_text(file_data, filename, content_type)
+                classification = classify_document(
+                    document_text,
+                    title=title,
+                    description=description,
+                    filename=filename,
+                    content_type=content_type,
+                    document_bytes=file_data,
+                )
+                update_document_classification(
+                    current_app.config["DATABASE"], document_id, classification
                 )
                 saved_count += 1
 
