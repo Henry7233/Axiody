@@ -94,7 +94,7 @@
   <p class="dashboard-message" id="adminsMessage" role="status" aria-live="polite"></p>
   <noscript><p>Enable JavaScript to search, filter, or add admins.</p></noscript>
   <dialog class="admin-dialog" id="adminDialog" aria-labelledby="adminDialogTitle" aria-describedby="adminDialogDescription">
-    <form id="adminForm" data-create-url="{{ url_for('admin.create_admin') }}">
+    <form id="adminForm" data-create-url="{{ url_for('admin.create_admin') }}" data-update-base-url="{{ url_for('admin.update_admin', user_id=0) }}">
       <h2 id="adminDialogTitle">Add admin</h2>
       <p id="adminDialogDescription">Create an admin account with a role and password.</p>
       <label for="adminName">Full name</label>
