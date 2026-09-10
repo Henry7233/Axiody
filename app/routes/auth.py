@@ -11,7 +11,7 @@ from flask import (
     url_for,
 )
 
-from app.models.users import create_user, get_user_by_id, verify_user
+from app.models.users import create_user, get_user_by_id, update_user_account, verify_user
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -38,6 +38,8 @@ def load_account():
     session["account_type"] = user["account_type"]
     session["user_name"] = user["full_name"]
     session["user_email"] = user["email"]
+    session["user_role"] = user["role"]
+    session["user_role"] = user["role"]
 
 
 @auth_bp.app_context_processor
@@ -78,7 +80,9 @@ def login():
 
         session.clear()
         session["user_id"] = user["id"]
+        session["user_name"] = user["full_name"]
         session["user_email"] = user["email"]
+        session["user_role"] = user["role"]
         session["account_type"] = user["account_type"]
         session["protected"] = user["protected"]
         redirect_url = default_url_for_account(user["account_type"])
@@ -100,27 +104,93 @@ def login():
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        email = request.form.get("email", "")
+        full_name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
+        role = request.form.get("role", "").strip()
+
+        if not full_name:
+            flash("Full name is required.", "error")
+            return render_template("auth/register.html", name=full_name, email=email, role=role), 400
 
         if len(password) < 8:
             flash("Password must be at least 8 characters.", "error")
-            return render_template("auth/register.html", email=email), 400
+            return render_template("auth/register.html", name=full_name, email=email, role=role), 400
 
-        user = create_user(current_app.config["DATABASE"], email, password)
+        user = create_user(
+            current_app.config["DATABASE"],
+            email,
+            password,
+            account_type="client",
+            full_name=full_name,
+            role=role or "Client",
+        )
         if user is None:
             flash("An account with that email already exists.", "error")
-            return render_template("auth/register.html", email=email), 409
+            return render_template("auth/register.html", name=full_name, email=email, role=role), 409
 
         session.clear()
         session["user_id"] = user["id"]
+        session["user_name"] = user["full_name"]
         session["user_email"] = user["email"]
+        session["user_role"] = user["role"]
         session["account_type"] = user["account_type"]
         session["protected"] = user["protected"]
         flash("Account created. You are logged in.", "success")
         return redirect(url_for("client.dashboard"))
 
     return render_template("auth/register.html")
+
+
+@auth_bp.route("/account", methods=["POST"])
+def update_account():
+    if "user_id" not in session:
+        return jsonify({"message": "Please log in first."}), 401
+
+    full_name = (request.form.get("full_name", "") or request.form.get("name", "")).strip()
+    email = (request.form.get("email", "") or "").strip().lower()
+    role = request.form.get("role", "").strip()
+    password = request.form.get("password", "")
+    password_confirmation = request.form.get("password_confirmation", "")
+
+    if not full_name:
+        return jsonify({"message": "Enter your full name."}), 400
+    if not email:
+        return jsonify({"message": "Enter an email address."}), 400
+    if password or password_confirmation:
+        if len(password) < 8:
+            return jsonify({"message": "Use at least 8 characters in the new password."}), 400
+        if password != password_confirmation:
+            return jsonify({"message": "The new passwords must match."}), 400
+
+    result = update_user_account(
+        current_app.config["DATABASE"],
+        session["user_id"],
+        full_name,
+        email,
+        password,
+        password_confirmation,
+        role,
+    )
+
+    if not result["updated"]:
+        reason = result["reason"]
+        if reason == "duplicate_email":
+            return jsonify({"message": "An account with that email already exists."}), 409
+        if reason == "missing_name":
+            return jsonify({"message": "Enter your full name."}), 400
+        if reason == "missing_email":
+            return jsonify({"message": "Enter an email address."}), 400
+        if reason == "password_weak":
+            return jsonify({"message": "Use at least 8 characters in the new password."}), 400
+        if reason == "password_mismatch":
+            return jsonify({"message": "The new passwords must match."}), 400
+        return jsonify({"message": "Unable to update your account."}), 400
+
+    session["user_name"] = result["account"]["full_name"]
+    session["user_email"] = result["account"]["email"]
+    session["user_role"] = result["account"]["role"]
+    return jsonify({"message": "Account changes saved.", "account": result["account"]})
 
 
 @auth_bp.route("/dashboard")

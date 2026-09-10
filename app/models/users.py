@@ -221,6 +221,76 @@ def delete_unprotected_admin_users(database_path):
         return {"deleted": len(deleted_ids), "deleted_ids": deleted_ids}
 
 
+def update_user_account(database_path, user_id, full_name, email, password="", password_confirmation="", role=""):
+    normalized_full_name = (full_name or "").strip()
+    normalized_email = (email or "").strip().lower()
+    normalized_role = (role or "").strip()
+
+    if not normalized_full_name:
+        return {"updated": False, "reason": "missing_name"}
+    if not normalized_email:
+        return {"updated": False, "reason": "missing_email"}
+
+    if password or password_confirmation:
+        if len(password) < 8:
+            return {"updated": False, "reason": "password_weak"}
+        if password != password_confirmation:
+            return {"updated": False, "reason": "password_mismatch"}
+
+    with get_connection(database_path) as connection:
+        existing = connection.execute(
+            "SELECT id FROM users WHERE email = ? AND id != ?",
+            (normalized_email, user_id),
+        ).fetchone()
+        if existing is not None:
+            return {"updated": False, "reason": "duplicate_email"}
+
+        if password:
+            cursor = connection.execute(
+                """
+                UPDATE users
+                SET full_name = ?, email = ?, role = ?, password_hash = ?
+                WHERE id = ?
+                """,
+                (normalized_full_name, normalized_email, normalized_role or "Client", generate_password_hash(password), user_id),
+            )
+        else:
+            cursor = connection.execute(
+                """
+                UPDATE users
+                SET full_name = ?, email = ?, role = ?
+                WHERE id = ?
+                """,
+                (normalized_full_name, normalized_email, normalized_role or "Client", user_id),
+            )
+
+        if not cursor.rowcount:
+            return {"updated": False, "reason": "not_found"}
+
+        updated = connection.execute(
+            """
+            SELECT id, full_name, email, account_type, role, protected, created_at
+            FROM users
+            WHERE id = ?
+            """,
+            (user_id,),
+        ).fetchone()
+
+    return {
+        "updated": True,
+        "reason": None,
+        "account": {
+            "id": updated["id"],
+            "full_name": updated["full_name"],
+            "email": updated["email"],
+            "account_type": updated["account_type"],
+            "role": updated["role"],
+            "protected": updated["protected"],
+            "created_at": updated["created_at"],
+        },
+    }
+
+
 def verify_user(database_path, email, password):
     user = get_user_by_email(database_path, email)
     if user is None:
