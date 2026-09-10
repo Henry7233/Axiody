@@ -512,12 +512,69 @@ body:has(.verification-page) .site-content {
   gap: 12px;
 }
 
+.admin-documents-page {
+  gap: 18px;
+}
+
+.document-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.document-summary-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(48, 76, 121, .07);
+  padding: 18px 20px;
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summary-label {
+  color: var(--admin-text);
+  font-weight: 700;
+}
+
+.notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: #ffe3e8;
+  color: #c62842;
+  border: 1px solid #f7b7c4;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.notification-badge--compact {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
 .document-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
   padding: 18px;
+}
+
+.document-card--with-count {
+  padding-right: 16px;
 }
 
 .document-card h2,

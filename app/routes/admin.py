@@ -1,3 +1,6 @@
+import sqlite3
+from datetime import datetime
+
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 
 from app.models.documents import list_documents
@@ -8,6 +11,7 @@ from app.models.users import (
     delete_user,
     get_user_by_id,
     list_admin_users,
+    list_users,
     update_admin_user,
 )
 
@@ -122,9 +126,97 @@ def documents():
 
     return render_template(
         "admin/documents.html",
-        documents=list_documents(current_app.config["DATABASE"]),
         **admin_context("documents"),
     )
+
+
+@admin_bp.route("/documents/data")
+def documents_data():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    database_path = current_app.config["DATABASE"]
+
+    def formatted_size(size_bytes):
+        if size_bytes is None:
+            return "0 KB"
+        if size_bytes >= 1024 * 1024:
+            return f"{size_bytes / (1024 * 1024):.1f} MB"
+        if size_bytes >= 1024:
+            return f"{size_bytes / 1024:.0f} KB"
+        return f"{size_bytes} B"
+
+    def formatted_date(value):
+        if not value:
+            return ""
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except Exception:
+            return value
+        return parsed.strftime("%b %d").replace(" 0", " ")
+
+    def formatted_submitted_at(value):
+        if not value:
+            return ""
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except Exception:
+            return value
+        hour = parsed.strftime("%I").lstrip("0") or "12"
+        return f"{parsed.strftime('%b %d,')} {hour}:{parsed.strftime('%M')} {parsed.strftime('%p')}"
+
+    def category_for(title):
+        text = (title or "").lower()
+        if "invoice" in text or "bill" in text:
+            return "invoices"
+        if "receipt" in text:
+            return "receipts"
+        if "bank" in text or "statement" in text:
+            return "statements"
+        return "others"
+
+    with sqlite3.connect(database_path) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            """
+            SELECT
+                d.id,
+                d.title,
+                d.filename AS name,
+                d.file_size AS size_bytes,
+                d.created_at,
+                CASE
+                    WHEN TRIM(COALESCE(u.full_name, '')) <> '' THEN u.full_name
+                    ELSE u.email
+                END AS submittedBy
+            FROM documents d
+            JOIN users u
+              ON u.id = d.user_id
+            ORDER BY d.created_at DESC, d.id DESC
+            """
+        ).fetchall()
+
+    grouped = {
+        "invoices": {"label": "Invoices", "files": []},
+        "receipts": {"label": "Receipts", "files": []},
+        "statements": {"label": "Bank Statements", "files": []},
+        "others": {"label": "Others", "files": []},
+    }
+
+    for row in rows:
+        category = category_for(row["title"])
+        grouped[category]["files"].append(
+            {
+                "name": row["name"],
+                "size": formatted_size(row["size_bytes"]),
+                "date": formatted_date(row["created_at"]),
+                "submittedBy": row["submittedBy"] or row["name"],
+                "submittedAt": formatted_submitted_at(row["created_at"]),
+            }
+        )
+
+    return jsonify(grouped)
 
 
 @admin_bp.route("/reminders.html")
