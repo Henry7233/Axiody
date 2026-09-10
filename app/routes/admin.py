@@ -1,5 +1,6 @@
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 
+from app.models.documents import list_documents
 from app.models.users import (
     create_user,
     delete_unprotected_admin_users,
@@ -119,7 +120,7 @@ def documents():
 
     return render_template(
         "admin/documents.html",
-        documents=SAMPLE_DOCUMENTS,
+        documents=list_documents(current_app.config["DATABASE"]),
         **admin_context("documents"),
     )
 

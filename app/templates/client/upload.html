@@ -414,7 +414,7 @@
             class="file-input"
             type="file"
             id="document_file_1"
-            name="document_files"
+            name="document_files_1"
             accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
             multiple
             required
@@ -569,6 +569,7 @@
     newDateInput.value = "";
     newDateLabel.setAttribute("for", newDateId);
     newInput.id = newFileId;
+    newInput.name = `document_files_${newIndex}`;
     newInput.value = "";
     newUploadLabel.setAttribute("for", newFileId);
     newUploadBox.setAttribute("for", newFileId);
