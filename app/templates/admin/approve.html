@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Document | AXIODY{% endblock %}
+
+{% block content %}
+<section class="verification-page"
+         data-client="{{ client_name }}"
+         data-document-id="{{ document_id }}"
+         data-dashboard-url="{{ url_for('admin.dashboard') }}"
+         aria-labelledby="verify-title">
+  <header class="page-header page-header--with-action">
+    <div>
+      <p class="page-eyebrow">Document review</p>
+      <h1 id="verify-title">Verify document</h1>
+      <p class="page-description">Review the extracted information and correct fields that need attention.</p>
+    </div>
+    <a class="btn btn--secondary" href="{{ url_for('admin.dashboard') }}">Back to dashboard</a>
+  </header>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div class="verify-grid">
+    <aside class="panel preview-card" aria-labelledby="preview-title">
+      <h2 id="preview-title">Document preview</h2>
+      <p class="muted" id="previewMeta"></p>
+      <div class="preview-box">
+        <img id="previewImage"
+             src="{{ url_for('static', filename='samples/invoice-gst.png') }}"
+             alt="Uploaded invoice preview">
+        <div class="preview-placeholder" id="previewPlaceholder" hidden>
+          <div class="preview-icon" aria-hidden="true">&#129534;</div>
+          <strong>Sample image not found</strong>
+          <span>Add the sample invoice image to <code>static/samples</code>.</span>
+        </div>
+      </div>
+      <div class="preview-summary">
+        <strong id="documentType"></strong>
+        <span id="documentConfidence" class="confidence"></span>
+      </div>
+    </aside>
+
+    <section class="panel verify-card" aria-labelledby="fields-title">
+      <div class="verify-card__intro">
+        <h2 id="fields-title">Extracted information</h2>
+        <p class="muted">Low-confidence fields need human review before approval.</p>
+      </div>
+      <form id="verifyForm">
+        <!-- JavaScript creates labelled fields from the mock extraction data. -->
+        <div id="fieldsContainer"></div>
+        <div class="verify-actions">
+          <button type="button" class="btn btn--secondary" id="saveBtn">Save changes</button>
+          <button type="submit" class="btn btn--primary" id="approveBtn">Approve document</button>
+          <button type="button" class="btn btn--danger" id="rejectBtn">Reject document</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin-verify.js') }}" defer></script>
+{% endblock %}

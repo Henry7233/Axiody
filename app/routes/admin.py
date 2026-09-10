@@ -1,6 +1,10 @@
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 
-from app.models.documents import list_documents
+from app.models.documents import (
+    get_client_review_data,
+    list_client_summaries,
+    list_documents,
+)
 from app.models.users import (
     create_user,
     format_created_date,
@@ -79,18 +83,39 @@ def dashboard():
     )
 
 
-@admin_bp.route("/reviews.html")
+@admin_bp.route("/reviews.html", endpoint="reviews_html")
 @admin_bp.route("/reviews")
 def reviews():
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
+    client, documents = get_client_review_data(
+        current_app.config["DATABASE"],
+        request.args.get("client", "Acme Supplies"),
+    )
     return render_template(
         "admin/reviews.html",
-        client_name=request.args.get("client", "Acme Supplies"),
+        client=client,
+        documents=documents,
+        client_name=client["name"],
         document_id=request.args.get("document", "doc-1001"),
         **admin_context("reviews"),
+    )
+
+
+@admin_bp.route("/approve.html")
+@admin_bp.route("/approve")
+def approve():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    return render_template(
+        "admin/approve.html",
+        client_name=request.args.get("client", "Acme Supplies"),
+        document_id=request.args.get("document", "doc-1001"),
+        **admin_context("approve"),
     )
 
 
@@ -101,14 +126,9 @@ def clients():
     if redirect_response:
         return redirect_response
 
-    clients_data = [
-        {"name": "Acme Supplies", "status": "Needs review", "documents": 4},
-        {"name": "Northstar Foods", "status": "Pending files", "documents": 2},
-        {"name": "Greenline Studio", "status": "Ready", "documents": 6},
-    ]
     return render_template(
         "admin/clients.html",
-        clients=clients_data,
+        clients=list_client_summaries(current_app.config["DATABASE"]),
         **admin_context("clients"),
     )
 
