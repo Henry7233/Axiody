@@ -158,7 +158,7 @@ def settings():
     return render_template(
         "client/client_settings.html",
         account=account,
-        account_update_url="",
+        account_update_url=url_for("auth.update_account"),
         notifications_url=url_for("client.notifications"),
         submissions_url=url_for("client.upload"),
         username=session.get("user_name") or session.get("user_email"),

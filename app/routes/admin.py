@@ -160,7 +160,7 @@ def settings():
     return render_template(
         "admin/admin_settings.html",
         account=account,
-        account_update_url="",
+        account_update_url=url_for("auth.update_account"),
         notifications_url=url_for("client.notifications"),
         submissions_url=url_for("client.upload"),
         **admin_context("settings"),
