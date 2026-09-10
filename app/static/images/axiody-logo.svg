@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64" role="img" aria-labelledby="title">
+  <title id="title">AXIODY</title>
+  <defs>
+    <linearGradient id="blue1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b72f0"/>
+      <stop offset="100%" stop-color="#0854c7"/>
+    </linearGradient>
+    <linearGradient id="blue2" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f8cff"/>
+      <stop offset="100%" stop-color="#1266dc"/>
+    </linearGradient>
+  </defs>
+  <path d="M31.5 5 8 47.5h14.2L32 29.7l10.1 17.8H56L32.6 5Z" fill="url(#blue1)"/>
+  <path d="M17.5 47.5 25 60h14l7.3-12.5H32Z" fill="url(#blue2)"/>
+  <text x="78" y="47" fill="#0c1738" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="800" letter-spacing="1">AXIODY</text>
+</svg>

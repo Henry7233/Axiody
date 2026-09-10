@@ -15,6 +15,8 @@
   const roleInput = document.getElementById("adminRole");
   const customRoleGroup = document.getElementById("customRoleGroup");
   const customRoleInput = document.getElementById("adminCustomRole");
+  const superAdminGroup = document.getElementById("superAdminGroup");
+  const superAdminInput = document.getElementById("adminSuperAdmin");
   const passwordInput = document.getElementById("adminPassword");
   const passwordConfirmInput = document.getElementById("adminPasswordConfirm");
   const addButton = document.getElementById("addAdmin");
@@ -73,6 +75,7 @@
       email: admin.email,
       role: admin.role,
       date: admin.date,
+      protected: admin.protected ? "1" : "0",
     });
     ["name", "email", "role", "date"].forEach((field) => {
       row.querySelector(`[data-field="${field}"]`).textContent = row.dataset[field];
@@ -142,6 +145,8 @@
     passwordConfirmInput.setCustomValidity("");
     passwordInput.required = !row;
     passwordConfirmInput.required = !row;
+    superAdminInput.checked = false;
+    superAdminGroup.hidden = Boolean(row);
     document.getElementById("adminDialogTitle").textContent = row ? "Edit admin" : "Add admin";
     document.getElementById("adminDialogDescription").textContent = row
       ? "Update this admin's details and role. Leave passwords blank to keep the current password."
@@ -267,6 +272,7 @@
           custom_role: customRoleInput.value.trim(),
           password: passwordInput.value,
           password_confirmation: passwordConfirmInput.value,
+          super_admin: isNew && superAdminInput.checked,
         }),
       });
       const result = await response.json();

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AXIODY Verification Code</title>
+</head>
+
+<body style="
+    margin:0;
+    padding:0;
+    background:#f5f7fb;
+    font-family:Arial, Helvetica, sans-serif;
+">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+        <td align="center">
+
+            <table width="600"
+                   cellpadding="0"
+                   cellspacing="0"
+                   style="
+                       background:#ffffff;
+                       border-radius:16px;
+                       border:1px solid #e4eaf2;
+                       padding:40px;
+                   ">
+
+                <!-- Logo -->
+                <tr>
+                    <td align="center" style="padding-bottom:30px;">
+
+                        {% if logo_url %}<img
+                            src="{{ logo_url }}"
+                            alt="AXIODY"
+                            width="180"
+                            style="display:block;"
+                        >{% else %}<div style="color:#0c1738;font-size:30px;font-weight:800;letter-spacing:1px;line-height:48px;white-space:nowrap;">AXIODY</div>{% endif %}
+
+                    </td>
+                </tr>
+
+                <!-- Main OTP box -->
+                <tr>
+                    <td>
+
+                        <table width="100%"
+                               cellpadding="0"
+                               cellspacing="0"
+                               style="
+                                   background:#f3f7ff;
+                                   border-radius:14px;
+                                   padding:35px;
+                               ">
+
+                            <tr>
+                                <td align="center">
+
+                                    <div style="
+                                        font-size:42px;
+                                        margin-bottom:15px;
+                                    ">
+                                        ✉
+                                    </div>
+
+                                    <h1 style="
+                                        color:#0d2147;
+                                        margin:0 0 15px 0;
+                                        font-size:28px;
+                                    ">
+                                        Your Verification Code
+                                    </h1>
+
+                                    <p style="
+                                        color:#50627d;
+                                        font-size:16px;
+                                        margin-bottom:25px;
+                                    ">
+                                        Here is your 6-digit OTP to {% if password_reset %}reset your password{% else %}verify your account change{% endif %}.
+                                    </p>
+
+                                    <div style="
+                                        background:#e7efff;
+                                        color:#1468ee;
+                                        font-size:34px;
+                                        font-weight:bold;
+                                        letter-spacing:12px;
+                                        padding:18px 25px;
+                                        border-radius:10px;
+                                        display:inline-block;
+                                    ">
+                                        {{ otp }}
+                                    </div>
+
+                                    <p style="
+                                        margin-top:25px;
+                                        color:#50627d;
+                                    ">
+                                        This code will expire in
+                                        <strong>{{ expiry_minutes }} minutes.</strong>
+                                    </p>
+
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Security note -->
+                <tr>
+                    <td style="padding-top:30px;">
+
+                        <hr style="
+                            border:none;
+                            border-top:1px solid #e4eaf2;
+                            margin-bottom:25px;
+                        ">
+
+                        <p style="
+                            font-weight:bold;
+                            color:#0d2147;
+                            margin-bottom:8px;
+                        ">
+                            Didn't request this?
+                        </p>
+
+                        <p style="
+                            color:#50627d;
+                            font-size:14px;
+                            margin-top:0;
+                        ">
+                            If you did not request this verification code, please ignore this email. 
+                            you can safely ignore this email.
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="padding-top:30px;">
+
+                        <hr style="
+                            border:none;
+                            border-top:1px solid #e4eaf2;
+                        ">
+
+                        <p style="
+                            color:#7b8798;
+                            font-size:12px;
+                            text-align:center;
+                            margin-top:20px;
+                        ">
+                            © 2026 AXIODY. All rights reserved.
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

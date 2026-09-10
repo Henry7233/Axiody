@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verify OTP | AXIODY</title>
+
+    <style>
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f8fc;
+
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            width: 460px;
+
+            background: white;
+
+            padding: 40px;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 15px 40px rgba(0,0,0,0.08);
+
+            text-align: center;
+        }
+
+        .logo {
+            width: 190px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #0b2147;
+        }
+
+        p {
+            color: #66758f;
+        }
+
+        .otp-container {
+            display: flex;
+            justify-content: center;
+
+            gap: 10px;
+
+            margin: 30px 0;
+        }
+
+        .otp-box {
+            width: 48px;
+            height: 58px;
+
+            text-align: center;
+
+            font-size: 24px;
+
+            border: 1px solid #d4deed;
+            border-radius: 10px;
+        }
+
+        .otp-box:focus {
+            outline: none;
+
+            border-color: #1670f8;
+
+            box-shadow:
+                0 0 0 3px rgba(22,112,248,0.12);
+        }
+
+        .timer {
+            margin-bottom: 20px;
+        }
+
+        .timer span {
+            color: #1670f8;
+            font-weight: bold;
+        }
+
+        .resend {
+            margin-top: 20px;
+        }
+
+        .resend button {
+            border: none;
+            background: none;
+
+            color: #1670f8;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .error {
+            color: #dc2626;
+            margin-top: 15px;
+        }
+
+        #successSection {
+            display: none;
+        }
+
+        .success-icon {
+            width: 90px;
+            height: 90px;
+
+            margin: 20px auto;
+
+            border-radius: 50%;
+
+            background: #dcfce7;
+            color: #16a34a;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 50px;
+        }
+
+        .success-title {
+            font-size: 32px;
+            color: #0b2147;
+            font-weight: 700;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+    <img
+        src="{{ url_for('static', filename='images/axiody-logo.svg') }}"
+        class="logo"
+        alt="AXIODY"
+    >
+
+
+    <!-- OTP CONTENT -->
+
+    <div id="otpSection">
+
+        <h1>Enter Verification Code</h1>
+
+        <p>
+            We've sent a 6-digit OTP to
+            <strong>{{ masked_email }}</strong>.
+        </p>
+
+
+        <div class="otp-container">
+
+            <input maxlength="1" class="otp-box">
+            <input maxlength="1" class="otp-box">
+            <input maxlength="1" class="otp-box">
+            <input maxlength="1" class="otp-box">
+            <input maxlength="1" class="otp-box">
+            <input maxlength="1" class="otp-box">
+
+        </div>
+
+
+        <p class="timer">
+            OTP expires in
+            <span id="timer">05:00</span>
+        </p>
+
+
+        <div class="resend">
+            Didn't receive the code?
+
+            <button id="resendBtn">
+                Resend OTP
+            </button>
+        </div>
+
+
+        <p id="errorMessage" class="error"></p>
+
+    </div>
+
+
+    <!-- SUCCESS CONTENT -->
+
+    <div id="successSection">
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+        <div id="verificationStatus" class="success-title">
+            Verifying...
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const boxes =
+    document.querySelectorAll(".otp-box");
+
+const errorMessage =
+    document.getElementById("errorMessage");
+
+let verifying = false;
+
+
+// Auto move between OTP boxes
+
+boxes.forEach((box, index) => {
+
+    box.addEventListener("input", async () => {
+
+        box.value =
+            box.value.replace(/[^0-9]/g, "");
+
+
+        if (
+            box.value &&
+            index < boxes.length - 1
+        ) {
+            boxes[index + 1].focus();
+        }
+
+
+        const otp =
+            Array.from(boxes)
+                .map(input => input.value)
+                .join("");
+
+
+        // automatically verify
+        // once all 6 digits entered
+
+        if (
+            otp.length === 6 &&
+            !verifying
+        ) {
+
+            await verifyOTP(otp);
+
+        }
+
+    });
+
+
+    box.addEventListener("keydown", event => {
+
+        if (
+            event.key === "Backspace" &&
+            !box.value &&
+            index > 0
+        ) {
+
+            boxes[index - 1].focus();
+
+        }
+
+    });
+
+});
+
+
+// Verify OTP
+
+async function verifyOTP(otp) {
+
+    verifying = true;
+
+    errorMessage.textContent = "";
+    document
+        .getElementById("otpSection")
+        .style.display = "none";
+    document
+        .getElementById("successSection")
+        .style.display = "block";
+    document
+        .getElementById("verificationStatus")
+        .textContent = "Verifying...";
+
+    try {
+
+        const response =
+            await fetch(
+                "{{ url_for('auth.verify_otp') }}",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        otp: otp
+                    })
+
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.success) {
+            // wait briefly,
+            // then proceed to reset password
+
+            setTimeout(() => {
+
+                window.location.href =
+                    "{{ url_for('auth.reset_password') }}";
+
+            }, 1200);
+
+        }
+
+        else {
+
+            document
+                .getElementById("otpSection")
+                .style.display = "block";
+            document
+                .getElementById("successSection")
+                .style.display = "none";
+
+            errorMessage.textContent =
+                data.message || "Invalid OTP.";
+
+            boxes.forEach(box => {
+                box.value = "";
+            });
+
+            boxes[0].focus();
+
+        }
+
+    }
+
+    catch (error) {
+
+        document
+            .getElementById("otpSection")
+            .style.display = "block";
+        document
+            .getElementById("successSection")
+            .style.display = "none";
+
+        errorMessage.textContent =
+            "Unable to verify OTP. Please try again.";
+        boxes.forEach(box => {
+            box.value = "";
+        });
+        boxes[0].focus();
+
+    }
+
+    finally {
+
+        verifying = false;
+
+    }
+
+}
+
+boxes[0].focus();
+
+
+// Countdown timer
+
+let seconds = 300;
+
+const timer =
+    document.getElementById("timer");
+
+
+const timerInterval =
+    setInterval(() => {
+
+        seconds--;
+
+
+        const minutes =
+            Math.floor(seconds / 60);
+
+        const remainingSeconds =
+            seconds % 60;
+
+
+        timer.textContent =
+            `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+
+
+        if (seconds <= 0) {
+
+            clearInterval(timerInterval);
+
+            timer.textContent = "Expired";
+
+        }
+
+    }, 1000);
+
+
+// Resend OTP
+
+document
+    .getElementById("resendBtn")
+    .addEventListener("click", async () => {
+
+        errorMessage.textContent = "";
+
+        const response =
+            await fetch(
+                "{{ url_for('auth.resend_otp') }}",
+                {
+                    method: "POST"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.success) {
+
+            location.reload();
+
+        }
+
+        else {
+
+            errorMessage.textContent =
+                data.message || "Unable to resend OTP.";
+
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
