@@ -288,7 +288,6 @@ body:has(.settings-page[data-theme="dark"]) .nav-link[aria-current="page"] { bac
 .settings-page .settings-text-button { background: transparent; color: var(--settings-blue); border: 0; padding: 6px 0; margin-top: 7px; text-align: left; font-size: .84em; }
 .settings-page .settings-text-button:hover { text-decoration: underline; }
 .settings-page .settings-workspace-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; margin: 10px 0 6px; }
-.settings-page .settings-language { display: grid; grid-template-columns: 1fr minmax(260px, 40%); align-items: center; gap: 22px; }
 .settings-page .settings-help-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin-top: 10px; }
 .settings-page .settings-help-card { display: flex; align-items: center; gap: 13px; min-width: 0; min-height: 65px; padding: 12px 14px; background: var(--settings-surface); color: var(--settings-text); border: 1px solid var(--settings-border); border-radius: 7px; text-align: left; }
 .settings-page .settings-help-card:hover { background: var(--settings-soft); border-color: var(--settings-blue); }
@@ -334,7 +333,7 @@ body:has(.settings-page[data-theme="dark"]) .nav-link[aria-current="page"] { bac
   .settings-page .settings-banner h2 { font-size: 1.25em; }
   .settings-page .settings-section { padding: 15px; }
   .settings-page .settings-fields, .settings-page .settings-appearance, .settings-page .settings-notifications,
-  .settings-page .settings-workspace-fields, .settings-page .settings-language { grid-template-columns: 1fr; gap: 15px; }
+  .settings-page .settings-workspace-fields { grid-template-columns: 1fr; gap: 15px; }
   .settings-page .settings-field-full { width: 100%; }
   .settings-page fieldset + fieldset { border-left: 0; padding-left: 0; border-top: 1px solid var(--settings-border); padding-top: 12px; }
   .settings-page .settings-account-actions { flex-direction: column; gap: 12px; }

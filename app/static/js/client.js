@@ -221,10 +221,7 @@ window.AxiodySettings = (() => {
       }
     } catch (_) { /* An invalid endpoint never receives account data. */ }
 
-    function languageIndex() {
-      return { 'en-SG': 0, 'zh-Hans': 1, ms: 2 }[state.preferences.language] ?? 0;
-    }
-    function message(key) { return messages[key][languageIndex()]; }
+    function message(key) { return messages[key][0]; }
     function status(element, key, error = false) {
       element.dataset.statusKey = key;
       element.dataset.error = String(error);
@@ -285,10 +282,6 @@ window.AxiodySettings = (() => {
         button.setAttribute('aria-label', message(button.getAttribute('aria-pressed') === 'true' ? 'hidePassword' : 'showPassword'));
       }
     }
-    function translate(root = page) {
-      const lang = { 'en-SG': 'en', 'zh-Hans': 'zh', ms: 'ms' }[state.preferences.language] || 'en';
-      for (const element of root.querySelectorAll('[data-en]')) element.textContent = element.dataset[lang] || element.dataset.en;
-    }
     function applyTheme() {
       page.dataset.theme = state.preferences.theme === 'system' ? (systemTheme.matches ? 'dark' : 'light') : state.preferences.theme;
       window.AxiodyAppearance?.apply({ theme: state.preferences.theme, fontSize: state.preferences.fontSize });
@@ -302,8 +295,8 @@ window.AxiodySettings = (() => {
         const item = document.createElement('li');
         const heading = document.createElement('strong');
         const example = document.createElement('p');
-        heading.textContent = control.closest('label').querySelector('[data-en]').textContent;
-        example.textContent = alertExamples[control.name][languageIndex()];
+        heading.textContent = control.closest('label').textContent.trim();
+        example.textContent = alertExamples[control.name][0];
         item.append(heading, example);
         list.append(item);
       }
@@ -320,9 +313,8 @@ window.AxiodySettings = (() => {
       }
       for (const control of notificationControls) control.checked = state.notifications[control.name];
       page.dataset.fontSize = state.preferences.fontSize;
-      page.lang = state.preferences.language;
+      page.lang = 'en-SG';
       applyTheme();
-      translate();
       passwordLabels();
       updateRecord();
       document.title = `${message('settings')} | AXIODY`;
@@ -331,7 +323,7 @@ window.AxiodySettings = (() => {
         if (element.dataset.statusKey) element.textContent = message(element.dataset.statusKey);
       }
       if (activeHelp && helpTrigger) {
-        page.querySelector('#settings-dialog-title').textContent = helpTrigger.querySelector('strong')?.textContent || helpTrigger.querySelector('[data-en]').textContent;
+        page.querySelector('#settings-dialog-title').textContent = helpTrigger.querySelector('strong')?.textContent || helpTrigger.textContent.trim();
         renderPreview();
       }
       onPreferencesChanged(page, { ...state.preferences });
@@ -489,8 +481,7 @@ window.AxiodySettings = (() => {
         const template = page.querySelector(`#${activeHelp}`);
         if (!template) return;
         helpContent.replaceChildren(template.content.cloneNode(true));
-        translate(helpContent);
-        page.querySelector('#settings-dialog-title').textContent = trigger.querySelector('strong')?.textContent || trigger.querySelector('[data-en]').textContent;
+        page.querySelector('#settings-dialog-title').textContent = trigger.querySelector('strong')?.textContent || trigger.textContent.trim();
         renderPreview();
         dialog.showModal();
       });
