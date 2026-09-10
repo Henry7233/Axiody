@@ -410,7 +410,7 @@ window.AxiodySettings = (() => {
       record.hidden = false;
       editButton.hidden = false;
       editButton.setAttribute('aria-expanded', 'false');
-      status(accountStatus, 'discarded');
+      status(accountStatus, '');
       editButton.focus();
     });
     editButton.addEventListener('click', () => {
