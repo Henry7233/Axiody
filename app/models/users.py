@@ -163,6 +163,26 @@ def list_admin_users(database_path):
         ]
 
 
+def list_users(database_path):
+    with get_connection(database_path) as connection:
+        return [
+            {
+                "id": user["id"],
+                "name": user["full_name"] or user["email"],
+                "email": user["email"],
+                "account_type": user["account_type"],
+                "role": user["role"] or ("Administrator" if user["account_type"] == "admin" else "Client"),
+            }
+            for user in connection.execute(
+                """
+                SELECT id, full_name, email, account_type, role
+                FROM users
+                ORDER BY id
+                """
+            ).fetchall()
+        ]
+
+
 def delete_user(database_path, user_id):
     with get_connection(database_path) as connection:
         user = connection.execute(

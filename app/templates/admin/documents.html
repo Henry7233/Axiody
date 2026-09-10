@@ -1,36 +1,295 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Documents | AXIODY{% endblock %}
+{% block title %}Documents | AXIODY{% endblock %}
+
+{% block head %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink: #16211c;
+    --paper: #f6f4ee;
+    --panel: #ffffff;
+    --line: #dcd6c8;
+    --moss: #33513f;
+    --moss-dim: #6b8577;
+    --rust: #c4523a;
+    --sand: #efe9d8;
+    --shadow: rgba(22,33,28,0.08);
+  }
+
+  .admin-documents-page {
+    display: grid;
+    gap: 22px;
+  }
+
+  .shell {
+    width: min(1680px, 100%);
+    margin: 0 auto;
+  }
+
+  .tabs{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 0;
+  }
+  .tab{
+    appearance:none;
+    border:none;
+    background: transparent;
+    font-family:'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--moss-dim);
+    padding: 14px 18px 16px;
+    display:flex;
+    align-items:center;
+    gap: 9px;
+    cursor:pointer;
+    position:relative;
+    top: 2px;
+    border-bottom: 2px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .tab:hover{ color: var(--ink); }
+  .tab.active{
+    color: var(--ink);
+    border-bottom: 2px solid var(--moss);
+  }
+  .count{
+    background: var(--rust);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+  }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    min-height: 420px;
+    padding: 4px 0;
+    box-shadow: 0 1px 0 var(--shadow);
+  }
+
+  .panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel-header h2{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+  }
+  .panel-header .sub{
+    font-size: 14px;
+    color: var(--moss-dim);
+  }
+
+  .file-list{
+    list-style:none;
+    margin:0;
+    padding: 6px 8px;
+  }
+  .file-row{
+    display:grid;
+    grid-template-columns: 26px 1fr 200px 100px 96px;
+    gap: 14px;
+    align-items:center;
+    padding: 13px 16px;
+    border-radius: 6px;
+    cursor:pointer;
+    transition: background .12s ease;
+  }
+  .file-row.head{
+    cursor: default;
+    padding: 8px 16px;
+  }
+  .file-row.head:hover{ background: transparent; }
+  .file-row:hover{ background: var(--sand); }
+  .file-row + .file-row{ border-top: 1px solid var(--line); }
+
+  .col-label{
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--moss-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .file-icon{
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--moss);
+    opacity: 0.85;
+    flex-shrink:0;
+  }
+  .file-name{
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-meta{
+    font-size: 14px;
+    color: var(--moss-dim);
+  }
+  .submitted{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+    overflow:auto;
+  }
+  .submitted .email{
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .submitted .time{
+    font-size: 13px;
+    color: var(--moss-dim);
+  }
+  .file-date{
+    font-size: 14px;
+    color: var(--moss-dim);
+    text-align:right;
+  }
+
+  .empty-state{
+    padding: 60px 24px;
+    text-align:center;
+    color: var(--moss-dim);
+    font-size: 14px;
+  }
+
+  @media (max-width: 720px){
+    .file-row{ grid-template-columns: 22px 1fr 96px; }
+    .file-meta, .file-date, .col-label:nth-child(4), .col-label:nth-child(5){ display:none; }
+    .tab{ font-size: 14px; padding: 12px 12px 14px; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<section class="admin-page" aria-labelledby="documents-title">
+<section class="admin-page admin-documents-page" aria-labelledby="documents-title">
   <header class="page-header">
-    <p class="page-eyebrow">Admin workspace</p>
-    <h1 id="documents-title">Documents</h1>
-    <p class="page-description">Track submitted documents waiting for review.</p>
+    <div>
+      <p class="page-eyebrow">Account manager view</p>
+      <h1 id="documents-title">Documents</h1>
+    </div>
   </header>
 
-  <div class="document-list">
-    {% for document in documents %}
-    <article class="document-card">
-      <div>
-        <h2>{{ document.title }}</h2>
-        <p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
-        <p>{{ document.filename }} · {{ document.status }}</p>
+  <div class="shell">
+    <div class="tabs" id="tabs"></div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2 id="panelTitle">Invoices</h2>
+        <div class="sub" id="panelSub">0 files</div>
       </div>
-      <div class="document-actions">
-        <a class="btn btn--secondary"
-           href="{{ url_for('admin.reviews', client=document.submitter, document=document.id) }}">Review</a>
-      </div>
-    </article>
-    {% else %}
-    <article class="document-card">
-      <div>
-        <h2>No submitted documents yet</h2>
-        <p>Client uploads will appear here after submission.</p>
-      </div>
-    </article>
-    {% endfor %}
+      <ul class="file-list" id="fileList"></ul>
+    </div>
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const tabsEl = document.getElementById('tabs');
+  const listEl = document.getElementById('fileList');
+  const titleEl = document.getElementById('panelTitle');
+  const subEl = document.getElementById('panelSub');
+
+  let active = 'invoices';
+  let data = {};
+
+  async function loadData() {
+    const response = await fetch('/admin/documents/data');
+    data = await response.json();
+    renderTabs();
+    renderPanel();
+  }
+
+  function renderTabs(){
+    tabsEl.innerHTML = '';
+    const order = ['invoices', 'receipts', 'statements', 'others'];
+
+    order.forEach(key => {
+      if (!data[key]) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (key === active ? ' active' : '');
+      btn.innerHTML = `${data[key].label} <span class="count">${data[key].files.length}</span>`;
+      btn.addEventListener('click', () => {
+        active = key;
+        renderTabs();
+        renderPanel();
+      });
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  function renderPanel(){
+    const cat = data[active] || { label: 'Invoices', files: [] };
+    titleEl.textContent = cat.label;
+    subEl.textContent = `${cat.files.length} file${cat.files.length === 1 ? '' : 's'}`;
+    listEl.innerHTML = '';
+
+    if(cat.files.length === 0){
+      listEl.innerHTML = `<div class="empty-state">No ${cat.label.toLowerCase()} yet.</div>`;
+      return;
+    }
+
+    const head = document.createElement('li');
+    head.className = 'file-row head';
+    head.innerHTML = `
+      <span></span>
+      <span class="col-label">Name</span>
+      <span class="col-label">Submitted by</span>
+      <span class="col-label">Size</span>
+      <span class="col-label" style="text-align:right;">Date</span>
+    `;
+    listEl.appendChild(head);
+
+    cat.files.forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'file-row';
+      li.innerHTML = `
+        <span class="file-icon"></span>
+        <span class="file-name">${f.name}</span>
+        <span class="submitted">
+          <span class="email">${f.submittedBy}</span>
+          <span class="time">${f.submittedAt}</span>
+        </span>
+        <span class="file-meta">${f.size}</span>
+        <span class="file-date">${f.date}</span>
+      `;
+      li.addEventListener('click', () => {
+        alert(`Opening ${f.name}\nSubmitted by ${f.submittedBy} on ${f.submittedAt}`);
+      });
+      listEl.appendChild(li);
+    });
+  }
+
+  loadData();
+</script>
 {% endblock %}
