@@ -62,6 +62,11 @@ def init_user_db(database_path):
             connection.execute(
                 "ALTER TABLE users ADD COLUMN protected INTEGER NOT NULL DEFAULT 0"
             )
+        for column, default in (("theme", "light"), ("font_size", "medium")):
+            if column not in column_names:
+                connection.execute(
+                    f"ALTER TABLE users ADD COLUMN {column} TEXT NOT NULL DEFAULT '{default}'"
+                )
 
 
 def create_user(
@@ -133,7 +138,7 @@ def get_user_by_id(database_path, user_id):
     with get_connection(database_path) as connection:
         return connection.execute(
             """
-            SELECT id, full_name, email, password_hash, account_type, role, protected, created_at
+            SELECT id, full_name, email, password_hash, account_type, role, protected, created_at, theme, font_size
             FROM users
             WHERE id = ?
             """,
@@ -258,6 +263,14 @@ def update_user_account(database_path, user_id, full_name, email, password="", p
             return {"updated": False, "reason": "password_mismatch"}
 
     with get_connection(database_path) as connection:
+        current = connection.execute(
+            "SELECT account_type, role FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+        if current is None:
+            return {"updated": False, "reason": "not_found"}
+        # Self-service role labels are optional for clients; admin roles stay assigned.
+        if current["account_type"] == "admin" or not normalized_role:
+            normalized_role = current["role"]
         existing = connection.execute(
             "SELECT id FROM users WHERE email = ? AND id != ?",
             (normalized_email, user_id),
@@ -272,7 +285,7 @@ def update_user_account(database_path, user_id, full_name, email, password="", p
                 SET full_name = ?, email = ?, role = ?, password_hash = ?
                 WHERE id = ?
                 """,
-                (normalized_full_name, normalized_email, normalized_role or "Client", generate_password_hash(password), user_id),
+                (normalized_full_name, normalized_email, normalized_role, generate_password_hash(password), user_id),
             )
         else:
             cursor = connection.execute(
@@ -281,7 +294,7 @@ def update_user_account(database_path, user_id, full_name, email, password="", p
                 SET full_name = ?, email = ?, role = ?
                 WHERE id = ?
                 """,
-                (normalized_full_name, normalized_email, normalized_role or "Client", user_id),
+                (normalized_full_name, normalized_email, normalized_role, user_id),
             )
 
         if not cursor.rowcount:
@@ -309,6 +322,17 @@ def update_user_account(database_path, user_id, full_name, email, password="", p
             "created_at": updated["created_at"],
         },
     }
+
+
+def update_user_appearance(database_path, user_id, theme, font_size):
+    if theme not in {"light", "dark", "system"} or font_size not in {"small", "medium", "large"}:
+        return False
+    with get_connection(database_path) as connection:
+        cursor = connection.execute(
+            "UPDATE users SET theme = ?, font_size = ? WHERE id = ?",
+            (theme, font_size, user_id),
+        )
+        return bool(cursor.rowcount)
 
 
 def verify_user(database_path, email, password):

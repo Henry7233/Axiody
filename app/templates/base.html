@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"{% if current_account %} data-theme-preference="{{ current_account.theme }}" data-font-size="{{ current_account.font_size }}" data-account-id="{{ current_account.id }}" data-appearance-url="{{ url_for('auth.update_appearance') }}"{% endif %}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if current_account %}<script src="{{ url_for('static', filename='js/appearance.js') }}"></script>{% endif %}
   <title>{% block title %}AXIODY{% endblock %}</title>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -10,11 +11,11 @@
   <!-- Navbar styles for the AXIODY header -->
   <style>
     :root {
-      --axiody-blue: #0d63e8;
-      --axiody-blue-soft: #eef5ff;
-      --axiody-text: #0c1738;
-      --axiody-muted: #586b8d;
-      --axiody-border: #e8edf5;
+      --axiody-blue: light-dark(#0d63e8, #89b4f5);
+      --axiody-blue-soft: light-dark(#eef5ff, #1b283c);
+      --axiody-text: light-dark(#0c1738, #96abe8);
+      --axiody-muted: light-dark(#586b8d, #d9dee7);
+      --axiody-border: light-dark(#e8edf5, #35415a);
       --axiody-header-height: 76px;
     }
 
@@ -36,7 +37,7 @@
       left: 16px;
       top: 12px;
       z-index: 9999;
-      background: #fff;
+      background: light-dark(#fff, #212836);
       color: var(--axiody-text);
       padding: 10px 14px;
       border-radius: 8px;
@@ -44,7 +45,7 @@
     }
 
     .site-header {
-      background: #fff;
+      background: light-dark(#fff, #212836);
       border-bottom: 1px solid var(--axiody-border);
       box-shadow: 0 2px 10px rgba(31, 55, 92, 0.06);
       position: sticky;
@@ -69,7 +70,7 @@
       gap: 12px;
       text-decoration: none;
       color: var(--axiody-text);
-      font-size: 28px;
+      font-size: 1.75rem;
       font-weight: 800;
       letter-spacing: -0.8px;
       white-space: nowrap;
@@ -89,7 +90,7 @@
       height: 44px;
       border: 1px solid var(--axiody-border);
       border-radius: 10px;
-      background: #fff;
+      background: light-dark(#fff, #212836);
       color: var(--axiody-text);
       align-items: center;
       justify-content: center;
@@ -130,7 +131,7 @@
       padding: 0 16px;
       color: var(--axiody-muted);
       text-decoration: none;
-      font-size: 15px;
+      font-size: 0.9375rem;
       font-weight: 500;
       border-bottom: 3px solid transparent;
       transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
@@ -150,7 +151,7 @@
 
     .nav-link:hover {
       color: var(--axiody-blue);
-      background: #f8fbff;
+      background: light-dark(#f8fbff, #1b293c);
     }
 
     .nav-link[aria-current="page"] {
@@ -189,13 +190,13 @@
     .account-popover {
       position: absolute; right: 0; top: calc(100% + 8px); width: 240px;
       padding: 18px; border: 1px solid var(--axiody-border); border-radius: 14px;
-      background: #fff; color: var(--axiody-text); box-shadow: 0 12px 32px #18335a24;
+      background: light-dark(#fff, #212836); color: var(--axiody-text); box-shadow: 0 12px 32px #18335a24;
       z-index: 1002;
     }
     .account-popover dl { margin: 0; }
-    .account-popover dt { color: var(--axiody-muted); font-size: 13px; margin-bottom: 4px; }
+    .account-popover dt { color: var(--axiody-muted); font-size: 0.8125rem; margin-bottom: 4px; }
     .account-popover dd { margin: 0 0 16px; font-weight: 600; overflow-wrap: anywhere; }
-    .account-logout { display: block; padding: 10px 14px; border-radius: 8px; background: #eef5ff; color: #0b5bc9; text-decoration: none; text-align: center; font-weight: 600; }
+    .account-logout { display: block; padding: 10px 14px; border-radius: 8px; background: light-dark(#eef5ff, #1b283c); color: light-dark(#0b5bc9, #89b7f5); text-decoration: none; text-align: center; font-weight: 600; }
     @media (max-width: 1100px) {
       .account-menu { order: 2; margin-left: auto; }
     }
@@ -204,12 +205,12 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      background: #ddecff;
-      color: #0b5bc9;
+      background: light-dark(#ddecff, #21334a);
+      color: light-dark(#0b5bc9, #89b7f5);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 1.125rem;
       font-weight: 700;
     }
 
@@ -234,7 +235,7 @@
       }
 
       .site-brand {
-        font-size: 23px;
+        font-size: 1.4375rem;
       }
 
       .brand-logo {
@@ -258,7 +259,7 @@
         padding: 18px 10px 18px 28px;
         border: 1px solid var(--axiody-border);
         border-radius: 12px;
-        background: #fff;
+        background: light-dark(#fff, #212836);
         box-shadow: 0 14px 30px rgba(31, 55, 92, 0.13);
         z-index: 1001;
         order: 4;
@@ -317,7 +318,7 @@
       }
 
       .site-brand {
-        font-size: 20px;
+        font-size: 1.25rem;
         gap: 8px;
       }
 
@@ -329,12 +330,13 @@
       .avatar {
         width: 36px;
         height: 36px;
-        font-size: 16px;
+        font-size: 1rem;
       }
     }
   </style>
 
   {% block head %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/appearance.css') }}">
 </head>
 
 <body>

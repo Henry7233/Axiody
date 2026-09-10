@@ -1,0 +1,14 @@
+/* Rem-based type keeps each page's hierarchy while respecting account text size. */
+html[data-font-size="small"] { font-size: 93.333333%; }
+html[data-font-size="medium"] { font-size: 100%; }
+html[data-font-size="large"] { font-size: 120%; }
+html[data-font-size] .settings-page { font-size: .9375rem; }
+html[data-theme="light"] { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
+/* Keep white button text legible independently of the lighter link color. */
+html[data-theme="dark"] .notifications-page .filters button[aria-pressed="true"],
+html[data-theme="dark"] .notifications-page .action.primary,
+html[data-theme="dark"] .btn--primary {
+  background: #0864ff;
+  color: #fff;
+}

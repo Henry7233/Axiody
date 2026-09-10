@@ -37,10 +37,11 @@
     <section class="settings-section" id="account-information" aria-labelledby="account-title">
       <div class="settings-section-heading"><div><h2 id="account-title"><span data-en="Account Information" data-zh="账户信息" data-ms="Maklumat Akaun">Account Information</span></h2><p><span data-en="Update your personal details and keep your account secure." data-zh="更新个人资料，保障账户安全。" data-ms="Kemas kini maklumat peribadi dan pastikan akaun anda selamat.">Update your personal details and keep your account secure.</span></p></div>
       <button type="button" class="settings-button" data-edit-account aria-controls="settings-account-form" aria-expanded="false"><span data-en="Edit account" data-zh="编辑账户" data-ms="Edit akaun">Edit account</span></button></div>
-      <div class="settings-record" data-account-record><strong data-record-name></strong><span data-record-email></span></div>
+      <div class="settings-record" data-account-record><strong data-record-name></strong><span data-record-email></span><span data-record-role></span></div>
       <form id="settings-account-form" data-account-form hidden>
         
         <div class="settings-fields">
+          <div><label for="settings-role"><span data-en="Role (optional)" data-zh="角色（可选）" data-ms="Peranan (pilihan)">Role (optional)</span></label><input id="settings-role" name="role" value="" maxlength="100" aria-describedby="settings-role-hint" disabled><p id="settings-role-hint" class="settings-hint"><span data-en="Your job title or role. Leave blank to keep your current role." data-zh="您的职位或角色。留空则保留当前角色。" data-ms="Jawatan atau peranan anda. Biarkan kosong untuk mengekalkan peranan semasa.">Your job title or role. Leave blank to keep your current role.</span></p></div>
           <div><label for="settings-name"><span data-en="Full Name" data-zh="姓名" data-ms="Nama Penuh">Full Name</span></label><div class="settings-input-wrap"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <circle cx="12" cy="7" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3Z"/>
 </svg><input id="settings-name" name="full_name" autocomplete="name" value="" required maxlength="100" disabled></div></div>
@@ -76,7 +77,7 @@
 <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M12 17v4m-5 0h10"/>
 </svg><span data-en="System" data-zh="跟随系统" data-ms="Sistem">System</span></span></label>
         </div></fieldset>
-        <fieldset><legend><span data-en="Font Size" data-zh="字号" data-ms="Saiz Fon">Font Size</span></legend><p class="settings-hint"><span data-en="Adjust the text size on this settings page." data-zh="调整此设置页面的文字大小。" data-ms="Laraskan saiz teks pada halaman tetapan ini.">Adjust the text size on this settings page.</span></p><div class="settings-options">
+        <fieldset><legend><span data-en="Font Size" data-zh="字号" data-ms="Saiz Fon">Font Size</span></legend><p class="settings-hint"><span data-en="Adjust the text size across all pages for your account." data-zh="调整账户所有页面的文字大小。" data-ms="Laraskan saiz teks pada semua halaman untuk akaun anda.">Adjust the text size across all pages for your account.</span></p><div class="settings-options">
           <label class="settings-choice"><input type="radio" name="fontSize" value="small" data-preference ><span><span class="settings-font-sample settings-font-small" aria-hidden="true">Aa</span><span data-en="Small" data-zh="小" data-ms="Kecil">Small</span></span></label><label class="settings-choice"><input type="radio" name="fontSize" value="medium" data-preference checked><span><span class="settings-font-sample settings-font-medium" aria-hidden="true">Aa</span><span data-en="Medium" data-zh="中" data-ms="Sederhana">Medium</span></span></label><label class="settings-choice"><input type="radio" name="fontSize" value="large" data-preference ><span><span class="settings-font-sample settings-font-large" aria-hidden="true">Aa</span><span data-en="Large" data-zh="大" data-ms="Besar">Large</span></span></label>
         </div></fieldset>
       </div>
@@ -156,7 +157,7 @@
   <template id="help-centre">
     <h3><span data-en="General guides &amp; FAQs" data-zh="通用指南与常见问题" data-ms="Panduan umum &amp; soalan lazim">General guides &amp; FAQs</span></h3>
     <details open><summary><span data-en="How do I get started?" data-zh="如何开始使用？" data-ms="Bagaimanakah saya bermula?">How do I get started?</span></summary><p><span data-en="Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below." data-zh="使用自己的账户登录。检查账户信息，选择合适的主题和字号，然后阅读下方对应角色的指南。" data-ms="Log masuk dengan akaun sendiri. Semak maklumat akaun, pilih tema dan saiz teks yang selesa, kemudian baca panduan peranan anda di bawah.">Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below.</span></p></details>
-    <details><summary><span data-en="Where are my settings saved?" data-zh="设置保存在哪里？" data-ms="Di manakah tetapan saya disimpan?">Where are my settings saved?</span></summary><p><span data-en="Preferences are stored in this browser separately for each signed-in account and role. Clearing browser data resets them. They do not sync to another device or change another user’s settings." data-zh="偏好按登录账户和角色分别保存在此浏览器中。清除浏览器数据会重置偏好。偏好不会同步到其他设备，也不会更改其他用户的设置。" data-ms="Pilihan disimpan dalam pelayar ini mengikut akaun dan peranan. Mengosongkan data pelayar akan menetapkannya semula. Ia tidak disegerakkan ke peranti lain atau mengubah tetapan pengguna lain.">Preferences are stored in this browser separately for each signed-in account and role. Clearing browser data resets them. They do not sync to another device or change another user’s settings.</span></p></details>
+    <details><summary><span data-en="Where are my settings saved?" data-zh="设置保存在哪里？" data-ms="Di manakah tetapan saya disimpan?">Where are my settings saved?</span></summary><p><span data-en="Theme and font size are saved to your signed-in account and apply across all pages and devices. Other preferences are stored in this browser for your account." data-zh="主题和字号保存在登录账户中，适用于所有页面和设备。其他偏好按账户保存在此浏览器中。" data-ms="Tema dan saiz fon disimpan ke akaun anda untuk semua halaman dan peranti. Pilihan lain disimpan dalam pelayar ini untuk akaun anda.">Theme and font size are saved to your signed-in account and apply across all pages and devices. Other preferences are stored in this browser for your account.</span></p></details>
     <details><summary><span data-en="What do Save Changes and Close do?" data-zh="“保存更改”和“关闭”有什么作用？" data-ms="Apakah fungsi Simpan Perubahan dan Tutup?">What do Save Changes and Close do?</span></summary><p><span data-en="Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance, language and notification choices save immediately." data-zh="“保存更改”会验证并保存账户表单。“关闭”会放弃上次保存后的编辑并返回账户摘要。外观、语言和通知选项会立即保存。" data-ms="Simpan Perubahan mengesahkan dan menyimpan borang akaun. Tutup membuang suntingan sejak simpanan terakhir dan kembali ke ringkasan akaun. Pilihan penampilan, bahasa dan pemberitahuan disimpan serta-merta.">Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance, language and notification choices save immediately.</span></p></details>
     <h3><span data-en="Client guides &amp; FAQs" data-zh="客户指南与常见问题" data-ms="Panduan pelanggan &amp; soalan lazim">Client guides &amp; FAQs</span></h3>
     
@@ -238,6 +239,7 @@
 {% set account = settings_account | default({}) %}
 {% set record_name = account.get('full_name', session.get('user_name', '')) %}
 {% set record_email = account.get('email', session.get('user_email', '')) %}
+{% set record_role = account.get('role', session.get('user_role', '')) %}
 <div class="settings-page" data-settings-role="{{ role }}" data-user-id="{{ session.get('user_id', '') }}" data-account-url="{{ account_update_url | default('') }}">
   <header class="settings-heading">
     <div><h1>{{ tr('Settings', '设置', 'Tetapan') }}</h1><p>{{ tr('Manage your account and personalize your experience.', '管理您的账户，打造个性化体验。', 'Urus akaun dan peribadikan pengalaman anda.') }}</p></div>
@@ -257,10 +259,13 @@
     <section class="settings-section" id="account-information" aria-labelledby="account-title">
       <div class="settings-section-heading"><div><h2 id="account-title">{{ tr('Account Information', '账户信息', 'Maklumat Akaun') }}</h2><p>{{ tr('Update your personal details and keep your account secure.', '更新个人资料，保障账户安全。', 'Kemas kini maklumat peribadi dan pastikan akaun anda selamat.') }}</p></div>
       <button type="button" class="settings-button" data-edit-account aria-controls="settings-account-form" aria-expanded="false">{{ tr('Edit account', '编辑账户', 'Edit akaun') }}</button></div>
-      <div class="settings-record" data-account-record><strong data-record-name>{{ record_name }}</strong><span data-record-email>{{ record_email }}</span></div>
+      <div class="settings-record" data-account-record><strong data-record-name>{{ record_name }}</strong><span data-record-email>{{ record_email }}</span>{% if not admin %}<span data-record-role>{{ record_role }}</span>{% endif %}</div>
       <form id="settings-account-form" data-account-form hidden>
         {% if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif %}
         <div class="settings-fields">
+          {% if not admin %}
+          <div><label for="settings-role">{{ tr('Role (optional)', '角色（可选）', 'Peranan (pilihan)') }}</label><input id="settings-role" name="role" value="{{ record_role }}" maxlength="100" aria-describedby="settings-role-hint" disabled><p id="settings-role-hint" class="settings-hint">{{ tr('Your job title or role. Leave blank to keep your current role.', '您的职位或角色。留空则保留当前角色。', 'Jawatan atau peranan anda. Biarkan kosong untuk mengekalkan peranan semasa.') }}</p></div>
+          {% endif %}
           <div><label for="settings-name">{{ tr('Full Name', '姓名', 'Nama Penuh') }}</label><div class="settings-input-wrap">{{ icon('user') }}<input id="settings-name" name="full_name" autocomplete="name" value="{{ record_name }}" required maxlength="100" disabled></div></div>
           <div><label for="settings-email">{{ tr('Email Address', '电子邮箱', 'Alamat E-mel') }}</label><div class="settings-input-wrap">{{ icon('mail') }}<input id="settings-email" name="email" type="email" autocomplete="email" value="{{ record_email }}" required maxlength="254" disabled></div></div>
           <div><label for="settings-password">{{ tr('New Password', '新密码', 'Kata Laluan Baharu') }}</label><div class="settings-input-wrap">{{ icon('lock') }}<input id="settings-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="settings-password-hint" disabled><button type="button" class="settings-password-toggle" aria-controls="settings-password" aria-label="Show password" aria-pressed="false" disabled>{{ icon('eye') }}</button></div></div>
@@ -278,7 +283,7 @@
         <fieldset><legend>{{ tr('Theme', '主题', 'Tema') }}</legend><div class="settings-options">
           {% for value, glyph, en, zh, ms in [('light', 'sun', 'Light', '浅色', 'Cerah'), ('dark', 'moon', 'Dark', '深色', 'Gelap'), ('system', 'screen', 'System', '跟随系统', 'Sistem')] %}<label class="settings-choice"><input type="radio" name="theme" value="{{ value }}" data-preference {% if value == 'light' %}checked{% endif %}><span>{{ icon(glyph) }}{{ tr(en, zh, ms) }}</span></label>{% endfor %}
         </div></fieldset>
-        <fieldset><legend>{{ tr('Font Size', '字号', 'Saiz Fon') }}</legend><p class="settings-hint">{{ tr('Adjust the text size on this settings page.', '调整此设置页面的文字大小。', 'Laraskan saiz teks pada halaman tetapan ini.') }}</p><div class="settings-options">
+        <fieldset><legend>{{ tr('Font Size', '字号', 'Saiz Fon') }}</legend><p class="settings-hint">{{ tr('Adjust the text size across all pages for your account.', '调整账户所有页面的文字大小。', 'Laraskan saiz teks pada semua halaman untuk akaun anda.') }}</p><div class="settings-options">
           {% for value, en, zh, ms in [('small', 'Small', '小', 'Kecil'), ('medium', 'Medium', '中', 'Sederhana'), ('large', 'Large', '大', 'Besar')] %}<label class="settings-choice"><input type="radio" name="fontSize" value="{{ value }}" data-preference {% if value == 'medium' %}checked{% endif %}><span><span class="settings-font-sample settings-font-{{ value }}" aria-hidden="true">Aa</span>{{ tr(en, zh, ms) }}</span></label>{% endfor %}
         </div></fieldset>
       </div>
@@ -326,7 +331,7 @@
         {% endif %}
       </div>
     </section>
-    <div class="settings-save-note">{{ icon('check') }}<span>{{ tr('Preferences save automatically on this browser. Notification delivery is not connected yet.', '偏好自动保存在此浏览器中。通知发送功能尚未连接。', 'Pilihan disimpan secara automatik dalam pelayar ini. Penghantaran pemberitahuan belum disambungkan.') }}</span></div>
+    <div class="settings-save-note">{{ icon('check') }}<span>{{ tr('Theme and font size save automatically to your account. Other preferences save in this browser.', '主题和字号自动保存到账户。其他偏好保存在此浏览器中。', 'Tema dan saiz fon disimpan secara automatik ke akaun anda. Pilihan lain disimpan dalam pelayar ini.') }}</span></div>
     <p class="settings-status" data-preference-status role="status" aria-live="polite"></p>
   </div>
 
@@ -339,7 +344,7 @@
   <template id="help-centre">
     <h3>{{ tr('General guides & FAQs', '通用指南与常见问题', 'Panduan umum & soalan lazim') }}</h3>
     <details open><summary>{{ tr('How do I get started?', '如何开始使用？', 'Bagaimanakah saya bermula?') }}</summary><p>{{ tr('Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below.', '使用自己的账户登录。检查账户信息，选择合适的主题和字号，然后阅读下方对应角色的指南。', 'Log masuk dengan akaun sendiri. Semak maklumat akaun, pilih tema dan saiz teks yang selesa, kemudian baca panduan peranan anda di bawah.') }}</p></details>
-    <details><summary>{{ tr('Where are my settings saved?', '设置保存在哪里？', 'Di manakah tetapan saya disimpan?') }}</summary><p>{{ tr('Preferences are stored in this browser separately for each signed-in account and role. Clearing browser data resets them. They do not sync to another device or change another user’s settings.', '偏好按登录账户和角色分别保存在此浏览器中。清除浏览器数据会重置偏好。偏好不会同步到其他设备，也不会更改其他用户的设置。', 'Pilihan disimpan dalam pelayar ini mengikut akaun dan peranan. Mengosongkan data pelayar akan menetapkannya semula. Ia tidak disegerakkan ke peranti lain atau mengubah tetapan pengguna lain.') }}</p></details>
+    <details><summary>{{ tr('Where are my settings saved?', '设置保存在哪里？', 'Di manakah tetapan saya disimpan?') }}</summary><p>{{ tr('Theme and font size are saved to your signed-in account and apply across all pages and devices. Other preferences are stored in this browser for your account.', '主题和字号保存在登录账户中，适用于所有页面和设备。其他偏好按账户保存在此浏览器中。', 'Tema dan saiz fon disimpan ke akaun anda untuk semua halaman dan peranti. Pilihan lain disimpan dalam pelayar ini untuk akaun anda.') }}</p></details>
     <details><summary>{{ tr('What do Save Changes and Close do?', '“保存更改”和“关闭”有什么作用？', 'Apakah fungsi Simpan Perubahan dan Tutup?') }}</summary><p>{{ tr('Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance, language and notification choices save immediately.', '“保存更改”会验证并保存账户表单。“关闭”会放弃上次保存后的编辑并返回账户摘要。外观、语言和通知选项会立即保存。', 'Simpan Perubahan mengesahkan dan menyimpan borang akaun. Tutup membuang suntingan sejak simpanan terakhir dan kembali ke ringkasan akaun. Pilihan penampilan, bahasa dan pemberitahuan disimpan serta-merta.') }}</p></details>
     <h3>{{ tr('Administrator guides & FAQs', '管理员指南与常见问题', 'Panduan pentadbir & soalan lazim') if admin else tr('Client guides & FAQs', '客户指南与常见问题', 'Panduan pelanggan & soalan lazim') }}</h3>
     {% if admin %}
