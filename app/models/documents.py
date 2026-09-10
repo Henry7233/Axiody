@@ -182,3 +182,95 @@ def list_documents(database_path):
                 """
             ).fetchall()
         ]
+
+
+def list_client_summaries(database_path):
+    with get_connection(database_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT
+                users.id,
+                COALESCE(NULLIF(users.full_name, ''), users.email) AS name,
+                COUNT(documents.id) AS documents,
+                SUM(CASE WHEN documents.classification_status = 'Success' THEN 1 ELSE 0 END) AS classified,
+                SUM(CASE WHEN documents.classification_status = 'Under review' THEN 1 ELSE 0 END) AS needs_review
+            FROM users
+            LEFT JOIN documents ON documents.user_id = users.id
+            WHERE users.account_type = 'client'
+            GROUP BY users.id, users.full_name, users.email
+            ORDER BY name COLLATE NOCASE
+            """
+        ).fetchall()
+
+    summaries = []
+    for row in rows:
+        documents = row["documents"]
+        classified = row["classified"] or 0
+        needs_review = row["needs_review"] or 0
+        if needs_review:
+            status = "Needs review"
+        elif not documents:
+            status = "Pending files"
+        elif classified == documents:
+            status = "Complete"
+        else:
+            status = "Ready"
+        summaries.append(
+            {
+                "name": row["name"],
+                "status": status,
+                "documents": documents,
+                "classified": classified,
+                "needs_review": needs_review,
+            }
+        )
+    return summaries
+
+
+def get_client_review_data(database_path, client_name):
+    with get_connection(database_path) as connection:
+        client = connection.execute(
+            """
+            SELECT
+                users.id,
+                COALESCE(NULLIF(users.full_name, ''), users.email) AS name,
+                users.email
+            FROM users
+            WHERE users.account_type = 'client'
+              AND (users.full_name = ? OR users.email = ?)
+            LIMIT 1
+            """,
+            (client_name, client_name),
+        ).fetchone()
+
+        if client is None:
+            return {"name": client_name, "email": ""}, []
+
+        documents = connection.execute(
+            """
+            SELECT
+                id,
+                filename,
+                COALESCE(document_type, ai_document_type, 'Other') AS classification_type,
+                COALESCE(ai_confidence, 0) / 100.0 AS classification_confidence,
+                classification_status AS validation_status
+            FROM documents
+            WHERE user_id = ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (client["id"],),
+        ).fetchall()
+
+    return (
+        {"name": client["name"], "email": client["email"]},
+        [
+            {
+                "id": document["id"],
+                "stored_filename": document["filename"],
+                "classification_type": document["classification_type"],
+                "classification_confidence": document["classification_confidence"],
+                "validation_status": document["validation_status"],
+            }
+            for document in documents
+        ],
+    )
