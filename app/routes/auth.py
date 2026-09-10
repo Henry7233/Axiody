@@ -10,11 +10,18 @@ from flask import (
     session,
     url_for,
 )
+from datetime import datetime, timedelta, timezone
+import hashlib
+import hmac
+import smtplib
+import secrets
 
-from app.models.users import create_user, get_user_by_id, update_user_account, update_user_appearance, verify_user
+from app.models.users import create_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, verify_user
+from app.services.email_servie import send_account_update_otp
 
 
 auth_bp = Blueprint("auth", __name__)
+PENDING_ACCOUNT_UPDATES = {}
 
 
 @auth_bp.before_app_request
@@ -26,6 +33,7 @@ def load_account():
 
     user = get_user_by_id(current_app.config["DATABASE"], session["user_id"])
     if user is None:
+        forget_pending_account_update()
         session.clear()
         return
 
@@ -67,6 +75,122 @@ def wants_json_response():
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 
+def otp_digest(code):
+    secret = current_app.config["SECRET_KEY"].encode("utf-8")
+    return hmac.new(secret, code.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def otp_now():
+    return datetime.now(timezone.utc)
+
+
+def generate_otp():
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def send_account_otp(pending):
+    code = generate_otp()
+    expiry_minutes = current_app.config.get("OTP_EXPIRY_MINUTES", 5)
+    pending["otp_hash"] = otp_digest(code)
+    pending["expires_at"] = (otp_now() + timedelta(minutes=expiry_minutes)).isoformat()
+    pending["attempts"] = 0
+    send_account_update_otp(current_app.config, pending["email"], code, expiry_minutes)
+
+
+def otp_send_error_response(error):
+    current_app.logger.exception("Unable to send account update OTP")
+    if isinstance(error, RuntimeError):
+        message = "Email settings are not configured. Check your .env mail values."
+    elif isinstance(error, smtplib.SMTPAuthenticationError):
+        message = "Gmail rejected the email login. Create a new Gmail App Password for MAIL_USERNAME and put it in MAIL_PASSWORD."
+    elif isinstance(error, (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, TimeoutError, OSError)):
+        message = "Unable to connect to the email server. Check MAIL_SERVER, MAIL_PORT, and SSL/TLS settings."
+    else:
+        message = "Unable to send the verification code. Please try again."
+    return jsonify({"message": message}), 500
+
+
+def remember_pending_account_update(pending):
+    pending_id = secrets.token_urlsafe(24)
+    pending["user_id"] = session["user_id"]
+    PENDING_ACCOUNT_UPDATES[pending_id] = pending
+    session["pending_account_update_id"] = pending_id
+
+
+def get_pending_account_update():
+    pending_id = session.get("pending_account_update_id")
+    pending = PENDING_ACCOUNT_UPDATES.get(pending_id)
+    if not pending or pending.get("user_id") != session.get("user_id"):
+        return None
+    return pending
+
+
+def forget_pending_account_update():
+    pending_id = session.pop("pending_account_update_id", None)
+    if pending_id:
+        PENDING_ACCOUNT_UPDATES.pop(pending_id, None)
+
+
+def account_update_payload():
+    return {
+        "full_name": (request.form.get("full_name", "") or request.form.get("name", "")).strip(),
+        "email": (request.form.get("email", "") or "").strip().lower(),
+        "role": request.form.get("role", "").strip(),
+        "password": request.form.get("password", ""),
+        "password_confirmation": request.form.get("password_confirmation", ""),
+    }
+
+
+def validate_account_update_request(payload):
+    if not payload["full_name"]:
+        return jsonify({"message": "Enter your full name."}), 400
+    if not payload["email"]:
+        return jsonify({"message": "Enter an email address."}), 400
+    if payload["password"] or payload["password_confirmation"]:
+        if len(payload["password"]) < 8:
+            return jsonify({"message": "Use at least 8 characters in the new password."}), 400
+        if payload["password"] != payload["password_confirmation"]:
+            return jsonify({"message": "The new passwords must match."}), 400
+
+    existing = get_user_by_email(current_app.config["DATABASE"], payload["email"])
+    if existing is not None and existing["id"] != session["user_id"]:
+        return jsonify({"message": "An account with that email already exists."}), 409
+
+    return None
+
+
+def save_verified_account_update(payload):
+    result = update_user_account(
+        current_app.config["DATABASE"],
+        session["user_id"],
+        payload["full_name"],
+        payload["email"],
+        payload["password"],
+        payload["password_confirmation"],
+        payload["role"],
+    )
+
+    if not result["updated"]:
+        reason = result["reason"]
+        if reason == "duplicate_email":
+            return jsonify({"message": "An account with that email already exists."}), 409
+        if reason == "missing_name":
+            return jsonify({"message": "Enter your full name."}), 400
+        if reason == "missing_email":
+            return jsonify({"message": "Enter an email address."}), 400
+        if reason == "password_weak":
+            return jsonify({"message": "Use at least 8 characters in the new password."}), 400
+        if reason == "password_mismatch":
+            return jsonify({"message": "The new passwords must match."}), 400
+        return jsonify({"message": "Unable to update your account."}), 400
+
+    session["user_name"] = result["account"]["full_name"]
+    session["user_email"] = result["account"]["email"]
+    session["user_role"] = result["account"]["role"]
+    forget_pending_account_update()
+    return jsonify({"message": "Account changes saved.", "account": result["account"]})
+
+
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -81,6 +205,7 @@ def login():
             flash("Invalid email or password.", "error")
             return render_template("auth/login.html", email=email), 401
 
+        forget_pending_account_update()
         session.clear()
         session["user_id"] = user["id"]
         session["user_name"] = user["full_name"]
@@ -150,50 +275,100 @@ def update_account():
     if "user_id" not in session:
         return jsonify({"message": "Please log in first."}), 401
 
-    full_name = (request.form.get("full_name", "") or request.form.get("name", "")).strip()
-    email = (request.form.get("email", "") or "").strip().lower()
-    role = request.form.get("role", "").strip()
-    password = request.form.get("password", "")
-    password_confirmation = request.form.get("password_confirmation", "")
+    payload = account_update_payload()
+    validation_error = validate_account_update_request(payload)
+    if validation_error:
+        return validation_error
 
-    if not full_name:
-        return jsonify({"message": "Enter your full name."}), 400
-    if not email:
-        return jsonify({"message": "Enter an email address."}), 400
-    if password or password_confirmation:
-        if len(password) < 8:
-            return jsonify({"message": "Use at least 8 characters in the new password."}), 400
-        if password != password_confirmation:
-            return jsonify({"message": "The new passwords must match."}), 400
+    pending = {
+        "full_name": payload["full_name"],
+        "email": payload["email"],
+        "role": payload["role"],
+        "password": payload["password"],
+        "password_confirmation": payload["password_confirmation"],
+    }
+    try:
+        send_account_otp(pending)
+    except Exception as error:
+        return otp_send_error_response(error)
 
-    result = update_user_account(
-        current_app.config["DATABASE"],
-        session["user_id"],
-        full_name,
-        email,
-        password,
-        password_confirmation,
-        role,
+    forget_pending_account_update()
+    remember_pending_account_update(pending)
+    return jsonify(
+        {
+            "message": f"We sent a 6-digit verification code to {pending['email']}.",
+            "otp_required": True,
+            "email": pending["email"],
+            "expires_at": pending["expires_at"],
+            "verify_url": url_for("auth.verify_account_otp"),
+            "resend_url": url_for("auth.resend_account_otp"),
+        }
     )
 
-    if not result["updated"]:
-        reason = result["reason"]
-        if reason == "duplicate_email":
-            return jsonify({"message": "An account with that email already exists."}), 409
-        if reason == "missing_name":
-            return jsonify({"message": "Enter your full name."}), 400
-        if reason == "missing_email":
-            return jsonify({"message": "Enter an email address."}), 400
-        if reason == "password_weak":
-            return jsonify({"message": "Use at least 8 characters in the new password."}), 400
-        if reason == "password_mismatch":
-            return jsonify({"message": "The new passwords must match."}), 400
-        return jsonify({"message": "Unable to update your account."}), 400
 
-    session["user_name"] = result["account"]["full_name"]
-    session["user_email"] = result["account"]["email"]
-    session["user_role"] = result["account"]["role"]
-    return jsonify({"message": "Account changes saved.", "account": result["account"]})
+@auth_bp.post("/account/otp/resend")
+def resend_account_otp():
+    if "user_id" not in session:
+        return jsonify({"message": "Please log in first."}), 401
+
+    pending = get_pending_account_update()
+    if not pending:
+        return jsonify({"message": "Start by saving your account changes again."}), 400
+
+    try:
+        send_account_otp(pending)
+    except Exception as error:
+        return otp_send_error_response(error)
+
+    PENDING_ACCOUNT_UPDATES[session["pending_account_update_id"]] = pending
+    return jsonify(
+        {
+            "message": f"We sent a new 6-digit verification code to {pending['email']}.",
+            "email": pending["email"],
+            "expires_at": pending["expires_at"],
+        }
+    )
+
+
+@auth_bp.post("/account/otp/verify")
+def verify_account_otp():
+    if "user_id" not in session:
+        return jsonify({"message": "Please log in first."}), 401
+
+    pending = get_pending_account_update()
+    if not pending:
+        return jsonify({"message": "Start by saving your account changes again."}), 400
+
+    code = (request.form.get("otp", "") or "").strip()
+    if not code.isdigit() or len(code) != 6:
+        return jsonify({"message": "Enter the 6-digit verification code."}), 400
+
+    try:
+        expires_at = datetime.fromisoformat(pending["expires_at"])
+    except (KeyError, ValueError, TypeError):
+        forget_pending_account_update()
+        return jsonify({"message": "The verification code expired. Save your changes again."}), 400
+
+    if otp_now() > expires_at:
+        forget_pending_account_update()
+        return jsonify({"message": "The verification code expired. Save your changes again."}), 400
+
+    pending["attempts"] = int(pending.get("attempts", 0)) + 1
+    max_attempts = current_app.config.get("OTP_MAX_ATTEMPTS", 5)
+    if pending["attempts"] > max_attempts:
+        forget_pending_account_update()
+        return jsonify({"message": "Too many incorrect attempts. Save your changes again."}), 429
+
+    if not hmac.compare_digest(pending.get("otp_hash", ""), otp_digest(code)):
+        PENDING_ACCOUNT_UPDATES[session["pending_account_update_id"]] = pending
+        return jsonify({"message": "The verification code is incorrect."}), 400
+
+    validation_error = validate_account_update_request(pending)
+    if validation_error:
+        forget_pending_account_update()
+        return validation_error
+
+    return save_verified_account_update(pending)
 
 
 @auth_bp.post("/account/appearance")
@@ -222,6 +397,7 @@ def dashboard():
 
 @auth_bp.route("/logout")
 def logout():
+    forget_pending_account_update()
     session.clear()
     flash("You are logged out.", "success")
     return redirect(url_for("auth.login"))

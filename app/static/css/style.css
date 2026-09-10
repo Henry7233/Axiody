@@ -244,6 +244,7 @@ body:has(.settings-page[data-theme="dark"]) .nav-link[aria-current="page"] { bac
 .settings-page .settings-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
 .settings-page .settings-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 28px; margin-top: 10px; }
 .settings-page .settings-field-full { grid-column: 1 / -1; width: calc((100% - 28px) / 2); min-width: 0; }
+.settings-page .settings-fields-admin .settings-field-full { width: auto; }
 .settings-page label, .settings-page legend { color: var(--settings-text); font-size: .94em; font-weight: 450; margin: 0 0 4px; }
 .settings-page .settings-input-wrap { position: relative; display: flex; align-items: center; }
 .settings-page .settings-input-wrap > .settings-icon { position: absolute; left: 14px; width: 20px; height: 20px; color: var(--settings-muted); pointer-events: none; }
@@ -311,6 +312,46 @@ body:has(.settings-page[data-theme="dark"]) .nav-link[aria-current="page"] { bac
 .settings-page .settings-dialog summary { font-weight: 600; line-height: 1.5; }
 .settings-page .settings-dialog details p { margin: 10px 0 3px; }
 .settings-page .settings-dialog-footer { display: flex; justify-content: flex-end; padding-top: 18px; }
+.settings-page .settings-otp-form { margin: 0; }
+.settings-page .settings-otp-dialog { width: min(470px, calc(100% - 32px)); padding: 30px 32px 24px; text-align: center; }
+.settings-page .settings-otp-form,
+.settings-page .settings-otp-dialog .settings-dialog-heading,
+.settings-page .settings-otp-dialog .settings-status,
+.settings-page .settings-otp-dialog .settings-otp-countdown,
+.settings-page .settings-otp-dialog .settings-otp-resend { text-align: center; }
+.settings-page .settings-otp-success { padding: 10px 0 18px; text-align: center; }
+.settings-page .settings-otp-success .settings-otp-brand { margin-bottom: 42px; }
+.settings-page .settings-otp-success-icon { display: grid; place-items: center; width: 128px; height: 128px; margin: 0 auto 30px; border-radius: 50%; background: #eafaf0; }
+.settings-page .settings-otp-success-icon span { position: relative; display: block; width: 64px; height: 64px; border-radius: 50%; background: #4cbd68; }
+.settings-page .settings-otp-success-icon span::after { content: ''; position: absolute; left: 19px; top: 14px; width: 19px; height: 34px; border: solid #fff; border-width: 0 8px 8px 0; transform: rotate(45deg); }
+.settings-page .settings-otp-success h2 { color: var(--settings-text); font-size: 2.1em; margin: 0; }
+.settings-page .settings-otp-login-link { margin-top: 26px; min-width: 170px; color: #fff !important; background: #0667ff !important; border-color: #0667ff !important; text-decoration: none; }
+.settings-page .settings-otp-login-link:hover { color: #fff !important; background: #0058df !important; border-color: #0058df !important; }
+.settings-page .settings-otp-brand { display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--settings-text); font-size: 1.65em; font-weight: 800; letter-spacing: .04em; margin: 0 auto 28px; }
+.settings-page .settings-otp-logo { width: 48px; height: 48px; display: block; }
+.settings-page .settings-otp-dialog .settings-dialog-heading { align-items: flex-start; }
+.settings-page .settings-otp-dialog .settings-dialog-heading { justify-content: center; position: relative; }
+.settings-page .settings-otp-eyebrow { display: none; }
+.settings-page .settings-otp-dialog h2 { font-size: 1.55em; }
+.settings-page .settings-otp-message { margin: 15px 0 0 !important; line-height: 1.45 !important; font-size: 1.12em !important; }
+.settings-page .settings-otp-instruction { margin: 2px 0 0 !important; font-size: 1.05em !important; }
+.settings-page .settings-otp-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+.settings-page .settings-otp-digits { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin: 29px 0 21px; }
+.settings-page .settings-otp-digit { width: 100% !important; min-height: 64px !important; padding: 8px 4px !important; text-align: center; color: var(--settings-text); background: var(--settings-surface) !important; border: 2px solid var(--settings-border) !important; border-radius: 9px !important; font-size: 1.7em !important; font-weight: 650; }
+.settings-page .settings-otp-digit:focus { border-color: var(--settings-blue) !important; box-shadow: 0 0 0 2px #0667ff1c !important; outline: none; }
+.settings-page .settings-otp-input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0;
+  pointer-events: none;
+}
+.settings-page .settings-otp-countdown { margin: 0 0 27px !important; font-size: 1em !important; }
+.settings-page .settings-otp-countdown strong { color: var(--settings-blue); }
+.settings-page .settings-otp-actions { display: block; padding-top: 0; }
+.settings-page .settings-otp-actions .settings-button-primary { width: 100%; min-height: 48px; font-size: 1.05em; }
+.settings-page .settings-otp-resend { margin: 25px 0 0 !important; font-size: .92em !important; }
+.settings-page .settings-otp-resend .settings-text-button { display: inline; padding: 0; margin: 0 0 0 5px; font-size: inherit; font-weight: 650; }
 .settings-page .settings-contact { background: var(--settings-soft); border-radius: 9px; padding: 18px; }
 .settings-page .settings-contact dt { color: var(--settings-muted); font-size: .9em; }
 .settings-page .settings-contact dd { margin: 4px 0 16px; overflow-wrap: anywhere; }

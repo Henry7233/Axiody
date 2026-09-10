@@ -1,162 +1,3 @@
-// Show all three record categories in the dashboard's HTML subview.
-(() => {
-  const dashboard = document.querySelector('.client-dashboard');
-  if (!dashboard) return;
-  const viewAll = dashboard.querySelector('[data-view-all-records]');
-  const dialog = dashboard.querySelector('#client-records-dialog');
-  if (!viewAll || !dialog) return;
-
-  viewAll.addEventListener('click', () => {
-    if (dialog.open) return;
-    dialog.showModal();
-    dialog.scrollTop = 0;
-    document.body.classList.add('client-records-open');
-  });
-  dialog.querySelector('[data-close-records]').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', event => {
-    const bounds = dialog.getBoundingClientRect();
-    if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
-      dialog.close();
-    }
-  });
-  // Native dialog behavior also handles Escape and keeps focus inside the overlay.
-  dialog.addEventListener('close', () => {
-    document.body.classList.remove('client-records-open');
-    viewAll.focus({ preventScroll: true });
-  });
-})();
-
-document.querySelectorAll('.toggle').forEach(button => {
-  button.addEventListener('click', () => {
-    const input = document.getElementById(button.getAttribute('aria-controls'));
-    const visible = input.type === 'password';
-    input.type = visible ? 'text' : 'password';
-    button.textContent = visible ? 'Hide' : 'Show';
-    button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
-    button.setAttribute('aria-pressed', String(visible));
-  });
-});
-
-const loginForm = document.querySelector('[data-js-login]');
-
-if (loginForm) {
-  loginForm.addEventListener('submit', async event => {
-    event.preventDefault();
-
-    const message = loginForm.querySelector('[role="status"]');
-    const submitButton = loginForm.querySelector('[type="submit"]');
-    const formData = new FormData(loginForm);
-
-    submitButton.disabled = true;
-    message.textContent = 'Checking your login...';
-
-    try {
-      const response = await fetch(loginForm.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-      const result = await response.json();
-
-      message.textContent = result.message;
-
-      if (response.ok) {
-        setTimeout(() => {
-          window.location.href = result.redirect_url;
-        }, 900);
-      }
-    } catch (error) {
-      message.textContent = 'Something went wrong. Please try again.';
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
-}
-
-// Notifications: search, filtering, sorting, and review details.
-(() => {
-  "use strict";
-
-  // Shared with the login page; initialize only on notifications.html.
-  const page = document.querySelector(".notifications-page");
-  if (!page) return;
-
-  const search = page.querySelector("#notification-search");
-  const sort = page.querySelector("#notification-sort");
-  const list = page.querySelector(".notification-list");
-  const cards = Array.from(list.querySelectorAll(".notification-card"));
-  const filters = Array.from(page.querySelectorAll("[data-filter]"));
-  const empty = page.querySelector("#empty-state");
-  const count = page.querySelector("#results-count");
-  let activeFilter = "all";
-
-  function updateResults() {
-    const query = search.value.trim().toLocaleLowerCase();
-    let visible = 0;
-    const sorted = [...cards].sort((a, b) => {
-      const recent = Date.parse(b.dataset.created) - Date.parse(a.dataset.created);
-      if (sort.value === "oldest") return -recent;
-      if (sort.value === "deadline") {
-        const first = a.dataset.deadline || "9999-12-31";
-        const second = b.dataset.deadline || "9999-12-31";
-        return first.localeCompare(second) || recent;
-      }
-      return recent;
-    });
-    for (const card of sorted) {
-      const matchesCategory = activeFilter === "all" || card.dataset.category === activeFilter;
-      card.hidden = !(matchesCategory && card.textContent.toLocaleLowerCase().includes(query));
-      if (!card.hidden) visible += 1;
-      list.append(card);
-    }
-    empty.hidden = visible > 0;
-    count.textContent = `${visible} notification${visible === 1 ? "" : "s"} shown`;
-    for (const button of filters) {
-      button.setAttribute("aria-pressed", String(button.dataset.filter === activeFilter));
-    }
-  }
-
-  for (const button of filters) {
-    button.addEventListener("click", () => {
-      activeFilter = button.dataset.filter;
-      updateResults();
-    });
-  }
-  search.addEventListener("input", updateResults);
-  sort.addEventListener("change", updateResults);
-  page.querySelector("#reset-filters").addEventListener("click", () => {
-    activeFilter = "all";
-    search.value = "";
-    sort.value = "recent";
-    updateResults();
-    search.focus();
-  });
-
-  const detailDialog = page.querySelector("#detail-dialog");
-  const detailContent = page.querySelector("#detail-content");
-  for (const button of page.querySelectorAll("[data-details]")) {
-    button.addEventListener("click", () => {
-      const template = document.getElementById(button.dataset.details);
-      detailContent.replaceChildren(template.content.cloneNode(true));
-      detailDialog.showModal();
-    });
-  }
-  for (const dialog of page.querySelectorAll("dialog")) {
-    for (const button of dialog.querySelectorAll(".close-dialog, .dialog-done")) {
-      button.addEventListener("click", () => dialog.close());
-    }
-    dialog.addEventListener("click", (event) => {
-      const bounds = dialog.getBoundingClientRect();
-      if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
-        dialog.close();
-      }
-    });
-  }
-  updateResults();
-})();
-
 // Shared settings controller. Admin's role-specific entry point lives in admin.js.
 // Browser storage holds preferences/profile display fields only, never credentials.
 window.AxiodySettings = (() => {
@@ -202,8 +43,13 @@ window.AxiodySettings = (() => {
     const helpContent = page.querySelector('[data-help-content]');
     const otpDialog = page.querySelector('[data-otp-dialog]');
     const otpForm = page.querySelector('[data-otp-form]');
+    const otpEntry = page.querySelector('[data-otp-entry]');
+    const otpSuccess = page.querySelector('[data-otp-success]');
+    const otpLoginLink = page.querySelector('[data-otp-login-link]');
     const otpInput = page.querySelector('[name="otp"]');
+    const otpDigits = [...page.querySelectorAll('[data-otp-digit]')];
     const otpMessage = page.querySelector('[data-otp-message]');
+    const otpCountdown = page.querySelector('[data-otp-countdown]');
     const otpStatus = page.querySelector('[data-otp-status]');
     const otpResend = page.querySelector('[data-otp-resend]');
     const editButton = page.querySelector('[data-edit-account]');
@@ -218,6 +64,9 @@ window.AxiodySettings = (() => {
     let storageFailed = false;
     let otpVerifyUrl = '';
     let otpResendUrl = '';
+    let otpCountdownTimer = null;
+    let otpRejected = false;
+    let otpLoginTimer = null;
 
     // A backend can supply account_update_url and a CSRF token through template context.
     // Contract: authenticated POST form data; JSON {account: {full_name, email}} on success.
@@ -411,11 +260,41 @@ window.AxiodySettings = (() => {
       if (!otpDialog || !otpForm) throw new Error('OTP dialog is unavailable');
       otpVerifyUrl = result.verify_url;
       otpResendUrl = result.resend_url;
-      otpInput.value = '';
+      clearOtp();
       plainStatus(otpStatus, '');
-      otpMessage.textContent = result.message || `We sent a 6-digit verification code to ${result.email}.`;
+      otpMessage.textContent = `We've sent a 6-digit OTP to ${result.email}.`;
+      startOtpCountdown(result.expires_at);
       otpDialog.showModal();
-      otpInput.focus();
+      otpDigits[0]?.focus();
+    }
+    function startOtpCountdown(expiresAt) {
+      if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+      const expiry = Date.parse(expiresAt || '') || Date.now() + 5 * 60 * 1000;
+      const update = () => {
+        const seconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
+        const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const remaining = String(seconds % 60).padStart(2, '0');
+        otpCountdown.innerHTML = `OTP expires in ${Math.floor(seconds / 60)} minutes <strong>(${minutes}:${remaining})</strong>`;
+        if (!seconds) clearInterval(otpCountdownTimer);
+      };
+      update();
+      otpCountdownTimer = setInterval(update, 1000);
+    }
+    function clearOtp() {
+      otpInput.value = '';
+      otpDigits.forEach(digit => { digit.value = ''; });
+      otpEntry.hidden = false;
+      otpSuccess.hidden = true;
+      otpDigits[0]?.focus();
+    }
+    function showOtpSuccess(account) {
+      otpEntry.hidden = true;
+      otpSuccess.hidden = false;
+      acceptAccountUpdate(account);
+      if (otpLoginTimer) clearTimeout(otpLoginTimer);
+      otpLoginTimer = setTimeout(() => {
+        window.location.assign(otpLoginLink.href);
+      }, 1500);
     }
     function dirty() {
       return name.value !== savedProfile.full_name || email.value !== savedProfile.email || (roleInput && roleInput.value !== savedProfile.role) || password.value !== '' || confirmation.value !== '';
@@ -517,6 +396,34 @@ window.AxiodySettings = (() => {
     });
 
     if (otpForm) {
+      function syncOtpDigits() {
+        otpInput.value = otpDigits.map(digit => digit.value).join('');
+      }
+      otpDigits.forEach((digit, index) => {
+        digit.addEventListener('input', event => {
+          const digits = event.target.value.replace(/\D/g, '');
+          if (digits.length > 1) {
+            digits.slice(0, 6).split('').forEach((value, offset) => { if (otpDigits[index + offset]) otpDigits[index + offset].value = value; });
+          } else {
+            event.target.value = digits;
+          }
+          syncOtpDigits();
+          if (event.target.value && otpDigits[index + 1]) otpDigits[index + 1].focus();
+          plainStatus(otpStatus, '');
+          if (otpInput.value.length === otpDigits.length && !saving) otpForm.requestSubmit();
+        });
+        digit.addEventListener('keydown', event => {
+          if (event.key === 'Backspace' && !digit.value && otpDigits[index - 1]) otpDigits[index - 1].focus();
+        });
+        digit.addEventListener('paste', event => {
+          event.preventDefault();
+          const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+          pasted.split('').forEach((value, offset) => { if (otpDigits[index + offset]) otpDigits[index + offset].value = value; });
+          syncOtpDigits();
+          otpDigits[Math.min(index + pasted.length, 5)]?.focus();
+          if (otpInput.value.length === otpDigits.length && !saving) otpForm.requestSubmit();
+        });
+      });
       otpInput.addEventListener('input', () => {
         otpInput.value = otpInput.value.replace(/\D/g, '').slice(0, 6);
         plainStatus(otpStatus, '');
@@ -539,16 +446,20 @@ window.AxiodySettings = (() => {
           const result = await jsonFrom(response, 'Unable to verify the OTP.');
           if (!response.ok) {
             plainStatus(otpStatus, result.message || 'Unable to verify the OTP.', true);
+            otpRejected = true;
             return;
           }
           if (typeof result.account?.full_name !== 'string' || typeof result.account?.email !== 'string') throw new Error('Account update was not confirmed');
-          otpDialog.close();
-          acceptAccountUpdate(result.account);
+          showOtpSuccess(result.account);
         } catch (_) {
           plainStatus(otpStatus, 'Unable to verify the OTP. Please try again.', true);
         } finally {
           saving = false;
           for (const control of otpForm.querySelectorAll('input, button')) control.disabled = false;
+          if (otpRejected) {
+            otpRejected = false;
+            clearOtp();
+          }
         }
       });
       otpResend.addEventListener('click', async () => {
@@ -564,20 +475,27 @@ window.AxiodySettings = (() => {
           });
           const result = await jsonFrom(response, 'Unable to resend the OTP.');
           plainStatus(otpStatus, result.message || (response.ok ? 'A new OTP was sent.' : 'Unable to resend the OTP.'), !response.ok);
-          if (response.ok) otpInput.value = '';
+          if (response.ok) {
+            clearOtp();
+            startOtpCountdown(result.expires_at);
+            otpDigits[0]?.focus();
+          }
         } catch (_) {
           plainStatus(otpStatus, 'Unable to resend the OTP. Please try again.', true);
         } finally {
           saving = false;
           for (const control of otpForm.querySelectorAll('button')) control.disabled = false;
           otpInput.disabled = false;
-          otpInput.focus();
+          otpDigits[0]?.focus();
         }
       });
-      page.querySelector('[data-otp-close]').addEventListener('click', () => {
-        otpDialog.close();
-        name.focus();
-      });
+      const otpClose = page.querySelector('[data-otp-close]');
+      if (otpClose) {
+        otpClose.addEventListener('click', () => {
+          otpDialog.close();
+          name.focus();
+        });
+      }
       otpDialog.addEventListener('click', event => {
         const bounds = otpDialog.getBoundingClientRect();
         if (event.target === otpDialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) otpDialog.close();
