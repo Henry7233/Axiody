@@ -43,6 +43,12 @@ def init_document_db(database_path):
             connection.execute("ALTER TABLE documents ADD COLUMN file_size INTEGER NOT NULL DEFAULT 0")
         if "file_data" not in column_names:
             connection.execute("ALTER TABLE documents ADD COLUMN file_data BLOB")
+        if "ai_document_type" not in column_names:
+            connection.execute("ALTER TABLE documents ADD COLUMN ai_document_type TEXT")
+        if "ai_confidence" not in column_names:
+            connection.execute("ALTER TABLE documents ADD COLUMN ai_confidence REAL")
+        if "document_type" not in column_names:
+            connection.execute("ALTER TABLE documents ADD COLUMN document_type TEXT")
         if "classification_status" not in column_names:
             connection.execute(
                 "ALTER TABLE documents ADD COLUMN classification_status TEXT NOT NULL DEFAULT 'Pending'"
@@ -126,6 +132,27 @@ def create_document(
         )
 
         return cursor.lastrowid
+
+
+def update_document_classification(database_path, document_id, classification):
+    with get_connection(database_path) as connection:
+        connection.execute(
+            """
+            UPDATE documents
+            SET ai_document_type = ?,
+                ai_confidence = ?,
+                document_type = ?,
+                classification_status = ?
+            WHERE id = ?
+            """,
+            (
+                classification["ai_document_type"],
+                classification["ai_confidence"],
+                classification["document_type"],
+                classification["classification_status"],
+                document_id,
+            ),
+        )
 
 
 def list_documents(database_path):
