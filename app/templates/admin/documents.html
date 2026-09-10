@@ -16,10 +16,18 @@
       <div>
         <h2>{{ document.title }}</h2>
         <p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
+        <p>{{ document.filename }} · {{ document.status }}</p>
       </div>
       <div class="document-actions">
         <a class="btn btn--secondary"
            href="{{ url_for('admin.reviews', client=document.submitter, document=document.id) }}">Review</a>
+      </div>
+    </article>
+    {% else %}
+    <article class="document-card">
+      <div>
+        <h2>No submitted documents yet</h2>
+        <p>Client uploads will appear here after submission.</p>
       </div>
     </article>
     {% endfor %}

@@ -14,6 +14,8 @@ def get_connection(database_path):
             yield connection
     finally:
         connection.close()
+    connection.execute("PRAGMA foreign_keys = ON")
+    return connection
 
 
 def format_created_date(created_at):
@@ -176,6 +178,28 @@ def delete_user(database_path, user_id):
 
         connection.execute("DELETE FROM users WHERE id = ?", (user_id,))
         return {"deleted": True, "reason": None}
+
+
+def update_admin_user(database_path, user_id, full_name, email, role, password=""):
+    with get_connection(database_path) as connection:
+        try:
+            cursor = connection.execute(
+                """
+                UPDATE users SET full_name = ?, email = ?, role = ?
+                WHERE id = ? AND account_type = 'admin'
+                """,
+                (full_name.strip(), email.strip().lower(), role.strip(), user_id),
+            )
+        except sqlite3.IntegrityError:
+            return {"updated": False, "reason": "duplicate_email"}
+        if not cursor.rowcount:
+            return {"updated": False, "reason": "not_found"}
+        if password:
+            connection.execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?",
+                (generate_password_hash(password), user_id),
+            )
+        return {"updated": True, "reason": None}
 
 
 def delete_unprotected_admin_users(database_path):

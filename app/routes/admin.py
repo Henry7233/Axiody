@@ -1,11 +1,14 @@
 from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 
+from app.models.documents import list_documents
 from app.models.users import (
     create_user,
+    format_created_date,
     delete_unprotected_admin_users,
     delete_user,
     get_user_by_id,
     list_admin_users,
+    update_admin_user,
 )
 
 
@@ -119,7 +122,7 @@ def documents():
 
     return render_template(
         "admin/documents.html",
-        documents=SAMPLE_DOCUMENTS,
+        documents=list_documents(current_app.config["DATABASE"]),
         **admin_context("documents"),
     )
 
@@ -274,3 +277,44 @@ def delete_admin(user_id):
         return jsonify({"message": "This admin account is protected and cannot be deleted."}), 403
 
     return jsonify({"message": "Admin account was not found."}), 404
+
+
+@admin_bp.route("/admin_management/admins/<int:user_id>", methods=["PUT"])
+def update_admin(user_id):
+    if require_admin():
+        return jsonify({"message": "Admin access is required."}), 403
+
+    data = request.get_json(silent=True) or request.form
+    fields = ("name", "email", "role", "custom_role", "password", "password_confirmation")
+    if any(not isinstance(data.get(field, ""), str) for field in fields):
+        return jsonify({"message": "Account fields must be text."}), 400
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip().lower()
+    selected_role = data.get("role", "").strip()
+    role = data.get("custom_role", "").strip() if selected_role == "Other" else selected_role
+    password = data.get("password", "")
+    confirmation = data.get("password_confirmation", "")
+    if not name or not email or not role:
+        return jsonify({"message": "Enter a full name, email address, and role."}), 400
+    if (password or confirmation) and len(password) < 8:
+        return jsonify({"message": "Password must be at least 8 characters."}), 400
+    if password != confirmation:
+        return jsonify({"message": "Passwords must match."}), 400
+
+    result = update_admin_user(current_app.config["DATABASE"], user_id, name, email, role, password)
+    if not result["updated"]:
+        if result["reason"] == "duplicate_email":
+            return jsonify({"message": "An account with that email already exists."}), 409
+        return jsonify({"message": "Admin account was not found."}), 404
+
+    user = get_user_by_id(current_app.config["DATABASE"], user_id)
+    return jsonify({
+        "message": f"{user['full_name']} was updated.",
+        "admin": {
+            "id": user["id"],
+            "name": user["full_name"] or user["email"],
+            "email": user["email"],
+            "role": user["role"],
+            "date": format_created_date(user["created_at"]),
+        },
+    })

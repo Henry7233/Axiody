@@ -1,6 +1,10 @@
 from datetime import date, datetime
 
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from werkzeug.utils import secure_filename
+
+from app.models.documents import create_document
 
 
 client_bp = Blueprint("client", __name__, url_prefix="/client")
@@ -69,6 +73,47 @@ def upload():
     redirect_response = require_client()
     if redirect_response:
         return redirect_response
+
+    if request.method == "POST":
+        titles = request.form.getlist("title")
+        descriptions = request.form.getlist("description")
+        document_dates = request.form.getlist("document_date")
+        saved_count = 0
+
+        for index, title in enumerate(titles, start=1):
+            description = descriptions[index - 1] if index <= len(descriptions) else ""
+            document_date = document_dates[index - 1] if index <= len(document_dates) else ""
+            files = request.files.getlist(f"document_files_{index}")
+
+            if not title.strip() or not document_date:
+                continue
+
+            for uploaded_file in files:
+                if not uploaded_file or not uploaded_file.filename:
+                    continue
+
+                file_data = uploaded_file.read()
+                if not file_data:
+                    continue
+
+                create_document(
+                    current_app.config["DATABASE"],
+                    session["user_id"],
+                    title,
+                    description,
+                    document_date,
+                    secure_filename(uploaded_file.filename) or uploaded_file.filename,
+                    uploaded_file.mimetype,
+                    file_data,
+                )
+                saved_count += 1
+
+        if saved_count == 0:
+            flash("Please choose at least one file to upload.", "error")
+            return render_template("client/upload.html", username=session.get("user_email")), 400
+
+        flash(f"{saved_count} document file(s) submitted successfully.", "success")
+        return redirect(url_for("client.upload"))
 
     return render_template("client/upload.html", username=session.get("user_email"))
 
