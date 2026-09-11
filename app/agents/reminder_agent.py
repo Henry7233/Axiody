@@ -1,328 +1,227 @@
-import sqlite3
 from datetime import date, datetime, timedelta
 
+from flask import current_app
 
-DATABASE = "database.db"
-
-
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+from app.services.email_servie import send_email
 
 
-def create_initial_reminder(document_id):
-    """
-    Create the first notification immediately
-    when a document is INCOMPLETE.
-    """
+REMINDER_INTERVAL_DAYS = 5
+REMINDER_DAY = 25
 
-    conn = get_db_connection()
 
-    document = conn.execute(
-        """
-        SELECT *
-        FROM documents
-        WHERE id = ?
-        """,
-        (document_id,)
-    ).fetchone()
+def _database_path(database_path=None):
+    if database_path is not None:
+        return database_path
+    return current_app.config["DATABASE"]
 
-    if not document:
-        conn.close()
 
-        return {
-            "success": False,
-            "message": "Document not found."
-        }
+def _get_connection(database_path):
+    import sqlite3
 
-    # Only process incomplete documents
-    if document["validation_status"] != "INCOMPLETE":
-        conn.close()
+    connection = sqlite3.connect(database_path)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
+    return connection
 
-        return {
-            "success": False,
-            "message": "Document is not incomplete."
-        }
 
-    # Prevent duplicate active notification
-    existing_notification = conn.execute(
-        """
-        SELECT *
-        FROM notifications
-        WHERE document_id = ?
-          AND status != 'resolved'
-        """,
-        (document_id,)
-    ).fetchone()
+def _deadline(today):
+    return date(today.year, today.month, REMINDER_DAY)
 
-    if existing_notification:
-        conn.close()
 
-        return {
-            "success": False,
-            "message": "Active notification already exists."
-        }
+def _next_reminder(today):
+    next_date = today + timedelta(days=REMINDER_INTERVAL_DAYS)
+    return next_date.isoformat() if next_date < _deadline(today) else None
+
+
+def _message(validation_data, deadline):
+    document_title = validation_data.get("document_title") or "Your document"
+    reason = validation_data.get("validation_reason") or (
+        "The document is missing required information."
+    )
+    period = validation_data.get("bookkeeping_period")
+    period_text = f" for {period}" if period else ""
+    message = (
+        f"{document_title}{period_text} is incomplete. {reason} "
+        f"Please correct or resubmit it before {deadline.strftime('%B %d')}."
+    )
+    return "Incomplete Document Submission", message
+
+
+def create_initial_reminder(validation_data, database_path=None, mail_config=None):
+    """Persist and immediately deliver a reminder from validation output."""
+    database_path = _database_path(database_path)
+    document_id = validation_data.get("document_id")
+    if not document_id:
+        return {"success": False, "message": "document_id is required."}
 
     today = date.today()
-
-    deadline = date(
-        today.year,
-        today.month,
-        25
-    )
-
-    # Do not start reminder cycle on/after 25th
+    deadline = _deadline(today)
     if today >= deadline:
-        conn.close()
-
         return {
             "success": False,
-            "message": "Reminder deadline has already been reached."
+            "message": "Reminder deadline has already been reached.",
         }
 
-    title = "Incomplete Document Submission"
+    connection = _get_connection(database_path)
+    try:
+        document = connection.execute(
+            "SELECT id, title FROM documents WHERE id = ?",
+            (document_id,),
+        ).fetchone()
+        if not document:
+            return {"success": False, "message": "Document not found."}
 
-    validation_reason = (
-        document["validation_reason"]
-        if document["validation_reason"]
-        else "The document did not pass validation."
-    )
+        active = connection.execute(
+            """
+            SELECT id FROM notifications
+            WHERE document_id = ? AND status != 'resolved'
+            LIMIT 1
+            """,
+            (document_id,),
+        ).fetchone()
+        if active:
+            return {
+                "success": False,
+                "message": "Active notification already exists.",
+                "notification_id": active["id"],
+            }
 
-    document_title = (
-        document["title"]
-        if document["title"]
-        else "your document"
-    )
-
-    message = (
-        f"{document_title} is incomplete. "
-        f"{validation_reason} "
-        f"Please correct or resubmit the document before the 25th."
-    )
-
-    next_reminder = today + timedelta(days=3)
-
-    # If +3 days is already on/after the 25th,
-    # don't schedule another normal reminder
-    if next_reminder >= deadline:
-        next_reminder_value = None
-    else:
-        next_reminder_value = next_reminder.isoformat()
-
-    cursor = conn.execute(
-        """
-        INSERT INTO notifications (
-            document_id,
-            title,
-            message,
-            status,
-            last_reminder_sent,
-            next_reminder_date,
-            reminder_count,
-            created_at
+        data = dict(validation_data)
+        data.setdefault("document_title", document["title"])
+        title, message = _message(data, deadline)
+        cursor = connection.execute(
+            """
+            INSERT INTO notifications (
+                document_id, title, message, status, last_reminder_sent,
+                next_reminder_date, reminder_count
+            ) VALUES (?, ?, ?, 'unread', ?, ?, 1)
+            """,
+            (
+                document_id,
+                title,
+                message,
+                date.today().isoformat(),
+                _next_reminder(today),
+            ),
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """,
-        (
-            document_id,
-            title,
-            message,
-            "unread",
-            today.isoformat(),
-            next_reminder_value,
-            1
-        )
-    )
+        connection.commit()
+        notification_id = cursor.lastrowid
+    finally:
+        connection.close()
 
-    notification_id = cursor.lastrowid
-
-    conn.commit()
-    conn.close()
-
-    # Temporary output
-    send_notification(
-        document_id=document_id,
-        title=title,
-        message=message
-    )
+    recipient = validation_data.get("client_email")
+    if recipient:
+        send_email(mail_config or current_app.config, recipient, title, message)
 
     return {
         "success": True,
         "notification_id": notification_id,
-        "message": "Initial reminder created and sent."
+        "message": "Initial reminder created and sent.",
     }
 
 
-def process_due_reminders():
-    """
-    Check all active notifications.
+def process_due_reminders(database_path=None, mail_config=None, today=None):
+    """Send due reminders every five days until the 25th of the month."""
+    database_path = _database_path(database_path)
+    today = today or date.today()
+    connection = _get_connection(database_path)
+    sent = 0
+    resolved = 0
+    try:
+        rows = connection.execute(
+            """
+            SELECT n.id, n.title, n.message, n.next_reminder_date,
+                   d.validation_status, u.email
+            FROM notifications n
+            JOIN documents d ON d.id = n.document_id
+            JOIN users u ON u.id = d.user_id
+            WHERE n.status != 'resolved'
+            """
+        ).fetchall()
 
-    If:
-    - document is still INCOMPLETE
-    - today >= next_reminder_date
-    - today is before the 25th
+        for row in rows:
+            status = (row["validation_status"] or "").lower()
+            if status in {"success", "complete", "completed"}:
+                connection.execute(
+                    "UPDATE notifications SET status = 'resolved', next_reminder_date = NULL WHERE id = ?",
+                    (row["id"],),
+                )
+                resolved += 1
+                continue
 
-    then send another reminder.
-    """
+            next_date = row["next_reminder_date"]
+            if today >= _deadline(today) or not next_date:
+                connection.execute(
+                    "UPDATE notifications SET next_reminder_date = NULL WHERE id = ?",
+                    (row["id"],),
+                )
+                continue
 
-    conn = get_db_connection()
+            if today < datetime.strptime(next_date, "%Y-%m-%d").date():
+                continue
 
-    today = date.today()
-
-    notifications = conn.execute(
-        """
-        SELECT
-            n.id AS notification_id,
-            n.document_id,
-            n.title,
-            n.message,
-            n.status,
-            n.last_reminder_sent,
-            n.next_reminder_date,
-            n.reminder_count,
-            d.validation_status,
-            d.validation_reason,
-            d.title AS document_title
-        FROM notifications n
-        JOIN documents d
-            ON n.document_id = d.id
-        WHERE n.status != 'resolved'
-        """
-    ).fetchall()
-
-    for notification in notifications:
-
-        document_id = notification["document_id"]
-
-        # Stop reminders if document is complete
-        if notification["validation_status"] == "COMPLETE":
-
-            conn.execute(
+            send_email(
+                mail_config or current_app.config,
+                row["email"],
+                row["title"],
+                row["message"],
+            )
+            connection.execute(
                 """
                 UPDATE notifications
-                SET status = 'resolved',
-                    next_reminder_date = NULL
+                SET last_reminder_sent = ?, next_reminder_date = ?,
+                    reminder_count = reminder_count + 1
                 WHERE id = ?
                 """,
-                (notification["notification_id"],)
+                (today.isoformat(), _next_reminder(today), row["id"]),
             )
+            sent += 1
 
-            continue
+        connection.commit()
+    finally:
+        connection.close()
+    return {"success": True, "sent": sent, "resolved": resolved}
 
-        # Only remind incomplete documents
-        if notification["validation_status"] != "INCOMPLETE":
-            continue
 
-        deadline = date(
-            today.year,
-            today.month,
-            25
-        )
-
-        # Stop once the 25th is reached
-        if today >= deadline:
-
-            conn.execute(
-                """
-                UPDATE notifications
-                SET next_reminder_date = NULL
-                WHERE id = ?
-                """,
-                (notification["notification_id"],)
-            )
-
-            continue
-
-        # No next reminder scheduled
-        if not notification["next_reminder_date"]:
-            continue
-
-        next_reminder_date = datetime.strptime(
-            notification["next_reminder_date"],
-            "%Y-%m-%d"
-        ).date()
-
-        # Not due yet
-        if today < next_reminder_date:
-            continue
-
-        # Send reminder
-        send_notification(
-            document_id=document_id,
-            title=notification["title"],
-            message=notification["message"]
-        )
-
-        new_next_reminder = today + timedelta(days=3)
-
-        # Do not schedule after the 25th
-        if new_next_reminder >= deadline:
-            next_reminder_value = None
-        else:
-            next_reminder_value = new_next_reminder.isoformat()
-
-        conn.execute(
+def resolve_notification(document_id, database_path=None):
+    """Stop all active reminders for a document after a replacement upload."""
+    database_path = _database_path(database_path)
+    connection = _get_connection(database_path)
+    try:
+        connection.execute(
             """
             UPDATE notifications
-            SET last_reminder_sent = ?,
-                next_reminder_date = ?,
-                reminder_count = reminder_count + 1
-            WHERE id = ?
+            SET status = 'resolved', next_reminder_date = NULL
+            WHERE document_id = ? AND status != 'resolved'
             """,
-            (
-                today.isoformat(),
-                next_reminder_value,
-                notification["notification_id"]
-            )
+            (document_id,),
         )
-
-    conn.commit()
-    conn.close()
-
-
-def resolve_notification(document_id):
-    """
-    Manually resolve a reminder when the document
-    becomes COMPLETE.
-    """
-
-    conn = get_db_connection()
-
-    conn.execute(
-        """
-        UPDATE notifications
-        SET status = 'resolved',
-            next_reminder_date = NULL
-        WHERE document_id = ?
-          AND status != 'resolved'
-        """,
-        (document_id,)
-    )
-
-    conn.commit()
-    conn.close()
-
-    return {
-        "success": True,
-        "message": "Notification resolved."
-    }
+        connection.commit()
+    finally:
+        connection.close()
+    return {"success": True, "message": "Notification resolved."}
 
 
-def send_notification(document_id, title, message):
-    """
-    Temporary notification sender.
-
-    Later you can replace this with:
-    - Website notification
-    - Gmail SMTP email
-    - Both
-    """
-
-    print("\n==============================")
-    print("REMINDER SENT")
-    print("==============================")
-    print(f"Document ID: {document_id}")
-    print(f"Title: {title}")
-    print(f"Message: {message}")
-    print("==============================\n")
+def resolve_replaced_document_reminders(
+    user_id, title, document_date, database_path=None
+):
+    """Stop reminders for an older submission replaced by a new upload."""
+    database_path = _database_path(database_path)
+    connection = _get_connection(database_path)
+    try:
+        connection.execute(
+            """
+            UPDATE notifications
+            SET status = 'resolved', next_reminder_date = NULL
+            WHERE status != 'resolved'
+              AND document_id IN (
+                  SELECT id FROM documents
+                  WHERE user_id = ? AND title = ? AND document_date = ?
+              )
+            """,
+            (user_id, title.strip(), document_date),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+    return {"success": True, "message": "Replaced document reminders resolved."}

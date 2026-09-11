@@ -5,6 +5,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from werkzeug.utils import secure_filename
 
 from app.agents.classification_agent import classify_document, extract_document_text
+from app.agents.reminder_agent import resolve_replaced_document_reminders
 from app.models.documents import create_document, update_document_classification
 
 
@@ -88,6 +89,13 @@ def upload():
 
             if not title.strip() or not document_date:
                 continue
+
+            resolve_replaced_document_reminders(
+                session["user_id"],
+                title,
+                document_date,
+                current_app.config["DATABASE"],
+            )
 
             for uploaded_file in files:
                 if not uploaded_file or not uploaded_file.filename:

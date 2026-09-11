@@ -39,7 +39,8 @@ based on the validation reason.
 4. Mention that the document should be corrected or resubmitted
 before the deadline.
 
-5. Keep the message concise and professional.
+5. Keep the message concise and professional. The system may repeat this
+    reminder every 5 days until the 25th, so do not add a different deadline.
 
 6. Do not blame or criticize the client.
 
