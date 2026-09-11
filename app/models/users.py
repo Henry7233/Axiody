@@ -200,6 +200,9 @@ def delete_user(database_path, user_id):
         if user["protected"]:
             return {"deleted": False, "reason": "protected"}
 
+        # Keep other clients' reviewed documents when their reviewer leaves.
+        connection.execute("UPDATE documents SET reviewed_by = NULL WHERE reviewed_by = ?", (user_id,))
+        connection.execute("DELETE FROM documents WHERE user_id = ?", (user_id,))
         connection.execute("DELETE FROM users WHERE id = ?", (user_id,))
         return {"deleted": True, "reason": None}
 
