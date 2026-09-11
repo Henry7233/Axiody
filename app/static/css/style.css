@@ -260,6 +260,13 @@ body:has(.settings-page[data-theme="dark"]) .nav-link[aria-current="page"] { bac
 .settings-page .settings-button:hover { background: var(--settings-soft); border-color: var(--settings-blue); }
 .settings-page .settings-button-primary { min-width: 152px; background: #0667ff; color: #fff; border-color: #0667ff; }
 .settings-page .settings-button-primary:hover { background: #0058df; color: #fff; }
+.settings-page .settings-delete-account { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--settings-border); }
+.settings-page .settings-delete-account h3 { margin: 0 0 6px; font-size: 1.2em; }
+.settings-page .settings-delete-account > div > .settings-hint { font-size: .95em; }
+.settings-page .settings-delete-account .settings-button { width: 8.5em; min-height: 40px; padding: 9px 8px; white-space: nowrap; }
+.settings-page .settings-delete-account form { margin: 0; }
+.settings-page .settings-button-danger { color: var(--settings-danger); border-color: var(--settings-danger); }
+.settings-page .settings-button-danger:hover:not(:disabled) { background: var(--settings-danger); color: #fff; }
 .settings-page .settings-section .settings-local-note { margin-top: 9px; }
 .settings-page .settings-record { display: flex; flex-wrap: wrap; gap: 12px 24px; padding-top: 14px; overflow-wrap: anywhere; }
 .settings-page .settings-record span { color: var(--settings-muted); }

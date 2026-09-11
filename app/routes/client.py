@@ -1,23 +1,16 @@
 from datetime import date, datetime
 
-from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
-from flask import Blueprint, current_app, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
 from app.agents.classification_agent import classify_document, extract_document_text
+
 from app.agents.reminder_agent import resolve_replaced_document_reminders
 from app.models.documents import create_document, update_document_classification
 
 
+
 client_bp = Blueprint("client", __name__, url_prefix="/client")
-
-
-# Shared by the dashboard preview and its all-records overlay.
-DOCUMENT_CATEGORIES = [
-    {"id": "sales-revenue-records", "name": "Sales & Revenue Records", "icon": "chart", "documents": ["Sales invoices", "Payment receipts", "Bank transaction proof"]},
-    {"id": "business-expenses", "name": "Business Expenses", "icon": "cart", "documents": ["Expense invoices", "Expense receipts", "Payment proof"]},
-    {"id": "bank-reconciliation", "name": "Bank Reconciliation", "icon": "bank", "documents": ["Bank statements", "Transaction records", "Reconciliation reports"]},
-]
 
 
 def bookkeeping_periods():
@@ -43,6 +36,9 @@ def dashboard():
         return redirect_response
 
     periods, selected_period = bookkeeping_periods()
+    records = list_client_document_records(current_app.config["DATABASE"], session["user_id"], selected_period)
+    submitted_count = sum(record["file_count"] for record in records)
+    completed_count = sum(record["completed_count"] for record in records)
 
     account = g.account
     try:
@@ -52,7 +48,9 @@ def dashboard():
 
     return render_template(
         "client/dashboard.html", account=account, member_since=member_since,
-        periods=periods, selected_period=selected_period, categories=DOCUMENT_CATEGORIES,
+        periods=periods, selected_period=selected_period, records=records,
+        submitted_count=submitted_count, completed_count=completed_count,
+        pending_count=submitted_count - completed_count,
         period_label=next(period["label"] for period in periods if period["value"] == selected_period),
         username=account["full_name"] or account["email"],
     )

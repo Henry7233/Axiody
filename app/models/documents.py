@@ -175,6 +175,46 @@ def update_document_classification(database_path, document_id, classification):
         )
 
 
+def list_client_document_records(database_path, user_id, period):
+    """Group monthly upload metadata by record title, using saved AI results."""
+    start = datetime.strptime(period, "%Y-%m")
+    end = start.replace(year=start.year + 1, month=1) if start.month == 12 else start.replace(month=start.month + 1)
+    connection = get_connection(database_path)
+    try:
+        rows = connection.execute(
+            """
+            SELECT id, title, description, filename, document_date, created_at,
+                   document_type, ai_document_type, classification_status
+            FROM documents
+            WHERE user_id = ? AND document_date >= ? AND document_date < ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (user_id, start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")),
+        ).fetchall()
+    finally:
+        connection.close()
+
+    records = {}
+    type_labels = {
+        "invoice": "Invoice", "receipt": "Receipt",
+        "bank statement": "Bank Statement", "banking statement": "Bank Statement",
+    }
+    for row in rows:
+        document = dict(row)
+        stored_type = (document["document_type"] or document["ai_document_type"] or "").strip()
+        document["type"] = type_labels.get(stored_type.lower().replace("_", " "), stored_type)
+        document["status"] = document["classification_status"] or "Pending"
+        document["completed"] = document["status"].strip().lower() == "success"
+        record = records.setdefault(document["title"], {
+            "id": document["id"], "name": document["title"],
+            "groups": {}, "file_count": 0, "completed_count": 0,
+        })
+        record["groups"].setdefault(document["type"], []).append(document)
+        record["file_count"] += 1
+        record["completed_count"] += document["completed"]
+    return list(records.values())
+
+
 def list_documents(database_path):
     with get_connection(database_path) as connection:
         return [
