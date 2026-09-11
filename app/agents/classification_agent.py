@@ -3,6 +3,8 @@ import json
 import os
 import re
 import zipfile
+from pathlib import Path
+from string import Template
 from xml.etree import ElementTree
 
 try:
@@ -16,6 +18,7 @@ load_dotenv()
 MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID")
 ALLOWED_DOCUMENT_TYPES = {"Invoice", "Receipt", "Bank Statement", "Other"}
 SUCCESS_DOCUMENT_TYPES = ALLOWED_DOCUMENT_TYPES - {"Other"}
+PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "classification_agent_prompt.txt"
 
 
 def extract_document_text(file_data, filename="", content_type=""):
@@ -100,47 +103,11 @@ def classify_document(
     document_bytes=None,
 ):
 
-    prompt = f"""
-You are the Classification Agent for AXIODY,
-a bookkeeping document collection system.
-
-Your job is ONLY to classify the bookkeeping document.
-
-Allowed document types:
-- Invoice
-- Receipt
-- Bank Statement
-- Other
-
-Do not classify the technical file format such as:
-PDF, DOCX, XLSX, JPG or PNG.
-
-Use the actual contents of the document as the main evidence.
-The title and description are only supporting information.
-
-Document title:
-{title}
-
-Document description:
-{description}
-
-Document content:
-{document_text}
-
-Return ONLY valid JSON using this format:
-
-{{
-    "document_type": "Invoice",
-    "confidence": 0.87
-}}
-
-Rules:
-- Use "Invoice" for invoices or bills requesting payment.
-- Use "Receipt" for proof that payment has already been made.
-- Use "Bank Statement" for bank account transaction statements.
-- Use "Other" when the document does not clearly belong to the three categories.
-- Confidence must be a number from 0 to 1.
-"""
+    prompt = Template(PROMPT_PATH.read_text(encoding="utf-8")).safe_substitute(
+        title=title,
+        description=description,
+        document_text=document_text,
+    )
 
     result = None
     if MODEL_ID:
