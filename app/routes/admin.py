@@ -1,7 +1,9 @@
+import io
 import sqlite3
-from datetime import datetime
+import zipfile
+from datetime import date, datetime
 
-from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from app.models.documents import (
     get_client_review_data,
@@ -98,9 +100,25 @@ def dashboard():
     if redirect_response:
         return redirect_response
 
+    period_options = [
+        {"value": "2026-09", "label": "September 2026"},
+        {"value": "2026-08", "label": "August 2026"},
+        {"value": "2026-07", "label": "July 2026"},
+        {"value": "2026-06", "label": "June 2026"},
+    ]
+    selected_period = request.args.get("period", period_options[0]["value"])
+    if selected_period not in {period["value"] for period in period_options}:
+        selected_period = period_options[0]["value"]
+    selected_period_label = next(
+        period["label"] for period in period_options if period["value"] == selected_period
+    )
+
     return render_template(
         "admin/dashboard.html",
         documents=SAMPLE_DOCUMENTS,
+        period_options=period_options,
+        selected_period=selected_period,
+        selected_period_label=selected_period_label,
         **admin_context("dashboard"),
     )
 
@@ -135,6 +153,22 @@ def approve():
 
     return render_template(
         "admin/approve.html",
+        documents=SAMPLE_DOCUMENTS,
+        client_name=request.args.get("client", "Acme Supplies"),
+        document_id=request.args.get("document", "doc-1001"),
+        **admin_context("approve"),
+    )
+
+
+@admin_bp.route("/preview_approve.html")
+@admin_bp.route("/preview_approve")
+def preview_approve():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    return render_template(
+        "admin/preview_approve.html",
         client_name=request.args.get("client", "Acme Supplies"),
         document_id=request.args.get("document", "doc-1001"),
         **admin_context("approve"),
@@ -155,17 +189,35 @@ def clients():
     )
 
 
-@admin_bp.route("/documents.html")
-@admin_bp.route("/documents")
-def documents():
+@admin_bp.route("/bookkeeping.html")
+@admin_bp.route("/bookkeeping")
+def bookkeeping():
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
+    period_options = [
+        {"value": "2026-09", "label": "September 2026"},
+        {"value": "2026-08", "label": "August 2026"},
+        {"value": "2026-07", "label": "July 2026"},
+        {"value": "2026-06", "label": "June 2026"},
+    ]
+    selected_period = request.args.get("period", period_options[0]["value"])
+    if selected_period not in {period["value"] for period in period_options}:
+        selected_period = period_options[0]["value"]
+
     return render_template(
-        "admin/documents.html",
-        **admin_context("documents"),
+        "admin/bookkeeping.html",
+        period_options=period_options,
+        selected_period=selected_period,
+        **admin_context("bookkeeping"),
     )
+
+
+@admin_bp.route("/documents.html")
+@admin_bp.route("/documents")
+def documents():
+    return bookkeeping()
 
 
 @admin_bp.route("/documents/data")
@@ -214,6 +266,7 @@ def documents_data():
             return "statements"
         return "others"
 
+    selected_period = request.args.get("period", "2026-09")
     with sqlite3.connect(database_path) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
@@ -231,8 +284,10 @@ def documents_data():
             FROM documents d
             JOIN users u
               ON u.id = d.user_id
+                        WHERE substr(d.created_at, 1, 7) = ?
             ORDER BY d.created_at DESC, d.id DESC
-            """
+                        """,
+                        (selected_period,),
         ).fetchall()
 
     grouped = {
@@ -246,6 +301,7 @@ def documents_data():
         category = category_for(row["title"])
         grouped[category]["files"].append(
             {
+                "id": row["id"],
                 "name": row["name"],
                 "size": formatted_size(row["size_bytes"]),
                 "date": formatted_date(row["created_at"]),
@@ -255,6 +311,70 @@ def documents_data():
         )
 
     return jsonify(grouped)
+
+
+@admin_bp.route("/bookkeeping/download")
+def download_bookkeeping_period():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    selected_period = request.args.get("period", "2026-09")
+    archive = io.BytesIO()
+    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+        documents = connection.execute(
+            """
+            SELECT filename, file_data
+            FROM documents
+            WHERE substr(created_at, 1, 7) = ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (selected_period,),
+        ).fetchall()
+
+    if not documents:
+        return "No documents found for this period.", 404
+
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        used_names = set()
+        for index, (filename, file_data) in enumerate(documents, start=1):
+            name = filename or f"document-{index}"
+            if name in used_names:
+                stem, separator, suffix = name.rpartition(".")
+                name = f"{stem or name}-{index}{separator}{suffix}" if separator else f"{name}-{index}"
+            used_names.add(name)
+            zip_file.writestr(name, file_data or b"")
+
+    archive.seek(0)
+    return send_file(
+        archive,
+        as_attachment=True,
+        download_name=f"bookkeeping-{selected_period}.zip",
+        mimetype="application/zip",
+    )
+
+
+@admin_bp.route("/bookkeeping/download/<int:document_id>")
+def download_bookkeeping_document(document_id):
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+        document = connection.execute(
+            "SELECT filename, file_type, file_data FROM documents WHERE id = ?",
+            (document_id,),
+        ).fetchone()
+
+    if not document or document[2] is None:
+        return "Document not found.", 404
+
+    return send_file(
+        io.BytesIO(document[2]),
+        as_attachment=True,
+        download_name=document[0] or f"document-{document_id}",
+        mimetype=document[1] or "application/octet-stream",
+    )
 
 
 @admin_bp.route("/reminders.html")

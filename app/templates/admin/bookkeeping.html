@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}Bookkeeping | AXIODY{% endblock %}
+
+{% block head %}
+<style>
+  :root{
+    --ink: light-dark(#16211c, #dae7e1);
+    --paper: light-dark(#f6f4ee, #463e25);
+    --panel: light-dark(#ffffff, #212836);
+    --line: light-dark(#dcd6c8, #35415a);
+    --moss: light-dark(#33513f, #d9e7df);
+    --moss-dim: light-dark(#6b8577, #dde4e0);
+    --rust: light-dark(#c4523a, #f1d6d0);
+    --sand: light-dark(#efe9d8, #4a3f21);
+    --shadow: rgba(22,33,28,0.08);
+  }
+
+  .admin-bookkeeping-page {
+    display: grid;
+    gap: 22px;
+  }
+
+  .bookkeeping-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .bookkeeping-period {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 1px solid #d8e2f2;
+    border-radius: 12px;
+    background: #fff;
+    color: #07164d;
+    font-weight: 700;
+  }
+
+  .bookkeeping-period select {
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .bookkeeping-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bookkeeping-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 9px 14px;
+    border: 1px solid #a9c8ff;
+    border-radius: 10px;
+    background: #fff;
+    color: #0865e9;
+    font-size: .875rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .bookkeeping-download:hover { background: #eef5ff; }
+
+  .admin-bookkeeping-page .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .shell {
+    width: min(1680px, 100%);
+    margin: 0 auto;
+  }
+
+  .tabs{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 0;
+  }
+  .tab{
+    appearance:none;
+    border:none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--moss-dim);
+    padding: 14px 18px 16px;
+    display:flex;
+    align-items:center;
+    gap: 9px;
+    cursor:pointer;
+    position:relative;
+    top: 2px;
+    border-bottom: 2px solid transparent;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .tab:hover{ color: var(--ink); }
+  .tab.active{
+    color: var(--ink);
+    border-bottom: 2px solid var(--moss);
+  }
+  .count{
+    background: var(--rust);
+    color: #fff;
+    font-size: 0.71875rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+  }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    min-height: 420px;
+    padding: 4px 0;
+    box-shadow: 0 1px 0 var(--shadow);
+  }
+
+  .panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .panel-header h2{
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 1.375rem;
+    margin: 0;
+  }
+  .panel-header .sub{
+    font-size: 0.875rem;
+    color: var(--moss-dim);
+  }
+
+  .file-list{
+    list-style:none;
+    margin:0;
+    padding: 6px 8px;
+  }
+  .file-row{
+    display:grid;
+    grid-template-columns: 26px 1fr 200px 100px 96px;
+    gap: 14px;
+    align-items:center;
+    padding: 13px 16px;
+    border-radius: 6px;
+    cursor:pointer;
+    transition: background .12s ease;
+  }
+  .file-row.head{
+    cursor: default;
+    padding: 8px 16px;
+  }
+  .file-row.head:hover{ background: transparent; }
+  .file-row:hover{ background: var(--sand); }
+  .file-row + .file-row{ border-top: 1px solid var(--line); }
+
+  .col-label{
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--moss-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .file-icon{
+    width: 22px; height: 22px;
+    border-radius: 4px;
+    background: #33513f;
+    opacity: 0.85;
+    flex-shrink:0;
+  }
+  .file-name{
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .file-meta{
+    font-size: 0.875rem;
+    color: var(--moss-dim);
+  }
+  .submitted{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+    overflow:auto;
+  }
+  .submitted .email{
+    font-size: 0.875rem;
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .submitted .time{
+    font-size: 0.8125rem;
+    color: var(--moss-dim);
+  }
+  .file-date{
+    font-size: 0.875rem;
+    color: var(--moss-dim);
+    text-align:right;
+  }
+
+  .empty-state{
+    padding: 60px 24px;
+    text-align:center;
+    color: var(--moss-dim);
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: 720px){
+    .bookkeeping-header { align-items: flex-start; flex-direction: column; }
+    .bookkeeping-actions { width: 100%; flex-wrap: wrap; }
+    .file-row{ grid-template-columns: 22px 1fr 42px; }
+    .file-meta, .file-date, .col-label:nth-child(4), .col-label:nth-child(5){ display:none; }
+    .file-row .submitted{ display:none; }
+    .tab{ font-size: 0.875rem; padding: 12px 12px 14px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="admin-page admin-bookkeeping-page" aria-labelledby="bookkeeping-title">
+  <header class="bookkeeping-header">
+    <div>
+      <p class="page-eyebrow">Account manager view</p>
+      <h1 id="bookkeeping-title">Bookkeeping</h1>
+    </div>
+    <div class="bookkeeping-actions">
+    <form class="bookkeeping-period" method="get">
+      <span aria-hidden="true">📅</span>
+      <label class="sr-only" for="bookkeeping-period">Bookkeeping period</label>
+      <select id="bookkeeping-period" name="period" onchange="this.form.submit()">
+        {% for period in period_options %}
+        <option value="{{ period.value }}" {% if period.value == selected_period %}selected{% endif %}>{{ period.label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <a class="bookkeeping-download" id="periodDownload" href="{{ url_for('admin.download_bookkeeping_period', period=selected_period) }}" download>
+      Download
+    </a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <div class="tabs" id="tabs"></div>
+    <div class="panel">
+      <div class="panel-header">
+        <h2 id="panelTitle">Invoices</h2>
+        <div class="sub" id="panelSub">0 files</div>
+      </div>
+      <ul class="file-list" id="fileList"></ul>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const tabsEl = document.getElementById('tabs');
+  const listEl = document.getElementById('fileList');
+  const titleEl = document.getElementById('panelTitle');
+  const subEl = document.getElementById('panelSub');
+
+  let active = 'invoices';
+  let data = {};
+
+  async function loadData() {
+    const period = document.getElementById('bookkeeping-period').value;
+    const response = await fetch(`/admin/documents/data?period=${encodeURIComponent(period)}`);
+    data = await response.json();
+    renderTabs();
+    renderPanel();
+  }
+
+  function renderTabs(){
+    tabsEl.innerHTML = '';
+    const order = ['invoices', 'receipts', 'statements', 'others'];
+
+    order.forEach(key => {
+      if (!data[key]) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (key === active ? ' active' : '');
+      btn.innerHTML = `${data[key].label} <span class="count">${data[key].files.length}</span>`;
+      btn.addEventListener('click', () => {
+        active = key;
+        renderTabs();
+        renderPanel();
+      });
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  function renderPanel(){
+    const cat = data[active] || { label: 'Invoices', files: [] };
+    titleEl.textContent = cat.label;
+    subEl.textContent = `${cat.files.length} file${cat.files.length === 1 ? '' : 's'}`;
+    listEl.innerHTML = '';
+
+    if(cat.files.length === 0){
+      listEl.innerHTML = `<div class="empty-state">No ${cat.label.toLowerCase()} yet.</div>`;
+      return;
+    }
+
+    const head = document.createElement('li');
+    head.className = 'file-row head';
+    head.innerHTML = `
+      <span></span>
+      <span class="col-label">Name</span>
+      <span class="col-label">Submitted by</span>
+      <span class="col-label">Size</span>
+      <span class="col-label" style="text-align:right;">Date</span>
+    `;
+    listEl.appendChild(head);
+
+    cat.files.forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'file-row';
+      li.innerHTML = `
+        <span class="file-icon"></span>
+        <span class="file-name">${f.name}</span>
+        <span class="submitted">
+          <span class="email">${f.submittedBy}</span>
+          <span class="time">${f.submittedAt}</span>
+        </span>
+        <span class="file-meta">${f.size}</span>
+        <span class="file-date">${f.date}</span>
+      `;
+      li.addEventListener('click', (event) => {
+        alert(`Opening ${f.name}\nSubmitted by ${f.submittedBy} on ${f.submittedAt}`);
+      });
+      listEl.appendChild(li);
+    });
+  }
+
+  loadData();
+</script>
+{% endblock %}

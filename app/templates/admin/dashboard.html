@@ -1,116 +1,479 @@
-<!--This is a test-->
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard | AXIODY{% endblock %}
+{% block title %}Dashboard | AXIODY{% endblock %}
 
 {% block content %}
-<section class="admin-dashboard" aria-labelledby="dashboard-title">
-  <header class="page-header">
-    <p class="page-eyebrow">Account manager view</p>
-    <h1 id="dashboard-title">Client submissions</h1>
-    <p class="page-description">September 2026 submission status across your clients.</p>
-  </header>
 
-  <!-- JavaScript fills these summary cards from the client data. -->
-  <section class="stats-grid" id="statsGrid" aria-label="Submission summary"></section>
+<section class="dashboard-page">
 
-  <section class="dashboard-section" aria-labelledby="clients-title">
-    <div class="section-heading">
-      <div>
-        <h2 id="clients-title">Clients</h2>
-        <p>Open a client record to review its extracted document data.</p>
+  <!-- PAGE HEADER -->
+  <div class="dashboard-header">
+    <div>
+      <p class="dashboard-eyebrow">ADMIN DASHBOARD</p>
+
+      <h1>Client Submissions</h1>
+
+      <p class="dashboard-description">
+        Monitor document collection and bookkeeping progress across your clients.
+      </p>
+    </div>
+
+    <form class="period-selector" method="get" action="{{ url_for('admin.dashboard') }}">
+      <span aria-hidden="true">📅</span>
+      <label class="sr-only" for="dashboard-period">Reporting period</label>
+      <select id="dashboard-period" name="period" onchange="this.form.submit()">
+        {% for period in period_options %}
+        <option value="{{ period.value }}" {% if period.value == selected_period %}selected{% endif %}>{{ period.label }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid">
+
+    <article class="summary-card clients-card">
+      <div class="summary-icon">
+        👥
       </div>
-    </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Client</th>
-            <th scope="col">Period</th>
-            <th scope="col">Documents</th>
-            <th scope="col">Missing</th>
-            <th scope="col">Status</th>
-            <th scope="col">Action</th>
-          </tr>
-        </thead>
-        <!-- This URL connects each generated Review button to VerifyDoc.html. -->
-        <tbody id="clientTableBody" data-review-url="{{ url_for('admin.reviews') }}"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Merged from adminMgmt.html: documents awaiting an admin decision. -->
-  <section class="dashboard-section approval-panel" aria-labelledby="approval-title">
-    <div class="section-heading">
       <div>
-        <h2 id="approval-title">Documents awaiting approval</h2>
-        <p>Review, approve, or reject submitted documents.</p>
+        <p class="summary-label">Clients</p>
+        <h2>{{ total_clients | default(3) }}</h2>
       </div>
-      <span class="queue-count" id="queueCount" aria-live="polite">{{ documents|length }} pending</span>
-    </div>
+    </article>
 
-    <div class="document-list" id="documentList">
-      {% for document in documents %}
-      <article class="document-card" data-document-id="{{ document.id }}">
+
+    <article class="summary-card submitted-card">
+      <div class="summary-icon">
+        📄
+      </div>
+
+      <div>
+        <p class="summary-label">Submitted Documents</p>
+        <h2>{{ submitted_documents | default(12) }}</h2>
+      </div>
+    </article>
+
+
+    <article class="summary-card review-card">
+      <div class="summary-icon">
+        ⏱
+      </div>
+
+      <div>
+        <p class="summary-label">Under Review</p>
+        <h2>{{ under_review | default(3) }}</h2>
+      </div>
+    </article>
+
+
+    <article class="summary-card bookkept-card">
+      <div class="summary-icon">
+        ✓
+      </div>
+
+      <div>
+        <p class="summary-label">Bookkept</p>
+        <h2>{{ bookkept_documents | default(9) }}</h2>
+      </div>
+
+      <a href="{{ url_for('admin.documents') if false else '#' }}"
+         class="summary-arrow">
+        →
+      </a>
+    </article>
+
+  </div>
+
+
+  <!-- SECOND ROW -->
+  <div class="dashboard-row dashboard-row-main">
+
+    <!-- BOOKKEEPING PROGRESS -->
+    <article class="dashboard-card progress-card">
+
+      <div class="card-title-row">
+        <div class="card-title-icon">▥</div>
+
         <div>
-          <h3>{{ document.title }}</h3>
-          <p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
+          <h3>Bookkeeping Progress</h3>
+          <p>{{ selected_period_label }}</p>
         </div>
-        <div class="document-actions">
-          <a class="btn btn--secondary"
-             href="{{ url_for('admin.reviews', client=document.submitter, document=document.id) }}">Review</a>
-          <button type="button" class="btn btn--primary decision-button" data-decision="approved">Approve</button>
-          <button type="button" class="btn btn--danger decision-button" data-decision="rejected">Reject</button>
+      </div>
+
+      <div class="progress-wrapper">
+        <div class="progress-bar">
+          <div class="progress-fill progress-fill--default">
+          </div>
         </div>
-      </article>
-      {% endfor %}
-    </div>
 
-    <div class="empty-state" id="documentsEmpty" {% if documents %}hidden{% endif %} role="status">
-      <h3>No documents awaiting approval</h3>
-      <p>New submissions will appear here.</p>
-    </div>
-  </section>
+        <span class="progress-percentage">
+          {{ bookkeeping_percentage | default(75) }}%
+        </span>
+      </div>
 
-  <p class="dashboard-message" id="dashboardMessage" role="status" aria-live="polite"></p>
+      <p class="progress-caption">
+        {{ bookkept_documents | default(9) }}
+        of
+        {{ submitted_documents | default(12) }}
+        documents bookkept
+      </p>
+
+    </article>
+
+
+    <!-- DOCUMENT BREAKDOWN -->
+    <article class="dashboard-card">
+
+      <div class="card-title-row">
+        <div class="card-title-icon">▤</div>
+        <h3>Document Breakdown</h3>
+      </div>
+
+      <div class="breakdown-content">
+
+        <div class="donut-chart">
+          <div class="donut-inner">
+            <strong>{{ submitted_documents | default(12) }}</strong>
+            <span>Total</span>
+          </div>
+        </div>
+
+        <div class="breakdown-list">
+
+          <div class="breakdown-item">
+            <span>
+              <i class="breakdown-dot invoice-dot"></i>
+              Invoices
+            </span>
+            <strong>{{ invoice_count | default(5) }}</strong>
+          </div>
+
+          <div class="breakdown-item">
+            <span>
+              <i class="breakdown-dot receipt-dot"></i>
+              Receipts
+            </span>
+            <strong>{{ receipt_count | default(4) }}</strong>
+          </div>
+
+          <div class="breakdown-item">
+            <span>
+              <i class="breakdown-dot bank-dot"></i>
+              Bank Statements
+            </span>
+            <strong>{{ bank_statement_count | default(3) }}</strong>
+          </div>
+
+          <div class="breakdown-item">
+            <span>
+              <i class="breakdown-dot other-dot"></i>
+              Other
+            </span>
+            <strong>{{ other_count | default(0) }}</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+    </article>
+
+
+    <!-- DEADLINE -->
+    <article class="dashboard-card deadline-card">
+
+      <div class="card-title-row">
+        <div class="card-title-icon">▣</div>
+        <h3>Upcoming Deadline</h3>
+      </div>
+
+      <h2 class="deadline-date">
+        25 Sep 2026
+      </h2>
+
+      <p class="deadline-label">
+        Monthly submission deadline
+      </p>
+
+      <div class="deadline-notice">
+        <span class="deadline-clock">◷</span>
+
+        <div>
+          <strong>{{ days_left | default(13) }} days left</strong>
+          <p>Remind clients before the deadline.</p>
+        </div>
+      </div>
+
+    </article>
+
+  </div>
+
+
+  <!-- ATTENTION + RECENT SUBMISSIONS -->
+  <div class="dashboard-row dashboard-row-tables">
+
+    <!-- CLIENTS NEEDING ATTENTION -->
+    <article class="dashboard-card table-card">
+
+      <div class="card-header">
+        <div class="card-title-row">
+          <div class="attention-icon">⚠</div>
+          <h3>Clients Needing Attention</h3>
+        </div>
+
+        <a href="#" class="view-all-link">View all</a>
+      </div>
+
+
+      <div class="table-responsive">
+
+        <table class="dashboard-table">
+
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Document</th>
+              <th>Reason</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% if attention_documents %}
+
+              {% for document in attention_documents %}
+
+              <tr>
+                <td>{{ document.client }}</td>
+
+                <td>{{ document.document }}</td>
+
+                <td>
+                  <span class="status-badge status-danger">
+                    {{ document.reason }}
+                  </span>
+                </td>
+
+                <td>{{ document.date }}</td>
+
+                <td>
+                  <a href="#"
+                     class="outline-button">
+                    Review
+                  </a>
+                </td>
+              </tr>
+
+              {% endfor %}
+
+            {% else %}
+
+              <tr>
+                <td>Acme Supplies</td>
+                <td>Invoice #1042</td>
+
+                <td>
+                  <span class="status-badge status-danger">
+                    Low confidence
+                  </span>
+                </td>
+
+                <td>12 Sep 2026</td>
+
+                <td>
+                  <a href="#" class="outline-button">
+                    Review
+                  </a>
+                </td>
+              </tr>
+
+
+              <tr>
+                <td>Northstar Foods</td>
+                <td>Receipt</td>
+
+                <td>
+                  <span class="status-badge status-danger">
+                    Validation failed
+                  </span>
+                </td>
+
+                <td>11 Sep 2026</td>
+
+                <td>
+                  <a href="#" class="outline-button">
+                    Review
+                  </a>
+                </td>
+              </tr>
+
+
+              <tr>
+                <td>Northstar Foods</td>
+                <td>Bank Statement</td>
+
+                <td>
+                  <span class="status-badge status-danger">
+                    Missing period
+                  </span>
+                </td>
+
+                <td>10 Sep 2026</td>
+
+                <td>
+                  <a href="#" class="outline-button">
+                    Review
+                  </a>
+                </td>
+              </tr>
+
+            {% endif %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </article>
+
+
+    <!-- RECENT SUBMISSIONS -->
+    <article class="dashboard-card table-card">
+
+      <div class="card-header">
+
+        <div class="card-title-row">
+          <div class="card-title-icon">▤</div>
+          <h3>Recent Submissions</h3>
+        </div>
+
+        <a href="#" class="view-all-link">
+          View all
+        </a>
+
+      </div>
+
+
+      <div class="table-responsive">
+
+        <table class="dashboard-table">
+
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Document</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            {% if recent_submissions %}
+
+              {% for document in recent_submissions %}
+
+              <tr>
+
+                <td>{{ document.client }}</td>
+
+                <td>{{ document.filename }}</td>
+
+                <td>{{ document.type }}</td>
+
+                <td>
+
+                  {% if document.status == "Bookkept" %}
+                    <span class="status-badge status-success">
+                      Bookkept
+                    </span>
+                  {% else %}
+                    <span class="status-badge status-warning">
+                      Under Review
+                    </span>
+                  {% endif %}
+
+                </td>
+
+                <td>{{ document.date }}</td>
+
+              </tr>
+
+              {% endfor %}
+
+            {% else %}
+
+            <tr>
+              <td>Greenline Studio</td>
+              <td>Statement_Aug.pdf</td>
+              <td>Bank Statement</td>
+              <td>
+                <span class="status-badge status-success">
+                  Bookkept
+                </span>
+              </td>
+              <td>12 Sep 2026</td>
+            </tr>
+
+
+            <tr>
+              <td>Acme Supplies</td>
+              <td>Receipt_0912.jpg</td>
+              <td>Receipt</td>
+              <td>
+                <span class="status-badge status-warning">
+                  Under Review
+                </span>
+              </td>
+              <td>12 Sep 2026</td>
+            </tr>
+
+
+            <tr>
+              <td>Northstar Foods</td>
+              <td>Invoice_1042.pdf</td>
+              <td>Invoice</td>
+              <td>
+                <span class="status-badge status-warning">
+                  Under Review
+                </span>
+              </td>
+              <td>11 Sep 2026</td>
+            </tr>
+
+
+            <tr>
+              <td>Greenline Studio</td>
+              <td>Receipt_Taxi.jpg</td>
+              <td>Receipt</td>
+              <td>
+                <span class="status-badge status-success">
+                  Bookkept
+                </span>
+              </td>
+              <td>10 Sep 2026</td>
+            </tr>
+
+            {% endif %}
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </article>
+
+  </div>
+
+
 </section>
-{% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
-<script>
-  // Approve/reject interactivity carried over from adminMgmt.html,
-  // adapted to this page's markup (decision-button, queueCount, documentsEmpty).
-  document.addEventListener('DOMContentLoaded', () => {
-    const documentList = document.getElementById('documentList');
-    const documentsEmpty = document.getElementById('documentsEmpty');
-    const queueCount = document.getElementById('queueCount');
-    const dashboardMessage = document.getElementById('dashboardMessage');
-
-    if (!documentList) return;
-
-    documentList.addEventListener('click', (event) => {
-      const button = event.target.closest('.decision-button');
-      if (!button) return;
-
-      const card = button.closest('.document-card');
-      if (!card) return;
-
-      const decision = button.dataset.decision;
-      const title = card.querySelector('h3')?.textContent ?? 'Document';
-
-      card.remove();
-
-      const remaining = documentList.querySelectorAll('.document-card').length;
-      if (queueCount) queueCount.textContent = `${remaining} pending`;
-      if (documentsEmpty) documentsEmpty.hidden = remaining > 0;
-      if (dashboardMessage) {
-        dashboardMessage.textContent = decision === 'approved'
-          ? `${title} was approved.`
-          : `${title} was rejected.`;
-      }
-    });
-  });
-</script>
 {% endblock %}

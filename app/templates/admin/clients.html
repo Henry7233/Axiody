@@ -3,123 +3,40 @@
 {% block title %}Admin Clients | AXIODY{% endblock %}
 
 {% block content %}
-<section class="admin-page" aria-labelledby="clients-title">
-
+<section class="admin-dashboard" aria-labelledby="dashboard-title">
   <header class="page-header">
-    <p class="page-eyebrow">Admin workspace</p>
-    <h1 id="clients-title">Clients</h1>
-    <p class="page-description">
-      Review client document activity and open items.
-    </p>
+    <p class="page-eyebrow">Account manager view</p>
+    <h1 id="dashboard-title">Client submissions</h1>
+    <p class="page-description">September 2026 submission status across your clients.</p>
   </header>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Client</th>
-          <th scope="col">Status</th>
-          <th scope="col">Documents</th>
-          <th scope="col">Classified</th>
-          <th scope="col">Needs Review</th>
-          <th scope="col">Action</th>
-        </tr>
-      </thead>
+  <section class="dashboard-section" aria-labelledby="clients-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="clients-title">Clients</h2>
+        <p>Open a client record to review its extracted document data.</p>
+      </div>
+    </div>
 
-      <tbody>
-        {% for client in clients %}
-        <tr>
-
-          <td>{{ client.name }}</td>
-
-          <td>
-            {% if client.status == "Needs review" %}
-              <span class="status status--review">
-                Needs Review
-              </span>
-
-            {% elif client.status == "Pending files" %}
-              <span class="status status--pending">
-                Pending Files
-              </span>
-
-            {% elif client.status == "Ready" %}
-              <span class="status status--ready">
-                Ready
-              </span>
-
-            {% elif client.status == "Complete" %}
-              <span class="status status--complete">
-                Complete
-              </span>
-
-            {% else %}
-              <span class="status">
-                {{ client.status }}
-              </span>
-            {% endif %}
-          </td>
-
-          <td>{{ client.documents }}</td>
-
-          <td>
-            {{ client.classified }}
-          </td>
-
-          <td>
-            {% if client.needs_review > 0 %}
-              <strong>{{ client.needs_review }}</strong>
-            {% else %}
-              0
-            {% endif %}
-          </td>
-
-          <td>
-
-            {% if client.needs_review > 0 %}
-
-              <a
-                class="btn btn--secondary"
-                href="{{ url_for('admin.reviews_html', client=client.name) }}"
-              >
-                Review
-              </a>
-
-            {% elif client.status == "Pending files" %}
-
-              <a
-                class="btn btn--secondary"
-                href="{{ url_for('admin.reviews_html', client=client.name) }}"
-              >
-                View Missing
-              </a>
-
-            {% else %}
-
-              <a
-                class="btn btn--secondary"
-                href="{{ url_for('admin.reviews_html', client=client.name) }}"
-              >
-                View
-              </a>
-
-            {% endif %}
-
-          </td>
-
-        </tr>
-        {% else %}
-
-        <tr>
-          <td colspan="6">
-            No clients found.
-          </td>
-        </tr>
-
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
+    <div class="table-wrap">
+      <table class="clients-table">
+        <thead>
+          <tr>
+            <th scope="col">Client</th>
+            <th scope="col">Period</th>
+            <th scope="col">Submitted</th>
+            <th scope="col">Bookkept</th>
+            <th scope="col">Under review</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody id="clientTableBody" data-review-url="{{ url_for('admin.reviews') }}"></tbody>
+      </table>
+    </div>
+  </section>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
 {% endblock %}
