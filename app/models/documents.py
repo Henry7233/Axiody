@@ -12,6 +12,22 @@ def get_connection(database_path):
 def init_document_db(database_path):
     with get_connection(database_path) as connection:
         create_documents_table(connection)
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'unread',
+                last_reminder_sent TIMESTAMP,
+                next_reminder_date DATE,
+                reminder_count INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            )
+            """
+        )
         columns = connection.execute("PRAGMA table_info(documents)").fetchall()
         column_names = {column["name"] for column in columns}
         foreign_keys = connection.execute("PRAGMA foreign_key_list(documents)").fetchall()
@@ -52,6 +68,10 @@ def init_document_db(database_path):
         if "classification_status" not in column_names:
             connection.execute(
                 "ALTER TABLE documents ADD COLUMN classification_status TEXT NOT NULL DEFAULT 'Pending'"
+            )
+        if "validation_status" not in column_names:
+            connection.execute(
+                "ALTER TABLE documents ADD COLUMN validation_status TEXT"
             )
         if "created_at" not in column_names:
             connection.execute("ALTER TABLE documents ADD COLUMN created_at TEXT NOT NULL DEFAULT ''")

@@ -1,63 +1,82 @@
 {% extends "base.html" %}
 
-{% block title %}Verify Document | AXIODY{% endblock %}
+{% block title %}Documents Awaiting Approval | AXIODY{% endblock %}
 
 {% block content %}
-<section class="verification-page"
-         data-client="{{ client_name }}"
-         data-document-id="{{ document_id }}"
-         data-dashboard-url="{{ url_for('admin.dashboard') }}"
-         aria-labelledby="verify-title">
-  <header class="page-header page-header--with-action">
-    <div>
-      <p class="page-eyebrow">Document review</p>
-      <h1 id="verify-title">Verify document</h1>
-      <p class="page-description">Review the extracted information and correct fields that need attention.</p>
-    </div>
-    <a class="btn btn--secondary" href="{{ url_for('admin.dashboard') }}">Back to dashboard</a>
-  </header>
+<section class="admin-dashboard" aria-labelledby="approval-title">
+	<header class="page-header">
+		<p class="page-eyebrow">Account manager view</p>
+		<h1 id="approval-title">Documents awaiting approval</h1>
+		<p class="page-description">Review, approve, or reject submitted documents.</p>
+	</header>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+	<section class="dashboard-section approval-panel" aria-labelledby="queue-title">
+		<div class="section-heading">
+			<div>
+				<h2 id="queue-title">Approval queue</h2>
+				<p>Review, approve, or reject submitted documents.</p>
+			</div>
+			<span class="queue-count" id="queueCount" aria-live="polite">{{ documents|length }} pending</span>
+		</div>
 
-  <div class="verify-grid">
-    <aside class="panel preview-card" aria-labelledby="preview-title">
-      <h2 id="preview-title">Document preview</h2>
-      <p class="muted" id="previewMeta"></p>
-      <div class="preview-box">
-        <img id="previewImage"
-             src="{{ url_for('static', filename='samples/invoice-gst.png') }}"
-             alt="Uploaded invoice preview">
-        <div class="preview-placeholder" id="previewPlaceholder" hidden>
-          <div class="preview-icon" aria-hidden="true">&#129534;</div>
-          <strong>Sample image not found</strong>
-          <span>Add the sample invoice image to <code>static/samples</code>.</span>
-        </div>
-      </div>
-      <div class="preview-summary">
-        <strong id="documentType"></strong>
-        <span id="documentConfidence" class="confidence"></span>
-      </div>
-    </aside>
+		<div class="document-list" id="documentList">
+			{% for document in documents %}
+			<article class="document-card" data-document-id="{{ document.id }}">
+				<div>
+					<h3>{{ document.title }}</h3>
+					<p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
+				</div>
+				<div class="document-actions">
+					<a class="btn btn--secondary"
+						 href="{{ url_for('admin.preview_approve', client=document.submitter, document=document.id) }}">Review</a>
+					<button type="button" class="btn btn--primary decision-button" data-decision="approved">Approve</button>
+					<button type="button" class="btn btn--danger decision-button" data-decision="rejected">Reject</button>
+				</div>
+			</article>
+			{% endfor %}
+		</div>
 
-    <section class="panel verify-card" aria-labelledby="fields-title">
-      <div class="verify-card__intro">
-        <h2 id="fields-title">Extracted information</h2>
-        <p class="muted">Low-confidence fields need human review before approval.</p>
-      </div>
-      <form id="verifyForm">
-        <!-- JavaScript creates labelled fields from the mock extraction data. -->
-        <div id="fieldsContainer"></div>
-        <div class="verify-actions">
-          <button type="button" class="btn btn--secondary" id="saveBtn">Save changes</button>
-          <button type="submit" class="btn btn--primary" id="approveBtn">Approve document</button>
-          <button type="button" class="btn btn--danger" id="rejectBtn">Reject document</button>
-        </div>
-      </form>
-    </section>
-  </div>
+		<div class="empty-state" id="documentsEmpty" {% if documents %}hidden{% endif %} role="status">
+			<h3>No documents awaiting approval</h3>
+			<p>New submissions will appear here.</p>
+		</div>
+	</section>
+
+	<p class="dashboard-message" id="dashboardMessage" role="status" aria-live="polite"></p>
 </section>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/admin-verify.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const documentList = document.getElementById('documentList');
+		const documentsEmpty = document.getElementById('documentsEmpty');
+		const queueCount = document.getElementById('queueCount');
+		const dashboardMessage = document.getElementById('dashboardMessage');
+
+		if (!documentList) return;
+
+		documentList.addEventListener('click', (event) => {
+			const button = event.target.closest('.decision-button');
+			if (!button) return;
+
+			const card = button.closest('.document-card');
+			if (!card) return;
+
+			const decision = button.dataset.decision;
+			const title = card.querySelector('h3')?.textContent ?? 'Document';
+			card.remove();
+
+			const remaining = documentList.querySelectorAll('.document-card').length;
+			if (queueCount) queueCount.textContent = `${remaining} pending`;
+			if (documentsEmpty) documentsEmpty.hidden = remaining > 0;
+			if (dashboardMessage) {
+				dashboardMessage.textContent = decision === 'approved'
+					? `${title} was approved.`
+					: `${title} was rejected.`;
+			}
+		});
+	});
+</script>
 {% endblock %}
