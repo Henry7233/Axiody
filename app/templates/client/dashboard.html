@@ -18,6 +18,25 @@
 </svg>
 {%- endmacro %}
 
+{% macro record_files(record) -%}
+{% for document_type, files in record.groups.items() %}
+<div class="record-file-group">
+  {% if document_type %}<h4>{{ document_type }}</h4>{% endif %}
+  <ul class="document-checklist">
+    {% for document in files %}
+    <li>{{ icon('check' if document.completed else 'file') }}
+      <div class="record-file-copy"><strong>{{ document.filename }}</strong>
+        {% if document.description %}<p>{{ document.description }}</p>{% endif %}
+        <p>Document date: {{ document.document_date }} &middot; Submitted: {{ document.created_at[:10] or 'Not recorded' }}</p>
+      </div>
+      <span class="document-category-status">{{ document.status }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endfor %}
+{%- endmacro %}
+
 {% block head %}
 <style>
   body:has(.client-dashboard) { background: light-dark(#f5f8fe, #1b263c); }
@@ -91,6 +110,11 @@
   .document-checklist svg { width: 18px; height: 18px; color: light-dark(#6b80a6, #d9dee8); }
   .document-checklist small { margin-left: auto; color: var(--dash-muted); font-size: 0.75rem; }
   .dashboard-data-note { font-size: 0.75rem; margin-top: 12px !important; }
+  .record-file-group h4 { margin: 16px 0 0; font-size: 0.875rem; }
+  .record-file-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .record-file-copy p { font-size: 0.75rem; }
+  .record-file-group .document-checklist li { align-items: flex-start; flex-wrap: wrap; }
+  .record-file-group .document-category-status { margin-left: 0; }
   .dashboard-sidebar { display: grid; grid-template-rows: auto 1fr; gap: 22px; }
   .dashboard-deadline { display: flex; align-items: flex-start; gap: 20px; padding: 22px; }
   .dashboard-deadline-copy { flex: 1; }
@@ -166,22 +190,24 @@
   </header>
 
   <section class="dashboard-stats" aria-label="Submission overview">
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong aria-label="Completion unavailable">&mdash; / 3</strong><p>Document Categories Completed</p></div><div class="dashboard-stat-note">Submission status not available yet</div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ completed_count }} / {{ submitted_count }}</strong><p>Documents Completed</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) for {{ period_label }}</div></article>
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon amber">{{ icon('clock') }}</span><div><strong aria-label="Deadline unavailable">&mdash;</strong><p>Days to Deadline</p></div><div class="dashboard-stat-note">No deadline available</div></article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon purple">{{ icon('bell') }}</span><div><strong aria-label="Pending actions unavailable">&mdash;</strong><p>Pending Actions</p></div><div class="dashboard-stat-note"><a href="{{ url_for('client.upload') }}">Go to document submission {{ icon('chevron') }}</a></div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon purple">{{ icon('bell') }}</span><div><strong>{{ pending_count }}</strong><p>Documents Awaiting Completion</p></div><div class="dashboard-stat-note">Pending, under review, or invalid.<br><a href="{{ url_for('client.upload') }}">Go to document submission {{ icon('chevron') }}</a></div></article>
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon green">{{ icon('check') }}</span><div><strong aria-label="Reminder count unavailable">&mdash;</strong><p>Outstanding Reminders</p></div><div class="dashboard-stat-note"><a href="{{ url_for('client.notifications') }}">View notifications {{ icon('chevron') }}</a></div></article>
   </section>
 
   <div class="dashboard-columns">
     <section class="dashboard-card dashboard-documents" aria-labelledby="required-documents-title">
-      <div class="dashboard-section-heading"><div><h2 id="required-documents-title">Required Documents</h2><p>Supporting documents for verification and bookkeeping.</p></div><button type="button" class="dashboard-view-all" data-view-all-records aria-haspopup="dialog" aria-controls="client-records-dialog">View all {{ icon('chevron') }}</button></div>
-      {% for category in categories %}
-      <details class="document-category" id="{{ category.id }}">
-        <summary><span class="dashboard-icon">{{ icon(category.icon) }}</span><span class="document-category-copy"><strong>{{ category.name }}</strong><small>{{ category.documents | length }} supporting document types</small></span><span class="document-category-status">Status unavailable</span><span class="document-chevron">{{ icon('chevron') }}</span></summary>
-        <ul class="document-checklist">{% for document in category.documents %}<li>{{ icon('file') }}<span>{{ document }}</span><small>Awaiting status</small></li>{% endfor %}</ul>
+      <div class="dashboard-section-heading"><div><h2 id="required-documents-title">Required Documents</h2><p>Your submitted records and their document classification results.</p></div><button type="button" class="dashboard-view-all" data-view-all-records aria-haspopup="dialog" aria-controls="client-records-dialog">View all {{ icon('chevron') }}</button></div>
+      {% for record in records[:3] %}
+      <details class="document-category" id="record-{{ record.id }}">
+        <summary><span class="dashboard-icon">{{ icon('file') }}</span><span class="document-category-copy"><strong>{{ record.name }}</strong><small>{{ record.file_count }} submitted file(s)</small></span><span class="document-category-status">{{ record.completed_count }} / {{ record.file_count }} completed</span><span class="document-chevron">{{ icon('chevron') }}</span></summary>
+        {{ record_files(record) }}
       </details>
+      {% else %}
+      <p>No records submitted for {{ period_label }}. <a href="{{ url_for('client.upload') }}">Upload documents</a> to get started.</p>
       {% endfor %}
-      <p class="dashboard-data-note">General bookkeeping checklist. Submission status for {{ selected_period }} is not available yet.</p>
+      <p class="dashboard-data-note">Showing {{ [records | length, 3] | min }} of {{ records | length }} records for {{ period_label }}, based on document date. Expand a record to see its files and saved classification results.</p>
     </section>
 
     <aside class="dashboard-sidebar" aria-label="Deadline and client details">
@@ -195,23 +221,22 @@
     <header class="client-records-header">
       <div>
         <h2 id="client-records-title">All Records</h2>
-        <p id="client-records-description">All three record categories and their supporting documents for {{ period_label }}.</p>
+        <p id="client-records-description">All {{ records | length }} records and {{ submitted_count }} submitted file(s) for {{ period_label }}.</p>
       </div>
       <button type="button" class="client-records-close" data-close-records autofocus>Close</button>
     </header>
     <div class="client-records-list">
-      {% for category in categories %}
-      <section class="client-records-category" aria-labelledby="all-{{ category.id }}">
-        <h3 id="all-{{ category.id }}"><span class="dashboard-icon">{{ icon(category.icon) }}</span>{{ category.name }}</h3>
-        <ul aria-label="Supporting documents">
-          {% for document in category.documents %}
-          <li>{{ icon('file') }}<span>{{ document }}</span></li>
-          {% endfor %}
-        </ul>
+      {% for record in records %}
+      <section class="client-records-category" aria-labelledby="all-record-{{ record.id }}">
+        <h3 id="all-record-{{ record.id }}"><span class="dashboard-icon">{{ icon('file') }}</span>{{ record.name }}</h3>
+        <p>{{ record.completed_count }} / {{ record.file_count }} files completed</p>
+        {{ record_files(record) }}
       </section>
+      {% else %}
+      <p>No records submitted for {{ period_label }}.</p>
       {% endfor %}
     </div>
-    <p class="client-records-note">This is your supporting-document checklist. Uploaded files and submission statuses are not available yet.</p>
+    <p class="client-records-note">Files are grouped by record title and saved document type. Each file shows its latest saved classification status.</p>
   </dialog>
 </div>
 {% endblock %}

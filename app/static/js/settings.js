@@ -389,8 +389,24 @@ window.AxiodySettings = (() => {
         setBusy(false);
       }
     });
+    let deletingAccount = false;
+    const deleteForm = page.querySelector('[data-delete-account-form]');
+    if (deleteForm && accountUrl) {
+      const deleteButton = deleteForm.querySelector('[data-delete-account]');
+      deleteButton.disabled = false;
+      deleteForm.addEventListener('submit', event => {
+        if (saving || deletingAccount || !window.confirm('Are you sure you want to delete your account? Your account and uploaded documents will be permanently deleted, and you will be logged out. This cannot be undone. Press OK to delete or Cancel to keep your account.')) {
+          event.preventDefault();
+          return;
+        }
+        deleteForm.elements.confirmed.value = 'yes';
+        deletingAccount = true;
+        deleteButton.disabled = true;
+        deleteButton.textContent = 'Deleting account...';
+      });
+    }
     window.addEventListener('beforeunload', event => {
-      if (!dirty()) return;
+      if (deletingAccount || !dirty()) return;
       event.preventDefault();
       event.returnValue = '';
     });

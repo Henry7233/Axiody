@@ -1,4 +1,5 @@
 from flask import (
+    abort,
     Blueprint,
     current_app,
     flash,
@@ -15,8 +16,9 @@ import hashlib
 import hmac
 import smtplib
 import secrets
+import sqlite3
 
-from app.models.users import create_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, update_user_password, verify_user
+from app.models.users import create_user, delete_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, update_user_password, verify_user
 from app.services.email_servie import send_account_update_otp, send_password_reset_otp
 
 
@@ -62,7 +64,14 @@ def account_context():
         "home_url": default_url_for_account(account["account_type"] if account else "client"),
         "admin_nav": is_admin,
         "admin_can_manage_admins": is_super_admin,
+        "delete_account_token": delete_account_token,
     }
+
+
+def delete_account_token():
+    if "delete_account_token" not in session:
+        session["delete_account_token"] = secrets.token_hex(32)
+    return session["delete_account_token"]
 
 
 def default_url_for_account(account_type):
@@ -520,6 +529,33 @@ def logout():
     forget_pending_account_update()
     session.clear()
     flash("You are logged out.", "success")
+    return redirect(url_for("auth.login"))
+
+
+@auth_bp.post("/account/delete")
+def delete_account():
+    if g.get("account") is None:
+        return redirect(url_for("auth.login"))
+    token = session.get("delete_account_token", "")
+    supplied = request.form.get("csrf_token", "")
+    if not token or not hmac.compare_digest(token.encode(), supplied.encode()) or request.form.get("confirmed") != "yes":
+        abort(400, description="Please confirm account deletion from the settings page.")
+
+    settings_url = url_for("admin.settings" if g.account["account_type"] == "admin" else "client.settings")
+    try:
+        result = delete_user(current_app.config["DATABASE"], g.account["id"])
+    except sqlite3.Error:
+        current_app.logger.exception("Account deletion failed")
+        flash("Your account could not be deleted. Please try again.", "error")
+        return redirect(settings_url)
+    if not result["deleted"]:
+        flash("This account is protected and cannot be deleted." if result["reason"] == "protected" else "Your account could not be deleted.", "error")
+        return redirect(settings_url)
+
+    forget_pending_account_update()
+    forget_password_reset()
+    session.clear()
+    flash("Your account has been deleted. You have been logged out.", "success")
     return redirect(url_for("auth.login"))
 
 
