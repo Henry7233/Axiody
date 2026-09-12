@@ -4,9 +4,15 @@ from flask import Blueprint, current_app, flash, g, redirect, render_template, r
 from werkzeug.utils import secure_filename
 
 from app.agents.classification_agent import classify_document, extract_document_text
+from app.agents.validation_agent import validate_document
 
 from app.agents.reminder_agent import resolve_replaced_document_reminders
-from app.models.documents import create_document, update_document_classification
+from app.models.documents import (
+    create_document,
+    list_client_document_records,
+    update_document_classification,
+    update_document_validation,
+)
 
 
 
@@ -126,6 +132,19 @@ def upload():
                 )
                 update_document_classification(
                     current_app.config["DATABASE"], document_id, classification
+                )
+
+                validation = validate_document(
+                    document_text,
+                    title=title,
+                    description=description,
+                    filename=filename,
+                    content_type=content_type,
+                    expected_period=document_date,
+                    document_bytes=file_data,
+                )
+                update_document_validation(
+                    current_app.config["DATABASE"], document_id, validation
                 )
                 saved_count += 1
 

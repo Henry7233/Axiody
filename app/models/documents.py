@@ -175,6 +175,23 @@ def update_document_classification(database_path, document_id, classification):
         )
 
 
+def update_document_validation(database_path, document_id, validation):
+    with get_connection(database_path) as connection:
+        connection.execute(
+            """
+            UPDATE documents
+            SET validation_status = ?,
+                ai_confidence = ?
+            WHERE id = ?
+            """,
+            (
+                validation["validation_status"],
+                validation["ai_confidence"],
+                document_id,
+            ),
+        )
+
+
 def list_client_document_records(database_path, user_id, period):
     """Group monthly upload metadata by record title, using saved AI results."""
     start = datetime.strptime(period, "%Y-%m")
@@ -313,7 +330,7 @@ def get_client_review_data(database_path, client_name):
                 filename,
                 COALESCE(document_type, ai_document_type, 'Other') AS classification_type,
                 COALESCE(ai_confidence, 0) / 100.0 AS classification_confidence,
-                classification_status AS validation_status
+                validation_status
             FROM documents
             WHERE user_id = ?
             ORDER BY created_at DESC, id DESC
