@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% set active_page = 'home' %}
+{% set period_scope = 'across all dates' if selected_period == 'all' else 'for ' ~ period_label %}
 {% block title %}Client Dashboard | AXIODY{% endblock %}
 
 {% macro icon(name) -%}
@@ -26,7 +27,7 @@
     {% for document in files %}
     <li>{{ icon('check' if document.completed else 'file') }}
       <div class="record-file-copy"><strong>{{ document.filename }}</strong>
-        {% if document.description %}<p>{{ document.description }}</p>{% endif %}
+        {% for reason in document.reasons %}<p>{{ reason }}</p>{% endfor %}
         <p>Document date: {{ document.document_date }} &middot; Submitted: {{ document.created_at[:10] or 'Not recorded' }}</p>
       </div>
       <span class="document-category-status">{{ document.status }}</span>
@@ -190,24 +191,24 @@
   </header>
 
   <section class="dashboard-stats" aria-label="Submission overview">
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ completed_count }} / {{ submitted_count }}</strong><p>Documents Completed</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) for {{ period_label }}</div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ completed_count }} / {{ submitted_count }}</strong><p>Documents Completed</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) {{ period_scope }}</div></article>
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon amber">{{ icon('clock') }}</span><div><strong aria-label="Deadline unavailable">&mdash;</strong><p>Days to Deadline</p></div><div class="dashboard-stat-note">No deadline available</div></article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon purple">{{ icon('bell') }}</span><div><strong>{{ pending_count }}</strong><p>Documents Awaiting Completion</p></div><div class="dashboard-stat-note">Pending, under review, or invalid.<br><a href="{{ url_for('client.upload') }}">Go to document submission {{ icon('chevron') }}</a></div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon purple">{{ icon('bell') }}</span><div><strong>{{ pending_count }}</strong><p>Documents Awaiting Completion</p></div><div class="dashboard-stat-note">Incomplete or pending validation.<br><a href="{{ url_for('client.upload') }}">Go to document submission {{ icon('chevron') }}</a></div></article>
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon green">{{ icon('check') }}</span><div><strong aria-label="Reminder count unavailable">&mdash;</strong><p>Outstanding Reminders</p></div><div class="dashboard-stat-note"><a href="{{ url_for('client.notifications') }}">View notifications {{ icon('chevron') }}</a></div></article>
   </section>
 
   <div class="dashboard-columns">
     <section class="dashboard-card dashboard-documents" aria-labelledby="required-documents-title">
-      <div class="dashboard-section-heading"><div><h2 id="required-documents-title">Required Documents</h2><p>Your submitted records and their document classification results.</p></div><button type="button" class="dashboard-view-all" data-view-all-records aria-haspopup="dialog" aria-controls="client-records-dialog">View all {{ icon('chevron') }}</button></div>
+      <div class="dashboard-section-heading"><div><h2 id="required-documents-title">Required Documents</h2><p>Your submitted records and their validation results.</p></div><button type="button" class="dashboard-view-all" data-view-all-records aria-haspopup="dialog" aria-controls="client-records-dialog">View all {{ icon('chevron') }}</button></div>
       {% for record in records[:3] %}
       <details class="document-category" id="record-{{ record.id }}">
-        <summary><span class="dashboard-icon">{{ icon('file') }}</span><span class="document-category-copy"><strong>{{ record.name }}</strong><small>{{ record.file_count }} submitted file(s)</small></span><span class="document-category-status">{{ record.completed_count }} / {{ record.file_count }} completed</span><span class="document-chevron">{{ icon('chevron') }}</span></summary>
+        <summary><span class="dashboard-icon">{{ icon('file') }}</span><span class="document-category-copy"><strong>{{ record.name }}</strong><small>{% if selected_period == 'all' %}{{ record.period_label }} &middot; {% endif %}{{ record.file_count }} submitted file(s)</small></span><span class="document-category-status">{{ record.completed_count }} / {{ record.file_count }} completed</span><span class="document-chevron">{{ icon('chevron') }}</span></summary>
         {{ record_files(record) }}
       </details>
       {% else %}
-      <p>No records submitted for {{ period_label }}. <a href="{{ url_for('client.upload') }}">Upload documents</a> to get started.</p>
+      <p>No records submitted {{ period_scope }}. <a href="{{ url_for('client.upload') }}">Upload documents</a> to get started.</p>
       {% endfor %}
-      <p class="dashboard-data-note">Showing {{ [records | length, 3] | min }} of {{ records | length }} records for {{ period_label }}, based on document date. Expand a record to see its files and saved classification results.</p>
+      <p class="dashboard-data-note">Showing {{ [records | length, 3] | min }} of {{ records | length }} records {{ period_scope }}, based on document date. Expand a record to see its files and validation feedback.</p>
     </section>
 
     <aside class="dashboard-sidebar" aria-label="Deadline and client details">
@@ -221,7 +222,7 @@
     <header class="client-records-header">
       <div>
         <h2 id="client-records-title">All Records</h2>
-        <p id="client-records-description">All {{ records | length }} records and {{ submitted_count }} submitted file(s) for {{ period_label }}.</p>
+        <p id="client-records-description">All {{ records | length }} records and {{ submitted_count }} submitted file(s) {{ period_scope }}.</p>
       </div>
       <button type="button" class="client-records-close" data-close-records autofocus>Close</button>
     </header>
@@ -229,14 +230,14 @@
       {% for record in records %}
       <section class="client-records-category" aria-labelledby="all-record-{{ record.id }}">
         <h3 id="all-record-{{ record.id }}"><span class="dashboard-icon">{{ icon('file') }}</span>{{ record.name }}</h3>
-        <p>{{ record.completed_count }} / {{ record.file_count }} files completed</p>
+        <p>{% if selected_period == 'all' %}{{ record.period_label }} &middot; {% endif %}{{ record.completed_count }} / {{ record.file_count }} files completed</p>
         {{ record_files(record) }}
       </section>
       {% else %}
-      <p>No records submitted for {{ period_label }}.</p>
+      <p>No records submitted {{ period_scope }}.</p>
       {% endfor %}
     </div>
-    <p class="client-records-note">Files are grouped by record title and saved document type. Each file shows its latest saved classification status.</p>
+    <p class="client-records-note">Files are grouped by record title, bookkeeping month, and saved document type. For matching titles, document dates, and filenames, only the latest upload and its validation status are shown.</p>
   </dialog>
 </div>
 {% endblock %}

@@ -33,6 +33,27 @@ def _next_reminder(today):
     return next_date.isoformat() if next_date < _deadline(today) else None
 
 
+def document_reminder(created_at, today=None):
+    """Describe the submission's deadline for the portal without sending email."""
+    today = today or date.today()
+    try:
+        submitted = date.fromisoformat((created_at or "")[:10])
+    except ValueError:
+        return None
+    deadline = _deadline(submitted)
+    label = deadline.strftime("%b %d, %Y")
+    if today > deadline:
+        message = f"The submission deadline was {label}. Please upload the outstanding corrections."
+        kind = "Deadline passed"
+    elif today == deadline:
+        message = "Your submission deadline is today. Please upload the outstanding corrections."
+        kind = "Due today"
+    else:
+        message = f"Please upload the outstanding corrections by {label}."
+        kind = "Deadline reminder"
+    return {"deadline": deadline.isoformat(), "deadline_label": label, "kind": kind, "message": message}
+
+
 def _message(validation_data, deadline):
     document_title = validation_data.get("document_title") or "Your document"
     reason = validation_data.get("validation_reason") or (
