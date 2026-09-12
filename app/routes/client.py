@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from app.agents.classification_agent import classify_document, extract_document_text
 from app.agents.validation_agent import validate_document
 
-from app.agents.reminder_agent import resolve_replaced_document_reminders
+from app.models.notifications import list_client_notifications
 from app.models.documents import (
     create_document,
     list_client_document_records,
@@ -21,7 +21,7 @@ client_bp = Blueprint("client", __name__, url_prefix="/client")
 
 def bookkeeping_periods():
     today = date.today()
-    periods = []
+    periods = [{"value": "all", "label": "All dates"}]
     for offset in range(12):
         year, month = divmod(today.year * 12 + today.month - 1 - offset, 12)
         period = date(year, month + 1, 1)
@@ -80,6 +80,13 @@ def upload():
     if redirect_response:
         return redirect_response
 
+    initial_title = request.form.get("title", "") if request.method == "POST" else request.args.get("title", "")
+    initial_document_date = request.form.get("document_date", "") if request.method == "POST" else request.args.get("document_date", "")
+    try:
+        initial_document_date = date.fromisoformat(initial_document_date).isoformat()
+    except ValueError:
+        initial_document_date = ""
+
     if request.method == "POST":
         titles = request.form.getlist("title")
         descriptions = request.form.getlist("description")
@@ -93,13 +100,6 @@ def upload():
 
             if not title.strip() or not document_date:
                 continue
-
-            resolve_replaced_document_reminders(
-                session["user_id"],
-                title,
-                document_date,
-                current_app.config["DATABASE"],
-            )
 
             for uploaded_file in files:
                 if not uploaded_file or not uploaded_file.filename:
@@ -150,12 +150,12 @@ def upload():
 
         if saved_count == 0:
             flash("Please choose at least one file to upload.", "error")
-            return render_template("client/upload.html", username=session.get("user_email")), 400
+            return render_template("client/upload.html", username=session.get("user_email"), initial_title=initial_title, initial_document_date=initial_document_date), 400
 
         flash(f"{saved_count} document file(s) submitted successfully.", "success")
         return redirect(url_for("client.upload"))
 
-    return render_template("client/upload.html", username=session.get("user_email"))
+    return render_template("client/upload.html", username=session.get("user_email"), initial_title=initial_title, initial_document_date=initial_document_date)
 
 
 @client_bp.route("/notifications")
@@ -167,6 +167,7 @@ def notifications():
     return render_template(
         "client/notifications.html",
         username=session.get("user_email"),
+        **list_client_notifications(current_app.config["DATABASE"], session["user_id"]),
     )
 
 

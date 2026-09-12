@@ -1,4 +1,6 @@
+import json
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 
 
@@ -10,7 +12,7 @@ def get_connection(database_path):
 
 
 def init_document_db(database_path):
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         create_documents_table(connection)
         connection.execute(
             """
@@ -73,6 +75,10 @@ def init_document_db(database_path):
             connection.execute(
                 "ALTER TABLE documents ADD COLUMN validation_status TEXT"
             )
+        if "validation_reasons" not in column_names:
+            connection.execute(
+                "ALTER TABLE documents ADD COLUMN validation_reasons TEXT NOT NULL DEFAULT '[]'"
+            )
         if "created_at" not in column_names:
             connection.execute("ALTER TABLE documents ADD COLUMN created_at TEXT NOT NULL DEFAULT ''")
         connection.execute(
@@ -122,7 +128,7 @@ def create_document(
 ):
     created_at = datetime.now(timezone.utc).isoformat()
 
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         cursor = connection.execute(
             """
             INSERT INTO documents (
@@ -155,7 +161,7 @@ def create_document(
 
 
 def update_document_classification(database_path, document_id, classification):
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         connection.execute(
             """
             UPDATE documents
@@ -176,37 +182,92 @@ def update_document_classification(database_path, document_id, classification):
 
 
 def update_document_validation(database_path, document_id, validation):
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         connection.execute(
             """
             UPDATE documents
             SET validation_status = ?,
+                validation_reasons = ?,
                 ai_confidence = ?
             WHERE id = ?
             """,
             (
                 validation["validation_status"],
+                json.dumps(validation.get("reasons", []) if validation["validation_status"] != "Complete" else []),
                 validation["ai_confidence"],
                 document_id,
             ),
         )
+        if validation["validation_status"] == "Complete":
+            connection.execute(
+                """
+                UPDATE notifications SET status = 'resolved', next_reminder_date = NULL
+                WHERE document_id IN (
+                    SELECT older.id FROM documents older
+                    JOIN documents current ON current.id = ?
+                    WHERE older.user_id = current.user_id AND older.title = current.title
+                      AND older.document_date = current.document_date
+                      AND older.filename = current.filename AND older.id <= current.id
+                )
+                """,
+                (document_id,),
+            )
+
+
+def document_validation_status(value):
+    return {"complete": "Complete", "incomplete": "Incomplete"}.get(
+        (value or "").strip().lower(), "Pending validation"
+    )
+
+
+def validation_messages(value):
+    """Translate saved validation reasons without inventing missing feedback."""
+    try:
+        reasons = json.loads(value or "[]")
+    except (TypeError, ValueError):
+        reasons = []
+    if not isinstance(reasons, list):
+        reasons = []
+    labels = {
+        "missing_document_text": "Upload a readable copy with visible document text.",
+        "missing_date": "Upload a document showing a visible, readable date.",
+        "image_quality_issue": "Upload a clear, uncropped copy of the document.",
+        "image_blurry": "Upload a clearer copy so all information is readable.",
+        "date_out_of_period": "Upload a document dated within the selected bookkeeping period.",
+        "totals_mismatch": "Check the totals and line items, then upload a corrected document.",
+    }
+    return list(dict.fromkeys(
+        labels.get(reason.strip(), reason.strip().replace("_", " "))
+        for reason in reasons if isinstance(reason, str) and reason.strip()
+    ))
 
 
 def list_client_document_records(database_path, user_id, period):
-    """Group monthly upload metadata by record title, using saved AI results."""
-    start = datetime.strptime(period, "%Y-%m")
-    end = start.replace(year=start.year + 1, month=1) if start.month == 12 else start.replace(month=start.month + 1)
+    """Group the latest files by title and month, optionally across all dates."""
+    start_date = end_date = None
+    if period != "all":
+        start = datetime.strptime(period, "%Y-%m")
+        end = start.replace(year=start.year + 1, month=1) if start.month == 12 else start.replace(month=start.month + 1)
+        start_date, end_date = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
     connection = get_connection(database_path)
     try:
         rows = connection.execute(
             """
             SELECT id, title, description, filename, document_date, created_at,
-                   document_type, ai_document_type, classification_status
-            FROM documents
-            WHERE user_id = ? AND document_date >= ? AND document_date < ?
+                   document_type, ai_document_type, validation_status, validation_reasons
+            FROM documents current_document
+            WHERE user_id = ? AND (? IS NULL OR (document_date >= ? AND document_date < ?))
+              AND NOT EXISTS (
+                  SELECT 1 FROM documents newer
+                  WHERE newer.user_id = current_document.user_id
+                    AND newer.title = current_document.title
+                    AND newer.document_date = current_document.document_date
+                    AND newer.filename = current_document.filename
+                    AND newer.id > current_document.id
+              )
             ORDER BY created_at DESC, id DESC
             """,
-            (user_id, start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")),
+            (user_id, start_date, start_date, end_date),
         ).fetchall()
     finally:
         connection.close()
@@ -220,10 +281,18 @@ def list_client_document_records(database_path, user_id, period):
         document = dict(row)
         stored_type = (document["document_type"] or document["ai_document_type"] or "").strip()
         document["type"] = type_labels.get(stored_type.lower().replace("_", " "), stored_type)
-        document["status"] = document["classification_status"] or "Pending"
-        document["completed"] = document["status"].strip().lower() == "success"
-        record = records.setdefault(document["title"], {
+        document["status"] = document_validation_status(document["validation_status"])
+        document["completed"] = document["status"] == "Complete"
+        document["reasons"] = validation_messages(document["validation_reasons"]) if document["status"] == "Incomplete" else []
+        document_period = (document["document_date"] or "")[:7]
+        try:
+            period_label = datetime.strptime(document_period, "%Y-%m").strftime("%B %Y")
+        except ValueError:
+            period_label = "Date not recorded"
+        record = records.setdefault((document["title"], document_period), {
             "id": document["id"], "name": document["title"],
+            "description": document["description"],
+            "period_label": period_label,
             "groups": {}, "file_count": 0, "completed_count": 0,
         })
         record["groups"].setdefault(document["type"], []).append(document)
@@ -233,7 +302,7 @@ def list_client_document_records(database_path, user_id, period):
 
 
 def list_documents(database_path):
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         return [
             {
                 "id": document["id"],
@@ -262,7 +331,7 @@ def list_documents(database_path):
 
 
 def list_client_summaries(database_path):
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         rows = connection.execute(
             """
             SELECT
@@ -305,7 +374,7 @@ def list_client_summaries(database_path):
 
 
 def get_client_review_data(database_path, client_name):
-    with get_connection(database_path) as connection:
+    with closing(get_connection(database_path)) as connection, connection:
         client = connection.execute(
             """
             SELECT

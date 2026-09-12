@@ -3,25 +3,35 @@
 
 {% block title %}Notifications | AXIODY{% endblock %}
 
+{% macro icon(kind) -%}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  {% if kind == 'file' %}<path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
+  {% elif kind == 'calendar' %}<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
+  {% elif kind == 'Complete' %}<circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
+  {% elif kind == 'Incomplete' %}<path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
+  {% else %}<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/>{% endif %}
+</svg>
+{%- endmacro %}
+
 {% block content %}
 <div id="notifications-page" class="notifications-page">
-  <div class="page-heading"><h1>Notifications</h1><p>See the results of AI classification and validation for your uploaded supporting documents.</p></div>
+  <div class="page-heading"><h1>Notifications</h1><p>Review document validation feedback, required changes, and deadline reminders.</p></div>
   <p class="demo-note"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="M12 11v6m0-10h.01" stroke="white"/>
-</svg> <span>Sample illustration · These are example results, not reviews of your documents.</span></p>
+</svg> <span>Files are grouped by title, bookkeeping month, and validation result. Deadlines shows your submission reminders.</span></p>
   <section class="summary-grid" aria-label="Notification overview">
     <div class="summary-card"><span class="icon-tile green"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
-</svg></span><div><h2>Successful</h2><strong class="metric">2</strong><p>Reviews validated and accepted</p></div></div>
+</svg></span><div><h2>Complete</h2><strong class="metric">{{ complete_count }}</strong><p>Document groups that passed validation</p></div></div>
     <div class="summary-card"><span class="icon-tile red"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
-</svg></span><div><h2>Needs Changes</h2><strong class="metric">2</strong><p>Reviews require your attention</p></div></div>
+</svg></span><div><h2>Needs Changes</h2><strong class="metric">{{ changes_count }}</strong><p>Document groups requiring attention</p></div></div>
     <div class="summary-card"><span class="icon-tile blue"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/>
-</svg></span><div><h2>Files to Re-upload</h2><strong class="metric">1</strong><p>Files need a clearer copy</p></div></div>
+</svg></span><div><h2>Files to Re-upload</h2><strong class="metric">{{ files_to_change }}</strong><p>Files requiring corrections</p></div></div>
     <div class="summary-card"><span class="icon-tile purple"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
-</svg></span><div><h2>Deadline</h2><strong class="metric date">Sep 25, 2026</strong><p>After this, review will be postponed</p></div></div>
+</svg></span><div><h2>Deadline</h2><strong class="metric date">{{ next_deadline.deadline_label if next_deadline else "None" }}</strong><p>{{ next_deadline.kind if next_deadline else "No deadline reminders yet" }}</p></div></div>
   </section>
   <div class="notification-search-row">
     <label class="search" for="notification-search"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -30,163 +40,69 @@
   </div>
   <div class="toolbar">
     <div class="filters" role="group" aria-label="Filter notifications">
-      <button type="button" data-filter="all" aria-pressed="true">All (5)</button>
-      <button type="button" data-filter="successful" aria-pressed="false">Successful (2)</button>
-      <button type="button" data-filter="changes" aria-pressed="false">Needs Changes (2)</button>
-      <button type="button" data-filter="deadlines" aria-pressed="false">Deadlines (1)</button>
+      <button type="button" data-filter="all" aria-pressed="true">All ({{ notifications | length }})</button>
+      <button type="button" data-filter="successful" aria-pressed="false">Complete ({{ complete_count }})</button>
+      <button type="button" data-filter="changes" aria-pressed="false">Needs Changes ({{ changes_count }})</button>
+      <button type="button" data-filter="deadlines" aria-pressed="false">Deadlines ({{ deadline_count }})</button>
     </div>
     <label class="sort"><span class="sr-only">Sort notifications</span><select id="notification-sort"><option value="recent">Most recent</option><option value="oldest">Oldest first</option><option value="deadline">Deadline first</option></select></label>
   </div>
-  <p class="sr-only" id="results-count" role="status" aria-live="polite">5 notifications shown</p>
+  <p class="sr-only" id="results-count" role="status" aria-live="polite">{{ notifications | length }} notifications shown</p>
   <section class="notification-list" aria-label="Document review notifications">
-    <article class="notification-card" data-category="successful" data-created="2026-09-07T09:00:00+08:00" data-deadline="" aria-labelledby="title-invoices">
-      <span class="icon-tile green"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
-</svg></span>
+    {% for notification in notifications %}
+    <article class="notification-card" data-category="{{ notification.category }}" data-created="{{ notification.created_at }}" data-deadline="{{ notification.deadline.deadline if notification.deadline else '' }}" aria-labelledby="title-{{ notification.id }}">
+      <span class="icon-tile {{ 'purple' if notification.category == 'deadlines' else ('red' if notification.status == 'Incomplete' else notification.color) }}">{{ icon('calendar' if notification.category == 'deadlines' else notification.status) }}</span>
       <div class="notification-copy">
-        <h2 id="title-invoices">Classification and validation completed</h2>
-        <p>Your 2 invoices and 1 bank statement were successfully classified and contain all required information.</p>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>Files:</strong> invoice_sep_01.pdf, invoice_sep_02.pdf, bank_statement_sep.pdf</span></div>
+        <h2 id="title-{{ notification.id }}">{% if notification.category == 'deadlines' %}Deadline reminder: {% endif %}{{ notification.title }} &middot; {{ notification.period_label }}</h2>
+        <p>{{ notification.message }}</p>
+        {% for file in notification.files %}
+        <div class="file-line">{{ icon('file') }}<span><strong>File:</strong> {{ file.filename }} &middot; {{ file.status }}</span></div>
+        {% for reason in file.reasons if file.has_validation_feedback %}
+        <div class="file-line">{{ icon('file') }}<span><strong>Required change:</strong> {{ reason }}</span></div>
+        {% endfor %}
+        {% endfor %}
       </div>
       <div class="notification-meta">
-        <span class="badge green">Successful</span>
-        <time datetime="2026-09-07T09:00:00+08:00">Sep 07, 09:00 SGT</time>
+        <span class="badge {{ notification.color }}">{{ notification.status }}</span>
+        <time datetime="{{ notification.created_at }}">{{ notification.created_label }}</time>
+        {% if notification.deadline %}
+        <span class="due">{{ icon('calendar') }}<span>Due by: {{ notification.deadline.deadline_label }}<small>{{ notification.deadline.kind }}</small></span></span>
+        {% endif %}
       </div>
-      <button class="action" type="button" data-details="details-invoices">View details</button>
-      <template id="details-invoices">
-        <span class="badge green">Successful</span>
-        <h2 id="detail-title">Classification and validation completed</h2><p>Your 2 invoices and 1 bank statement were successfully classified and contain all required information.</p>
-        <h3>Affected documents</h3><ul><li>invoice_sep_01.pdf</li><li>invoice_sep_02.pdf</li><li>bank_statement_sep.pdf</li></ul>
-        <p class="accepted-note">No changes are needed for these documents.</p>
-        <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
+      <button class="action{% if notification.incomplete_count %} primary{% endif %}" type="button" data-details="details-{{ notification.id }}">{{ 'View reminder' if notification.category == 'deadlines' else ('View required changes' if notification.incomplete_count else 'View details') }}</button>
+      <template id="details-{{ notification.id }}">
+        <span class="badge {{ notification.color }}">{{ notification.status }}</span>
+        <h2 id="detail-title">{% if notification.category == 'deadlines' %}Deadline reminder: {% endif %}{{ notification.title }} &middot; {{ notification.period_label }}</h2><p>{{ notification.message }}</p>
+        {% if notification.category == 'deadlines' %}<a class="action primary" href="{{ url_for('client.upload') }}">Go to document submission</a>
+        {% elif notification.incomplete_count %}
+        <a class="action primary" href="{{ url_for('client.upload', title=notification.title, document_date=notification.upload_date) }}">Upload corrected files</a>
+        {% if not notification.upload_date %}<p>These files have different dates. Use Add + on the upload form to submit each date separately.</p>{% endif %}
+        {% endif %}
+        <h3>{{ 'Documents to submit before the deadline' if notification.category == 'deadlines' else 'Documents and validation results' }}</h3><ul>
+          {% for file in notification.files %}
+          <li><strong>{{ file.filename }}</strong> &middot; {{ file.status }}
+            {% if notification.incomplete_count %}
+            <p>Document date: {{ file.document_date }}</p>
+            <p>Keep the original document exact filename, including the extension ({{ file.filename }}).</p>
+            {% endif %}
+            {% for reason in file.reasons %}<p>{{ reason }}</p>{% endfor %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% for reminder in notification.reminders %}<h3>{{ reminder.title }}</h3><p>{{ reminder.message }}</p>{% endfor %}
+        {% if notification.deadline %}
+        <div class="deadline-note"><strong>Deadline: {{ notification.deadline.deadline_label }}</strong><p>{{ notification.deadline.message }}</p></div>
+        {% endif %}
+        {% if notification.category == 'deadlines' %}<p>See Needs Changes for the corrections required for each file.</p>
+        {% elif notification.pending_count %}<p>Validation is pending. Check back for the results.</p>
+        {% elif notification.status == 'Complete' %}<p class="accepted-note">No changes are needed for these documents.</p>{% endif %}
       </template>
     </article>
-    <article class="notification-card" data-category="changes" data-created="2026-09-07T08:00:00+08:00" data-deadline="2026-09-25" aria-labelledby="title-receipt">
-      <span class="icon-tile red"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
-</svg></span>
-      <div class="notification-copy">
-        <h2 id="title-receipt">Receipt requires changes</h2>
-        <p>Validation could not confirm the vendor name and total amount because the image is blurry.</p>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>File:</strong> receipt_lunch_sep.jpg</span></div>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>Required change:</strong> Re-upload a clearer file with a readable vendor name and total amount.</span></div>
-        <p class="postponement">Unresolved changes after the deadline will postpone your submission to the next review cycle.</p>
-      </div>
-      <div class="notification-meta">
-        <span class="badge red">Unsuccessful</span>
-        <time datetime="2026-09-07T08:00:00+08:00">Sep 07, 08:00 SGT</time>
-        <span class="due"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
-</svg><span>Due by: Sep 25, 2026<small>11:59 pm SGT</small></span></span>
-      </div>
-      <button class="action primary" type="button" data-details="details-receipt">View required changes</button>
-      <template id="details-receipt">
-        <span class="badge red">Unsuccessful</span>
-        <h2 id="detail-title">Receipt requires changes</h2><p>Validation could not confirm the vendor name and total amount because the image is blurry.</p>
-        <h3>Affected documents</h3><ul><li>receipt_lunch_sep.jpg</li></ul>
-        <h3>What you need to change</h3><p>Re-upload a clearer file with a readable vendor name and total amount.</p>
-        <div class="deadline-note"><strong>Deadline: Sep 25, 2026, 11:59 pm SGT</strong><p>If the required changes are not completed by this deadline, your submission will be postponed to the next review cycle.</p></div>
-        <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
-      </template>
-    </article>
-    <article class="notification-card" data-category="changes" data-created="2026-09-07T06:00:00+08:00" data-deadline="2026-09-25" aria-labelledby="title-statement">
-      <span class="icon-tile amber"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
-</svg></span>
-      <div class="notification-copy">
-        <h2 id="title-statement">Bank statement has insufficient information</h2>
-        <p>Validation found that pages 3–4 are missing, so the statement cannot be accepted yet.</p>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>File:</strong> bank_statement_sep_partial.pdf</span></div>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>Required change:</strong> Upload the complete statement, including the missing pages 3–4.</span></div>
-        <p class="postponement">Unresolved changes after the deadline will postpone your submission to the next review cycle.</p>
-      </div>
-      <div class="notification-meta">
-        <span class="badge amber">Unsuccessful</span>
-        <time datetime="2026-09-07T06:00:00+08:00">Sep 07, 06:00 SGT</time>
-        <span class="due"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
-</svg><span>Due by: Sep 25, 2026<small>11:59 pm SGT</small></span></span>
-      </div>
-      <button class="action primary" type="button" data-details="details-statement">View required changes</button>
-      <template id="details-statement">
-        <span class="badge amber">Unsuccessful</span>
-        <h2 id="detail-title">Bank statement has insufficient information</h2><p>Validation found that pages 3–4 are missing, so the statement cannot be accepted yet.</p>
-        <h3>Affected documents</h3><ul><li>bank_statement_sep_partial.pdf</li></ul>
-        <h3>What you need to change</h3><p>Upload the complete statement, including the missing pages 3–4.</p>
-        <div class="deadline-note"><strong>Deadline: Sep 25, 2026, 11:59 pm SGT</strong><p>If the required changes are not completed by this deadline, your submission will be postponed to the next review cycle.</p></div>
-        <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
-      </template>
-    </article>
-    <article class="notification-card" data-category="deadlines" data-created="2026-09-07T04:00:00+08:00" data-deadline="2026-09-25" aria-labelledby="title-deadline">
-      <span class="icon-tile blue"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="M12 11v6m0-10h.01" stroke="white"/>
-</svg></span>
-      <div class="notification-copy">
-        <h2 id="title-deadline">Deadline reminder</h2>
-        <p>Please complete the required changes before the monthly deadline.</p>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>Files:</strong> receipt_lunch_sep.jpg, bank_statement_sep_partial.pdf</span></div>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>Required change:</strong> Resolve the outstanding document issues before the deadline to stay in this review cycle.</span></div>
-        <p class="postponement">Unresolved changes after the deadline will postpone your submission to the next review cycle.</p>
-      </div>
-      <div class="notification-meta">
-        <span class="badge blue">Deadline</span>
-        <time datetime="2026-09-07T04:00:00+08:00">Sep 07, 04:00 SGT</time>
-        <span class="due"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16"/>
-</svg><span>Due by: Sep 25, 2026<small>11:59 pm SGT</small></span></span>
-      </div>
-      <button class="action" type="button" data-details="details-deadline">View deadline</button>
-      <template id="details-deadline">
-        <span class="badge blue">Deadline</span>
-        <h2 id="detail-title">Deadline reminder</h2><p>Please complete the required changes before the monthly deadline.</p>
-        <h3>Affected documents</h3><ul><li>receipt_lunch_sep.jpg</li><li>bank_statement_sep_partial.pdf</li></ul>
-        <h3>What you need to change</h3><p>Resolve the outstanding document issues before the deadline to stay in this review cycle.</p>
-        <div class="deadline-note"><strong>Deadline: Sep 25, 2026, 11:59 pm SGT</strong><p>If the required changes are not completed by this deadline, your submission will be postponed to the next review cycle.</p></div>
-        <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
-      </template>
-    </article>
-    <article class="notification-card" data-category="successful" data-created="2026-09-06T10:00:00+08:00" data-deadline="" aria-labelledby="title-utility">
-      <span class="icon-tile green"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
-</svg></span>
-      <div class="notification-copy">
-        <h2 id="title-utility">Supporting document accepted</h2>
-        <p>Your utility bill was correctly classified and contains all required information.</p>
-        <div class="file-line"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-  <path d="M5 3h9l5 5v13H5ZM14 3v6h5"/>
-</svg><span><strong>File:</strong> utility_bill_sep.pdf</span></div>
-      </div>
-      <div class="notification-meta">
-        <span class="badge green">Accepted</span>
-        <time datetime="2026-09-06T10:00:00+08:00">Sep 06, 10:00 SGT</time>
-      </div>
-      <button class="action" type="button" data-details="details-utility">View details</button>
-      <template id="details-utility">
-        <span class="badge green">Accepted</span>
-        <h2 id="detail-title">Supporting document accepted</h2><p>Your utility bill was correctly classified and contains all required information.</p>
-        <h3>Affected documents</h3><ul><li>utility_bill_sep.pdf</li></ul>
-        <p class="accepted-note">No changes are needed for these documents.</p>
-        <p class="sample-detail">This is a sample review. Document uploading is not available in this illustration.</p>
-      </template>
-    </article>
+    {% endfor %}
   </section>
-  <div class="empty-state" id="empty-state" hidden><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <div class="empty-state" id="empty-state" {% if notifications %}hidden{% endif %}><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
   <circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>
-</svg><h2>No matching notifications</h2><p>Try another search or choose a different filter.</p><button class="action" type="button" id="reset-filters">Clear filters</button></div>
+</svg><h2>{{ "No matching notifications" if notifications else "No document updates yet" }}</h2><p>{{ "Try another search or choose a different filter." if notifications else "Validation results and reminders will appear here after you submit documents." }}</p><button class="action" type="button" id="reset-filters">Clear filters</button></div>
 
   <dialog id="detail-dialog" aria-labelledby="detail-title"><button class="close-dialog" type="button" aria-label="Close details">×</button><div id="detail-content"></div><button class="action primary dialog-done" type="button">Done</button></dialog>
 </div>

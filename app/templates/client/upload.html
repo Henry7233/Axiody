@@ -330,6 +330,7 @@
             type="text"
             id="title_1"
             name="title"
+            value="{{ initial_title | default('') }}"
             placeholder="Enter a title for your submission"
             required
           >
@@ -361,6 +362,7 @@
             type="date"
             id="document_date_1"
             name="document_date"
+            value="{{ initial_document_date | default('') }}"
             required
           >
 
