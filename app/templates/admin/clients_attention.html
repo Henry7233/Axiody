@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Clients Needing Attention | AXIODY{% endblock %}
+
+{% block head %}
+<style>
+  .clients-attention-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: #006eff;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+
+  .clients-attention-back:hover {
+    background: #005bd1;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="dashboard-page">
+
+  <a href="{{ url_for('admin.dashboard') }}"
+     class="clients-attention-back"
+     aria-label="Go back to dashboard"
+     title="Go back to dashboard">
+    Back to Dashboard
+  </a>
+
+  <!-- CLIENTS NEEDING ATTENTION -->
+  <article class="dashboard-card table-card">
+
+    <div class="card-header">
+      <div class="card-title-row">
+        <div class="attention-icon">âš </div>
+        <h3>Clients Needing Attention</h3>
+      </div>
+
+      <a href="{{ url_for('admin.clients_attention') }}" class="view-all-link">View all</a>
+    </div>
+
+
+    <div class="table-responsive">
+
+      <table class="dashboard-table">
+
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Document</th>
+            <th>Reason</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {% if attention_documents %}
+
+            {% for document in attention_documents %}
+
+            <tr>
+              <td>{{ document.client }}</td>
+
+              <td>{{ document.document }}</td>
+
+              <td>
+                <span class="status-badge status-danger">
+                  {{ document.reason }}
+                </span>
+              </td>
+
+              <td>{{ document.date }}</td>
+
+              <td>
+                <a href="#"
+                   class="outline-button">
+                  Review
+                </a>
+              </td>
+            </tr>
+
+            {% endfor %}
+
+          {% else %}
+
+            <tr>
+              <td>Acme Supplies</td>
+              <td>Invoice #1042</td>
+
+              <td>
+                <span class="status-badge status-danger">
+                  Low confidence
+                </span>
+              </td>
+
+              <td>12 Sep 2026</td>
+
+              <td>
+                <a href="#" class="outline-button">
+                  Review
+                </a>
+              </td>
+            </tr>
+
+
+            <tr>
+              <td>Northstar Foods</td>
+              <td>Receipt</td>
+
+              <td>
+                <span class="status-badge status-danger">
+                  Validation failed
+                </span>
+              </td>
+
+              <td>11 Sep 2026</td>
+
+              <td>
+                <a href="#" class="outline-button">
+                  Review
+                </a>
+              </td>
+            </tr>
+
+
+            <tr>
+              <td>Northstar Foods</td>
+              <td>Bank Statement</td>
+
+              <td>
+                <span class="status-badge status-danger">
+                  Missing period
+                </span>
+              </td>
+
+              <td>10 Sep 2026</td>
+
+              <td>
+                <a href="#" class="outline-button">
+                  Review
+                </a>
+              </td>
+            </tr>
+
+          {% endif %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </article>
+
+</section>
+
+{% endblock %}
