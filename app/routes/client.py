@@ -50,6 +50,25 @@ def dashboard():
     records = list_client_document_records(current_app.config["DATABASE"], session["user_id"], selected_period)
     submitted_count = sum(record["file_count"] for record in records)
     completed_count = sum(record["completed_count"] for record in records)
+    today = date.today()
+    notification_data = list_client_notifications(current_app.config["DATABASE"], session["user_id"], today)
+    reminders = [
+        notification for notification in notification_data["notifications"]
+        if notification["category"] == "deadlines"
+        and (selected_period == "all" or any(
+            (file["document_date"] or "").startswith(selected_period)
+            for file in notification["files"]
+        ))
+    ]
+    # Keep overdue work visible first, using the same deadline as Notifications.
+    deadline_reminder = min(
+        (reminder for reminder in reminders if reminder["deadline"]),
+        key=lambda reminder: reminder["deadline"]["deadline"], default=None,
+    )
+    deadline_days = (
+        (date.fromisoformat(deadline_reminder["deadline"]["deadline"]) - today).days
+        if deadline_reminder else None
+    )
 
     account = g.account
     try:
@@ -62,6 +81,9 @@ def dashboard():
         periods=periods, selected_period=selected_period, records=records,
         submitted_count=submitted_count, completed_count=completed_count,
         pending_count=submitted_count - completed_count,
+        outstanding_reminder_count=len(reminders),
+        reminder_file_count=sum(len(reminder["files"]) for reminder in reminders),
+        deadline_reminder=deadline_reminder, deadline_days=deadline_days,
         period_label=next(period["label"] for period in periods if period["value"] == selected_period),
         username=account["full_name"] or account["email"],
     )

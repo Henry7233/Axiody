@@ -90,7 +90,8 @@ if (loginForm) {
   const filters = Array.from(page.querySelectorAll("[data-filter]"));
   const empty = page.querySelector("#empty-state");
   const count = page.querySelector("#results-count");
-  let activeFilter = "all";
+  const requestedFilter = new URLSearchParams(window.location.search).get("filter");
+  let activeFilter = filters.some(button => button.dataset.filter === requestedFilter) ? requestedFilter : "all";
 
   function updateResults() {
     const query = search.value.trim().toLocaleLowerCase();

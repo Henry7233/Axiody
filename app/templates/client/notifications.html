@@ -50,7 +50,7 @@
   <p class="sr-only" id="results-count" role="status" aria-live="polite">{{ notifications | length }} notifications shown</p>
   <section class="notification-list" aria-label="Document review notifications">
     {% for notification in notifications %}
-    <article class="notification-card" data-category="{{ notification.category }}" data-created="{{ notification.created_at }}" data-deadline="{{ notification.deadline.deadline if notification.deadline else '' }}" aria-labelledby="title-{{ notification.id }}">
+    <article id="{{ notification.id }}" class="notification-card" style="scroll-margin-top: calc(var(--axiody-header-height) + 24px)" data-category="{{ notification.category }}" data-created="{{ notification.created_at }}" data-deadline="{{ notification.deadline.deadline if notification.deadline else '' }}" aria-labelledby="title-{{ notification.id }}">
       <span class="icon-tile {{ 'purple' if notification.category == 'deadlines' else ('red' if notification.status == 'Incomplete' else notification.color) }}">{{ icon('calendar' if notification.category == 'deadlines' else notification.status) }}</span>
       <div class="notification-copy">
         <h2 id="title-{{ notification.id }}">{% if notification.category == 'deadlines' %}Deadline reminder: {% endif %}{{ notification.title }} &middot; {{ notification.period_label }}</h2>
@@ -73,6 +73,9 @@
       <template id="details-{{ notification.id }}">
         <span class="badge {{ notification.color }}">{{ notification.status }}</span>
         <h2 id="detail-title">{% if notification.category == 'deadlines' %}Deadline reminder: {% endif %}{{ notification.title }} &middot; {{ notification.period_label }}</h2><p>{{ notification.message }}</p>
+        {% if notification.incomplete_count %}
+        <p>Keep the original document exact filename ({% for filename in notification.required_filenames %}<strong>{{ filename }}</strong>{% if not loop.last %}, {% endif %}{% endfor %}). You may use a different file format.</p>
+        {% endif %}
         {% if notification.category == 'deadlines' %}<a class="action primary" href="{{ url_for('client.upload') }}">Go to document submission</a>
         {% elif notification.incomplete_count %}
         <a class="action primary" href="{{ url_for('client.upload', title=notification.title, document_date=notification.upload_date) }}">Upload corrected files</a>
@@ -83,7 +86,6 @@
           <li><strong>{{ file.filename }}</strong> &middot; {{ file.status }}
             {% if notification.incomplete_count %}
             <p>Document date: {{ file.document_date }}</p>
-            <p>Keep the original document exact filename, including the extension ({{ file.filename }}).</p>
             {% endif %}
             {% for reason in file.reasons %}<p>{{ reason }}</p>{% endfor %}
           </li>

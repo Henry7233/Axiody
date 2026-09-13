@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 from flask import current_app
 
+from app.models.documents import get_connection
 from app.services.email_servie import send_email
 
 
@@ -15,12 +16,7 @@ def _database_path(database_path=None):
 
 
 def _get_connection(database_path):
-    import sqlite3
-
-    connection = sqlite3.connect(database_path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
-    return connection
+    return get_connection(database_path)
 
 
 def _deadline(today):
@@ -167,7 +163,13 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
         rows = connection.execute(
             """
             SELECT n.id, n.title, n.message, n.next_reminder_date,
-                   d.validation_status, u.email
+                   (
+                       SELECT latest.validation_status FROM documents latest
+                       WHERE latest.user_id = d.user_id AND latest.title = d.title
+                         AND latest.document_date = d.document_date
+                         AND filename_stem(latest.filename) = filename_stem(d.filename)
+                       ORDER BY latest.id DESC LIMIT 1
+                   ) AS validation_status, u.email
             FROM notifications n
             JOIN documents d ON d.id = n.document_id
             JOIN users u ON u.id = d.user_id
