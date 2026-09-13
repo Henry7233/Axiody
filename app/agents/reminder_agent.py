@@ -1,5 +1,4 @@
 from datetime import date, datetime, timedelta
-
 from flask import current_app
 
 from app.services.email_servie import send_email
@@ -56,9 +55,12 @@ def document_reminder(created_at, today=None):
 
 def _message(validation_data, deadline):
     document_title = validation_data.get("document_title") or "Your document"
-    reason = validation_data.get("validation_reason") or (
-        "The document is missing required information."
-    )
+    reasons = validation_data.get("validation_reasons") or []
+    if isinstance(reasons, str):
+        reasons = [reasons]
+    reason = validation_data.get("validation_reason") or ", ".join(
+        reason.replace("_", " ") for reason in reasons if reason
+    ) or "The document is missing required information."
     period = validation_data.get("bookkeeping_period")
     period_text = f" for {period}" if period else ""
     message = (
@@ -83,6 +85,8 @@ def create_initial_reminder(validation_data, database_path=None, mail_config=Non
             "message": "Reminder deadline has already been reached.",
         }
 
+    email_sent = False
+    email_error = ""
     connection = _get_connection(database_path)
     try:
         document = connection.execute(
@@ -132,12 +136,23 @@ def create_initial_reminder(validation_data, database_path=None, mail_config=Non
 
     recipient = validation_data.get("client_email")
     if recipient:
-        send_email(mail_config or current_app.config, recipient, title, message)
+        try:
+            send_email(mail_config or current_app.config, recipient, title, message)
+            email_sent = True
+        except Exception as error:
+            email_error = str(error)
+            current_app.logger.warning(
+                "Reminder notification %s was saved, but email delivery failed: %s",
+                notification_id,
+                error,
+            )
 
     return {
         "success": True,
         "notification_id": notification_id,
-        "message": "Initial reminder created and sent.",
+        "email_sent": email_sent,
+        "email_error": email_error,
+        "message": "Initial reminder created.",
     }
 
 
@@ -181,12 +196,20 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
             if today < datetime.strptime(next_date, "%Y-%m-%d").date():
                 continue
 
-            send_email(
-                mail_config or current_app.config,
-                row["email"],
-                row["title"],
-                row["message"],
-            )
+            try:
+                send_email(
+                    mail_config or current_app.config,
+                    row["email"],
+                    row["title"],
+                    row["message"],
+                )
+            except Exception as error:
+                current_app.logger.warning(
+                    "Due reminder %s email delivery failed: %s",
+                    row["id"],
+                    error,
+                )
+                continue
             connection.execute(
                 """
                 UPDATE notifications

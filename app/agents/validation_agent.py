@@ -1,6 +1,7 @@
 ﻿import json
 import os
 import re
+from datetime import datetime
 from pathlib import Path
 from string import Template
 
@@ -43,27 +44,71 @@ def _normalize_result(result):
 
 
 def _fallback_validation(document_text, title="", description="", expected_period="", filename=""):
-    evidence = " ".join((document_text, title, description, filename, expected_period)).lower()
+    evidence = " ".join((document_text, title, description, filename)).lower()
     reasons = []
 
     if not document_text or not document_text.strip():
         reasons.append("missing_document_text")
 
-    if not re.search(
-        r"\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}/\d{1,2}/\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b",
-        evidence,
-        re.IGNORECASE,
-    ):
+    detected_dates = _extract_dates(evidence)
+    if not detected_dates:
         reasons.append("missing_date")
+    elif expected_period:
+        try:
+            expected = datetime.strptime(expected_period[:7], "%Y-%m")
+        except ValueError:
+            expected = None
+        if expected and not any(
+            detected.year == expected.year and detected.month == expected.month
+            for detected in detected_dates
+        ):
+            reasons.append("date_out_of_period")
 
     if "blurry" in evidence or "cut off" in evidence or "unreadable" in evidence:
         reasons.append("image_quality_issue")
+
+    logical_issue_terms = (
+        "total mismatch",
+        "totals mismatch",
+        "does not match",
+        "do not match",
+        "inconsistent",
+        "contradictory",
+        "invalid total",
+    )
+    if any(term in evidence for term in logical_issue_terms):
+        reasons.append("totals_mismatch")
 
     return {
         "validation_status": "Incomplete" if reasons else "Complete",
         "reasons": reasons,
         "confidence": 0.85 if reasons else 0.95,
     }
+
+
+def _extract_dates(value):
+    dates = []
+    patterns = (
+        ("%Y-%m-%d", r"\b\d{4}-\d{2}-\d{2}\b"),
+        ("%m/%d/%Y", r"\b\d{1,2}/\d{1,2}/\d{4}\b"),
+        ("%m/%d/%y", r"\b\d{1,2}/\d{1,2}/\d{2}\b"),
+        ("%b %d %Y", r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b"),
+    )
+    for date_format, pattern in patterns:
+        for match in re.findall(pattern, value, re.IGNORECASE):
+            normalized = match.replace(",", "")
+            if date_format == "%b %d %Y":
+                normalized = " ".join(normalized.split()[:3])
+            try:
+                dates.append(datetime.strptime(normalized, date_format))
+            except ValueError:
+                if date_format != "%b %d %Y":
+                    continue
+                try:
+                    dates.append(datetime.strptime(normalized, "%B %d %Y"))
+                except ValueError:
+                    continue
+    return dates
 
 
 def validate_document(

@@ -4,6 +4,11 @@ from flask import Blueprint, current_app, flash, g, redirect, render_template, r
 from werkzeug.utils import secure_filename
 
 from app.agents.classification_agent import classify_document, extract_document_text
+from app.agents.reminder_agent import (
+    create_initial_reminder,
+    process_due_reminders,
+    resolve_replaced_document_reminders,
+)
 from app.agents.validation_agent import validate_document
 
 from app.models.notifications import list_client_notifications
@@ -146,6 +151,24 @@ def upload():
                 update_document_validation(
                     current_app.config["DATABASE"], document_id, validation
                 )
+                if validation["validation_status"] == "Incomplete":
+                    create_initial_reminder(
+                        {
+                            "document_id": document_id,
+                            "document_title": title,
+                            "bookkeeping_period": document_date[:7],
+                            "validation_reasons": validation.get("reasons", []),
+                            "client_email": g.account["email"],
+                        },
+                        current_app.config["DATABASE"],
+                    )
+                else:
+                    resolve_replaced_document_reminders(
+                        session["user_id"],
+                        title,
+                        document_date,
+                        current_app.config["DATABASE"],
+                    )
                 saved_count += 1
 
         if saved_count == 0:
@@ -164,6 +187,7 @@ def notifications():
     if redirect_response:
         return redirect_response
 
+    process_due_reminders(current_app.config["DATABASE"])
     return render_template(
         "client/notifications.html",
         username=session.get("user_email"),

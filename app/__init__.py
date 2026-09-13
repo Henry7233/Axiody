@@ -2,6 +2,7 @@ from flask import Flask, redirect, session, url_for
 
 from app.models.documents import init_document_db
 from app.models.users import init_user_db
+from app.agents.reminder_agent import process_due_reminders
 from app.routes.admin import admin_bp
 from app.routes.auth import auth_bp
 from app.routes.client import client_bp
@@ -31,5 +32,14 @@ def create_app():
             return redirect(url_for("admin.settings"))
 
         return redirect(url_for("client.settings"))
+
+    @app.cli.command("process-reminders")
+    def process_reminders_command():
+        """Send due incomplete-document reminders."""
+        result = process_due_reminders(app.config["DATABASE"], app.config)
+        print(
+            f"Reminder run complete: {result['sent']} sent, "
+            f"{result['resolved']} resolved."
+        )
 
     return app
