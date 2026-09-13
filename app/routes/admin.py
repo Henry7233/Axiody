@@ -466,6 +466,32 @@ def documents():
     return bookkeeping()
 
 
+@admin_bp.route("/recent_submissions.html")
+@admin_bp.route("/recent_submissions")
+def recent_submissions():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    return render_template(
+        "admin/recent_submissions.html",
+        **admin_context("dashboard"),
+    )
+
+
+@admin_bp.route("/clients_attention.html")
+@admin_bp.route("/clients_attention")
+def clients_attention():
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    return render_template(
+        "admin/clients_attention.html",
+        **admin_context("dashboard"),
+    )
+
+
 @admin_bp.route("/documents/data")
 def documents_data():
     redirect_response = require_admin()
