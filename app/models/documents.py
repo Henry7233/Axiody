@@ -336,6 +336,7 @@ def list_client_summaries(database_path):
             """
             SELECT
                 users.id,
+                users.email,
                 COALESCE(NULLIF(users.full_name, ''), users.email) AS name,
                 COUNT(documents.id) AS documents,
                 SUM(CASE WHEN documents.classification_status = 'Success' THEN 1 ELSE 0 END) AS classified,
@@ -363,7 +364,9 @@ def list_client_summaries(database_path):
             status = "Ready"
         summaries.append(
             {
+                "id": row["id"],
                 "name": row["name"],
+                "email": row["email"],
                 "status": status,
                 "documents": documents,
                 "classified": classified,

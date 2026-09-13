@@ -1,9 +1,10 @@
 import io
+import mimetypes
 import sqlite3
 import zipfile
 from datetime import date, datetime
 
-from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
+from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from app.models.documents import (
     get_client_review_data,
@@ -86,6 +87,48 @@ def admin_context(active_page):
         "settings_url": url_for("admin.settings"),
         "username": session.get("user_name") or session.get("user_email"),
     }
+
+
+def format_file_size(size_bytes):
+    if size_bytes is None:
+        return "0 KB"
+    if size_bytes >= 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    if size_bytes >= 1024:
+        return f"{size_bytes / 1024:.0f} KB"
+    return f"{size_bytes} B"
+
+
+def format_display_date(value):
+    if not value:
+        return ""
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value
+    return parsed.strftime("%b %d, %Y")
+
+
+def display_file_type(filename, content_type):
+    suffix = (filename or "").rsplit(".", 1)
+    if len(suffix) == 2 and suffix[1]:
+        return suffix[1].upper()
+    if content_type:
+        return content_type.split("/")[-1].upper()
+    return "FILE"
+
+
+def get_document_blob(document_id):
+    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+        connection.row_factory = sqlite3.Row
+        return connection.execute(
+            """
+            SELECT id, filename, file_type, file_data
+            FROM documents
+            WHERE id = ?
+            """,
+            (document_id,),
+        ).fetchone()
 
 
 @admin_bp.route("/")
@@ -186,6 +229,209 @@ def clients():
         "admin/clients.html",
         clients=list_client_summaries(current_app.config["DATABASE"]),
         **admin_context("clients"),
+    )
+
+
+@admin_bp.route("/client_detail.html")
+@admin_bp.route("/client_detail")
+@admin_bp.route("/client_details.html")
+@admin_bp.route("/client_details")
+@admin_bp.route("/clients/<int:client_id>")
+@admin_bp.route("/clients/<int:client_id>/preview")
+def client_detail(client_id=None):
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    requested_client = request.args.get("client", "").strip()
+    requested_id = request.args.get("client_id", type=int)
+    client_id = client_id or requested_id
+
+    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+        connection.row_factory = sqlite3.Row
+        if client_id is not None:
+            client_row = connection.execute(
+                """
+                SELECT
+                    id,
+                    COALESCE(NULLIF(full_name, ''), email) AS name,
+                    email,
+                    created_at
+                FROM users
+                WHERE id = ? AND account_type = 'client'
+                """,
+                (client_id,),
+            ).fetchone()
+        elif requested_client:
+            client_row = connection.execute(
+                """
+                SELECT
+                    id,
+                    COALESCE(NULLIF(full_name, ''), email) AS name,
+                    email,
+                    created_at
+                FROM users
+                WHERE account_type = 'client'
+                  AND (full_name = ? OR email = ?)
+                LIMIT 1
+                """,
+                (requested_client, requested_client),
+            ).fetchone()
+        else:
+            client_row = None
+
+        if client_row is None:
+            abort(404)
+
+        document_rows = connection.execute(
+            """
+            SELECT
+                id,
+                filename,
+                file_type,
+                file_size,
+                classification_status,
+                validation_status,
+                created_at
+            FROM documents
+            WHERE user_id = ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (client_row["id"],),
+        ).fetchall()
+
+    documents = []
+    for document in document_rows:
+        status = document["validation_status"] or document["classification_status"] or "Under review"
+        documents.append(
+            {
+                "id": document["id"],
+                "filename": document["filename"] or f"document-{document['id']}",
+                "file_type": display_file_type(document["filename"], document["file_type"]),
+                "file_size": format_file_size(document["file_size"]),
+                "created_at": format_display_date(document["created_at"]),
+                "status": status,
+                "is_under_review": status == "Under review",
+            }
+        )
+    bookkept_count = sum(1 for document in documents if document["status"] in {"Complete", "Success"})
+    under_review_count = max(len(documents) - bookkept_count, 0)
+    latest_period = next(
+        (
+            format_display_date(document["created_at"])
+            for document in document_rows
+            if document["created_at"]
+        ),
+        "No submissions yet",
+    )
+
+    return render_template(
+        "admin/client_detail.html",
+        client={
+            "id": client_row["id"],
+            "name": client_row["name"],
+            "email": client_row["email"],
+            "created_at": format_display_date(client_row["created_at"]),
+        },
+        documents=documents,
+        bookkeeping_period=latest_period,
+        bookkept_count=bookkept_count,
+        under_review_count=under_review_count,
+        **admin_context("clients"),
+    )
+
+
+@admin_bp.route("/documents/<int:document_id>/preview")
+def preview_document(document_id):
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    document = get_document_blob(document_id)
+    if not document or document["file_data"] is None:
+        abort(404)
+
+    filename = document["filename"] or f"document-{document_id}"
+    mimetype = document["file_type"] or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return send_file(
+        io.BytesIO(document["file_data"]),
+        as_attachment=False,
+        download_name=filename,
+        mimetype=mimetype,
+    )
+
+
+@admin_bp.route("/documents/<int:document_id>/download")
+def download_document(document_id):
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    document = get_document_blob(document_id)
+    if not document or document["file_data"] is None:
+        abort(404)
+
+    filename = document["filename"] or f"document-{document_id}"
+    mimetype = document["file_type"] or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return send_file(
+        io.BytesIO(document["file_data"]),
+        as_attachment=True,
+        download_name=filename,
+        mimetype=mimetype,
+    )
+
+
+@admin_bp.route("/clients/<int:client_id>/documents/download")
+def download_all_client_documents(client_id):
+    redirect_response = require_admin()
+    if redirect_response:
+        return redirect_response
+
+    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+        client = connection.execute(
+            """
+            SELECT COALESCE(NULLIF(full_name, ''), email) AS name
+            FROM users
+            WHERE id = ? AND account_type = 'client'
+            """,
+            (client_id,),
+        ).fetchone()
+        documents = connection.execute(
+            """
+            SELECT filename, file_data
+            FROM documents
+            WHERE user_id = ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (client_id,),
+        ).fetchall()
+
+    if client is None:
+        abort(404)
+    if not documents:
+        return "No documents found for this client.", 404
+
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        used_names = set()
+        for index, (filename, file_data) in enumerate(documents, start=1):
+            name = filename or f"document-{index}"
+            if name in used_names:
+                stem, separator, suffix = name.rpartition(".")
+                name = f"{stem or name}-{index}{separator}{suffix}" if separator else f"{name}-{index}"
+            used_names.add(name)
+            zip_file.writestr(name, file_data or b"")
+
+    archive.seek(0)
+    safe_client_name = "".join(
+        character if character.isalnum() or character in ("-", "_") else "-"
+        for character in client[0].strip().lower()
+    ).strip("-") or f"client-{client_id}"
+    return send_file(
+        archive,
+        as_attachment=True,
+        download_name=f"{safe_client_name}-documents.zip",
+        mimetype="application/zip",
     )
 
 

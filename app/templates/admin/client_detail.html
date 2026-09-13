@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Client Documents | AXIODY{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/client_detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="client-documents-page">
+  <a href="{{ url_for('admin.clients') }}" class="back-link">Back to Clients</a>
+
+  <div class="client-summary-card">
+    <div class="client-main-info">
+      <div class="client-icon" aria-hidden="true">A</div>
+
+      <div>
+        <h1>{{ client.name }}</h1>
+        <p class="bookkeeping-period">
+          Bookkeeping Period:
+          <strong>{{ bookkeeping_period }}</strong>
+        </p>
+        <div class="client-document-summary">
+          <span>{{ documents|length }} submitted documents</span>
+          <span aria-hidden="true">/</span>
+          <span>{{ bookkept_count }} bookkept</span>
+          <span aria-hidden="true">/</span>
+          <span>{{ under_review_count }} under review</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="client-extra-info">
+      <div>
+        <span class="info-label">Client Email</span>
+        <span class="info-value">{{ client.email }}</span>
+      </div>
+
+      <div>
+        <span class="info-label">Member Since</span>
+        <span class="info-value">{{ client.created_at }}</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="document-review-layout">
+    <aside class="documents-sidebar" aria-labelledby="submitted-documents-title">
+      <h2 id="submitted-documents-title">Submitted Documents ({{ documents|length }})</h2>
+
+      <div class="documents-list">
+        {% for document in documents %}
+        <button
+          type="button"
+          class="document-item {% if loop.first %}active{% endif %}"
+          data-id="{{ document.id }}"
+          data-name="{{ document.filename }}"
+          data-type="{{ document.file_type }}"
+          data-size="{{ document.file_size }}"
+          data-uploaded="{{ document.created_at }}"
+          data-under-review="{{ 'true' if document.is_under_review else 'false' }}"
+          data-preview-url="{{ url_for('admin.preview_document', document_id=document.id) }}"
+          data-download-url="{{ url_for('admin.download_document', document_id=document.id) }}"
+          data-approve-url="{{ url_for('admin.preview_approve', client=client.name, document=document.id) }}"
+        >
+          <div class="document-icon" aria-hidden="true">
+            {% if document.file_type|lower in ['jpg', 'jpeg', 'png'] %}
+              IMG
+            {% elif document.file_type|lower == 'pdf' %}
+              PDF
+            {% elif document.file_type|lower in ['doc', 'docx'] %}
+              DOC
+            {% else %}
+              FILE
+            {% endif %}
+          </div>
+
+          <div class="document-item-info">
+            <strong>{{ document.filename }}</strong>
+            <span>{{ document.file_type|upper }} / {{ document.file_size }}</span>
+          </div>
+
+          <div class="document-arrow" aria-hidden="true">&gt;</div>
+        </button>
+        {% else %}
+        <p class="no-document-preview">No documents have been submitted.</p>
+        {% endfor %}
+      </div>
+
+      {% if documents %}
+      <a
+        href="{{ url_for('admin.download_all_client_documents', client_id=client.id) }}"
+        class="download-all-btn"
+      >
+        Download All ({{ documents|length }} files)
+      </a>
+      {% endif %}
+    </aside>
+
+    <section class="document-preview-panel" aria-labelledby="preview-file-name">
+      <div class="preview-header">
+        <div>
+          <h2 id="preview-file-name">
+            {% if documents %}
+              {{ documents[0].filename }}
+            {% else %}
+              No document selected
+            {% endif %}
+          </h2>
+
+          <div class="preview-meta" {% if not documents %}hidden{% endif %}>
+            <span id="preview-file-type">
+              {% if documents %}{{ documents[0].file_type|upper }}{% endif %}
+            </span>
+            <span aria-hidden="true">/</span>
+            <span id="preview-file-size">
+              {% if documents %}{{ documents[0].file_size }}{% endif %}
+            </span>
+            <span aria-hidden="true">/</span>
+            <span id="preview-uploaded">
+              {% if documents %}Uploaded on {{ documents[0].created_at }}{% endif %}
+            </span>
+          </div>
+        </div>
+
+        {% if documents %}
+        <div class="preview-actions">
+          <a
+            id="approve-current-document"
+            href="{{ url_for('admin.preview_approve', client=client.name, document=documents[0].id) }}"
+            class="approve-current-btn"
+            {% if not documents[0].is_under_review %}hidden{% endif %}
+          >
+            Approve
+          </a>
+          <a
+            id="download-current-document"
+            href="{{ url_for('admin.download_document', document_id=documents[0].id) }}"
+            class="download-current-btn"
+          >
+            Download
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="preview-container">
+        {% if documents %}
+        <iframe
+          id="document-preview-frame"
+          src="{{ url_for('admin.preview_document', document_id=documents[0].id) }}"
+          title="Document Preview"
+        ></iframe>
+        {% else %}
+        <div class="no-document-preview">No documents have been submitted.</div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const documentItems = document.querySelectorAll(".document-item");
+  const previewFrame = document.getElementById("document-preview-frame");
+  const previewName = document.getElementById("preview-file-name");
+  const previewType = document.getElementById("preview-file-type");
+  const previewSize = document.getElementById("preview-file-size");
+  const previewUploaded = document.getElementById("preview-uploaded");
+  const approveButton = document.getElementById("approve-current-document");
+  const downloadButton = document.getElementById("download-current-document");
+
+  if (!documentItems.length || !previewFrame || !downloadButton) return;
+
+  documentItems.forEach(function (item) {
+    item.addEventListener("click", function () {
+      documentItems.forEach(function (documentItem) {
+        documentItem.classList.remove("active");
+      });
+
+      this.classList.add("active");
+
+      previewName.textContent = this.dataset.name;
+      previewType.textContent = this.dataset.type.toUpperCase();
+      previewSize.textContent = this.dataset.size;
+      previewUploaded.textContent = "Uploaded on " + this.dataset.uploaded;
+      previewFrame.src = this.dataset.previewUrl;
+      if (approveButton) {
+        approveButton.href = this.dataset.approveUrl;
+        approveButton.hidden = this.dataset.underReview !== "true";
+      }
+      downloadButton.href = this.dataset.downloadUrl;
+    });
+  });
+});
+</script>
+{% endblock %}

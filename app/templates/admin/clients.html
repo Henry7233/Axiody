@@ -30,13 +30,31 @@
             <th scope="col">Action</th>
           </tr>
         </thead>
-        <tbody id="clientTableBody" data-review-url="{{ url_for('admin.reviews') }}"></tbody>
+        <tbody>
+          {% for client in clients %}
+          <tr>
+            <td>{{ client.name }}</td>
+            <td>Sep 2026</td>
+            <td>{{ client.documents }}</td>
+            <td>{{ client.classified }}</td>
+            <td>{{ client.needs_review }}</td>
+            <td>
+              <a
+                class="btn btn--secondary"
+                href="{{ url_for('admin.client_detail', client_id=client.id) }}"
+              >
+                Preview
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6">No clients found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
       </table>
     </div>
   </section>
 </section>
-{% endblock %}
-
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
 {% endblock %}
