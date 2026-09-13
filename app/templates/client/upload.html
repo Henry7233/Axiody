@@ -59,6 +59,18 @@
     margin-bottom: 0;
   }
 
+  .details-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.45fr);
+    gap: 18px;
+    align-items: start;
+    margin-bottom: 22px;
+  }
+
+  .details-row .form-group {
+    margin-bottom: 0;
+  }
+
   .form-label {
     display: block;
     margin-bottom: 9px;
@@ -210,15 +222,18 @@
   }
 
   .action-row {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    gap: 10px;
-    margin-top: 20px;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
   }
 
   .action-row .submit-btn,
   .action-row .add-upload-btn {
     margin-top: 0;
+    width: auto;
+    min-width: 150px;
   }
 
   .add-upload-btn {
@@ -226,7 +241,8 @@
     border-radius: 11px;
     background: light-dark(#eef6ff, #1b2a3c);
     color: light-dark(#0b5dce, #89b7f5);
-    width: 100%;
+    width: auto;
+    min-width: 150px;
     padding: 12px 18px;
     font: inherit;
     font-weight: 700;
@@ -300,6 +316,20 @@
       grid-template-columns: 1fr;
     }
 
+    .details-row {
+      grid-template-columns: 1fr;
+    }
+
+    .action-row {
+      justify-content: stretch;
+      flex-direction: column;
+    }
+
+    .action-row .submit-btn,
+    .action-row .add-upload-btn {
+      width: 100%;
+    }
+
   }
 </style>
 {% endblock %}
@@ -321,19 +351,40 @@
       <!-- LEFT CARD -->
       <div class="form-card">
 
-        <div class="form-group title-entry">
-          <label class="form-label" for="title_1">
-            Title <span class="required">*</span>
-          </label>
-          <input
-            class="form-control title-input"
-            type="text"
-            id="title_1"
-            name="title"
-            value="{{ initial_title | default('') }}"
-            placeholder="Enter a title for your submission"
-            required
-          >
+        <div class="details-row">
+          <div class="form-group title-entry">
+            <label class="form-label" for="title_1">
+              Title <span class="required">*</span>
+            </label>
+            <input
+              class="form-control title-input"
+              type="text"
+              id="title_1"
+              name="title"
+              value="{{ initial_title | default('') }}"
+              placeholder="Enter a title for your submission"
+              required
+            >
+          </div>
+
+          <div class="form-group date-entry">
+            <label class="form-label" for="document_date_1">
+              Date <span class="required">*</span>
+            </label>
+
+            <input
+              class="form-control date-input"
+              type="date"
+              id="document_date_1"
+              name="document_date"
+              value="{{ initial_document_date | default('') }}"
+              required
+            >
+
+            <div class="date-help">
+              Select the date of the document.
+            </div>
+          </div>
         </div>
 
         <div class="form-group description-entry">
@@ -352,38 +403,8 @@
           </div>
         </div>
 
-        <div class="form-group date-entry">
-          <label class="form-label" for="document_date_1">
-            Date <span class="required">*</span>
-          </label>
-
-          <input
-            class="form-control date-input"
-            type="date"
-            id="document_date_1"
-            name="document_date"
-            value="{{ initial_document_date | default('') }}"
-            required
-          >
-
-          <div class="date-help">
-            Select the date of the document.
-          </div>
-
-          <div class="action-row">
-            <button class="submit-btn" type="submit">
-              Submit Document
-            </button>
-
-            <button class="add-upload-btn" type="button" data-add-upload>
-              Add +
-            </button>
-          </div>
-
-          <div class="submit-note">
-            After submission, AXIODY will classify and validate the uploaded document.
-          </div>
-
+        <div class="submit-note">
+          After submission, AXIODY will classify and validate the uploaded document.
         </div>
 
       </div>
@@ -429,6 +450,16 @@
             You can upload more than one file at a time.
           </p>
         </div>
+      </div>
+
+      <div class="action-row">
+        <button class="add-upload-btn" type="button" data-add-upload>
+          Add +
+        </button>
+
+        <button class="submit-btn" type="submit">
+          Submit Document
+        </button>
       </div>
 
     </div>
