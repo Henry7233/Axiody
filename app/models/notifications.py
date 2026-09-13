@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from app.agents.reminder_agent import document_reminder
 from app.models.documents import (
+    document_filename_stem,
     document_validation_status,
     get_connection,
     validation_messages,
@@ -28,16 +29,21 @@ def list_client_notifications(database_path, user_id, today=None):
                    n.created_at AS reminder_created_at, n.last_reminder_sent
             FROM documents d
             LEFT JOIN notifications n ON n.id = (
-                SELECT id FROM notifications
-                WHERE document_id = d.id AND status != 'resolved'
-                ORDER BY id DESC LIMIT 1
+                SELECT reminder.id FROM notifications reminder
+                JOIN documents original ON original.id = reminder.document_id
+                WHERE original.user_id = d.user_id AND original.title = d.title
+                  AND original.document_date = d.document_date
+                  AND filename_stem(original.filename) = filename_stem(d.filename)
+                  AND original.id <= d.id AND reminder.status != 'resolved'
+                ORDER BY reminder.id DESC LIMIT 1
             )
             WHERE d.user_id = ?
               AND NOT EXISTS (
                   SELECT 1 FROM documents newer
                   WHERE newer.user_id = d.user_id AND newer.title = d.title
                     AND newer.document_date = d.document_date
-                    AND newer.filename = d.filename AND newer.id > d.id
+                    AND filename_stem(newer.filename) = filename_stem(d.filename)
+                    AND newer.id > d.id
               )
             ORDER BY d.created_at DESC, d.id DESC
             """,
@@ -90,6 +96,9 @@ def list_client_notifications(database_path, user_id, today=None):
 
     notifications = list(groups.values())
     for group in notifications:
+        group["required_filenames"] = list(dict.fromkeys(
+            document_filename_stem(file["filename"]) for file in group["files"]
+        ))
         document_dates = {file["document_date"] for file in group["files"]}
         group["upload_date"] = next(iter(document_dates)) if len(document_dates) == 1 else ""
         is_reminder = group.get("category") == "deadlines"

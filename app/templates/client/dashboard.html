@@ -118,7 +118,7 @@
   .record-file-group .document-category-status { margin-left: 0; }
   .dashboard-sidebar { display: grid; grid-template-rows: auto 1fr; gap: 22px; }
   .dashboard-deadline { display: flex; align-items: flex-start; gap: 20px; padding: 22px; }
-  .dashboard-deadline-copy { flex: 1; }
+  .dashboard-deadline-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; }
   .dashboard-deadline h3 { font-size: 1.1875rem; margin: 16px 0 6px; }
   .dashboard-deadline p { font-size: 0.875rem; }
   .dashboard-countdown { align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 112px; min-height: 122px; border-radius: 12px; background: light-dark(#edf2ff, #1b243c); color: light-dark(#005ae0, #89b5f5); }
@@ -192,9 +192,26 @@
 
   <section class="dashboard-stats" aria-label="Submission overview">
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ completed_count }} / {{ submitted_count }}</strong><p>Documents Completed</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) {{ period_scope }}</div></article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon amber">{{ icon('clock') }}</span><div><strong aria-label="Deadline unavailable">&mdash;</strong><p>Days to Deadline</p></div><div class="dashboard-stat-note">No deadline available</div></article>
+    <article class="dashboard-card dashboard-stat">
+      <span class="dashboard-icon amber">{{ icon('clock') }}</span>
+      <div><strong>{{ deadline_days | abs if deadline_days is not none else '\u2014' }}</strong><p>{{ 'Days Overdue' if deadline_days is not none and deadline_days < 0 else 'Days to Deadline' }}</p></div>
+      <div class="dashboard-stat-note">
+        {% if deadline_reminder %}
+        {{ 'Due today' if deadline_days == 0 else 'Due ' ~ deadline_reminder.deadline.deadline_label }}<br>
+        <a href="{{ url_for('client.notifications', _anchor=deadline_reminder.id) }}">{{ deadline_reminder.title }} {{ icon('chevron') }}</a>
+        {% else %}No deadline reminders {{ period_scope }}{% endif %}
+      </div>
+    </article>
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon purple">{{ icon('bell') }}</span><div><strong>{{ pending_count }}</strong><p>Documents Awaiting Completion</p></div><div class="dashboard-stat-note">Incomplete or pending validation.<br><a href="{{ url_for('client.upload') }}">Go to document submission {{ icon('chevron') }}</a></div></article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon green">{{ icon('check') }}</span><div><strong aria-label="Reminder count unavailable">&mdash;</strong><p>Outstanding Reminders</p></div><div class="dashboard-stat-note"><a href="{{ url_for('client.notifications') }}">View notifications {{ icon('chevron') }}</a></div></article>
+    <article class="dashboard-card dashboard-stat">
+      <span class="dashboard-icon {{ 'purple' if outstanding_reminder_count else 'green' }}">{{ icon('bell' if outstanding_reminder_count else 'check') }}</span>
+      <div><strong>{{ outstanding_reminder_count }}</strong><p>Outstanding Reminders</p></div>
+      <div class="dashboard-stat-note">
+        {% if outstanding_reminder_count %}{{ reminder_file_count }} file(s) in {{ outstanding_reminder_count }} record(s) need corrections {{ period_scope }}.
+        {% else %}You're all caught up on reminders {{ period_scope }}.{% endif %}<br>
+        <a href="{{ url_for('client.notifications', filter='changes') }}">View Reminders {{ icon('chevron') }}</a>
+      </div>
+    </article>
   </section>
 
   <div class="dashboard-columns">
@@ -212,7 +229,21 @@
     </section>
 
     <aside class="dashboard-sidebar" aria-label="Deadline and client details">
-      <section class="dashboard-card dashboard-deadline"><span class="dashboard-icon">{{ icon('calendar') }}</span><div class="dashboard-deadline-copy"><h2>Upcoming Deadline</h2><h3>No deadline available</h3><p>Your bookkeeping deadline will appear here when available.</p></div><div class="dashboard-countdown"><strong>&mdash;</strong><span>days left</span></div></section>
+      <section class="dashboard-card dashboard-deadline">
+        <span class="dashboard-icon">{{ icon('calendar') }}</span>
+        <div class="dashboard-deadline-copy">
+          <h2>{{ 'Overdue Deadline' if deadline_days is not none and deadline_days < 0 else 'Upcoming Deadline' }}</h2>
+          {% if deadline_reminder %}
+          <h3>{{ deadline_reminder.title }}</h3>
+          <p>{{ deadline_reminder.period_label }} &middot; {{ deadline_reminder.files | length }} file(s) to correct</p>
+          <p>{{ deadline_reminder.deadline.message }}</p>
+          <p><a href="{{ url_for('client.notifications', _anchor=deadline_reminder.id) }}">Review this reminder {{ icon('chevron') }}</a></p>
+          {% else %}
+          <h3>No deadline reminders</h3><p>No saved reminders with a deadline {{ period_scope }}. New submission reminders will appear here.</p>
+          {% endif %}
+        </div>
+        {% if deadline_reminder %}<div class="dashboard-countdown"><strong>{{ deadline_days | abs }}</strong><span>{{ 'days overdue' if deadline_days < 0 else ('due today' if deadline_days == 0 else 'days left') }}</span></div>{% endif %}
+      </section>
       <section class="dashboard-card dashboard-overview"><span class="dashboard-icon">{{ icon('user') }}</span><div><h2>Client Overview</h2><dl><dt>Name</dt><dd>{{ account.full_name or 'Not provided' }}</dd><dt>Email</dt><dd>{{ account.email }}</dd><dt>Member Since</dt><dd>{{ member_since }}</dd></dl></div></section>
     </aside>
   </div>
@@ -237,7 +268,7 @@
       <p>No records submitted {{ period_scope }}.</p>
       {% endfor %}
     </div>
-    <p class="client-records-note">Files are grouped by record title, bookkeeping month, and saved document type. For matching titles, document dates, and filenames, only the latest upload and its validation status are shown.</p>
+    <p class="client-records-note">Files are grouped by record title, bookkeeping month, and saved document type. For matching titles, document dates, and filenames without the extension, only the latest upload and its validation status are shown.</p>
   </dialog>
 </div>
 {% endblock %}

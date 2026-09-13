@@ -1,12 +1,19 @@
 import json
+import os
 import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
 
 
+def document_filename_stem(filename):
+    """Keep the exact filename, excluding only its final format extension."""
+    return os.path.splitext(filename or "")[0]
+
+
 def get_connection(database_path):
     connection = sqlite3.connect(database_path)
     connection.row_factory = sqlite3.Row
+    connection.create_function("filename_stem", 1, document_filename_stem, deterministic=True)
     connection.execute("PRAGMA foreign_keys = ON")
     return connection
 
@@ -207,7 +214,8 @@ def update_document_validation(database_path, document_id, validation):
                     JOIN documents current ON current.id = ?
                     WHERE older.user_id = current.user_id AND older.title = current.title
                       AND older.document_date = current.document_date
-                      AND older.filename = current.filename AND older.id <= current.id
+                      AND filename_stem(older.filename) = filename_stem(current.filename)
+                      AND older.id <= current.id
                 )
                 """,
                 (document_id,),
@@ -221,25 +229,18 @@ def document_validation_status(value):
 
 
 def validation_messages(value):
-    """Translate saved validation reasons without inventing missing feedback."""
+    """Summarize a document's saved validation reasons in one sentence."""
     try:
         reasons = json.loads(value or "[]")
     except (TypeError, ValueError):
         reasons = []
     if not isinstance(reasons, list):
         reasons = []
-    labels = {
-        "missing_document_text": "Upload a readable copy with visible document text.",
-        "missing_date": "Upload a document showing a visible, readable date.",
-        "image_quality_issue": "Upload a clear, uncropped copy of the document.",
-        "image_blurry": "Upload a clearer copy so all information is readable.",
-        "date_out_of_period": "Upload a document dated within the selected bookkeeping period.",
-        "totals_mismatch": "Check the totals and line items, then upload a corrected document.",
-    }
-    return list(dict.fromkeys(
-        labels.get(reason.strip(), reason.strip().replace("_", " "))
+    reasons = list(dict.fromkeys(
+        reason.strip()
         for reason in reasons if isinstance(reason, str) and reason.strip()
     ))
+    return [f"This document contains {', '.join(reasons)}."] if reasons else []
 
 
 def list_client_document_records(database_path, user_id, period):
@@ -262,7 +263,7 @@ def list_client_document_records(database_path, user_id, period):
                   WHERE newer.user_id = current_document.user_id
                     AND newer.title = current_document.title
                     AND newer.document_date = current_document.document_date
-                    AND newer.filename = current_document.filename
+                    AND filename_stem(newer.filename) = filename_stem(current_document.filename)
                     AND newer.id > current_document.id
               )
             ORDER BY created_at DESC, id DESC
