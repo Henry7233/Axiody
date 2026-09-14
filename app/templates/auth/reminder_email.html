@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incomplete Document Submission</title>
+</head>
+
+<body style="
+  margin: 0;
+  padding: 0;
+  background-color: #f5f8fc;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #102a56;
+">
+
+<table
+  role="presentation"
+  width="100%"
+  cellspacing="0"
+  cellpadding="0"
+  border="0"
+  style="background-color: #f5f8fc; padding: 30px 15px;"
+>
+  <tr>
+    <td align="center">
+
+      <!-- MAIN EMAIL -->
+      <table
+        role="presentation"
+        width="700"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        style="
+          width: 100%;
+          max-width: 700px;
+          background: #ffffff;
+          border-radius: 18px;
+          overflow: hidden;
+        "
+      >
+
+        <!-- ===================== -->
+        <!-- LOGO -->
+        <!-- ===================== -->
+        <tr>
+          <td align="center" style="padding: 38px 30px 35px;">
+
+            <img
+              src="{{ logo_url }}"
+              alt="AXIODY"
+              width="125"
+              style="
+                display: block;
+                width: 125px;
+                max-width: 125px;
+                height: auto;
+                border: 0;
+              "
+            >
+
+          </td>
+        </tr>
+
+
+        <!-- ===================== -->
+        <!-- INTRO + DEADLINE -->
+        <!-- ===================== -->
+        <tr>
+          <td style="padding: 10px 38px 28px;">
+
+            <table
+              role="presentation"
+              width="100%"
+              cellspacing="0"
+              cellpadding="0"
+              border="0"
+            >
+              <tr>
+
+                <!-- LEFT SIDE -->
+                <td
+                  width="60%"
+                  valign="top"
+                  style="padding-right: 30px;"
+                >
+
+                  <h1 style="
+                    margin: 0 0 18px;
+                    font-size: 30px;
+                    line-height: 1.2;
+                    color: #0d2857;
+                  ">
+                    Hello,
+                  </h1>
+
+                  <p style="
+                    margin: 0 0 25px;
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: #5a6d8d;
+                  ">
+                    We noticed that your document submission for the
+                    bookkeeping period
+
+                    <span style="
+                      display: inline-block;
+                      background-color: #eef5ff;
+                      color: #1674e8;
+                      font-weight: 700;
+                      padding: 2px 9px;
+                      border-radius: 6px;
+                    ">
+                      {{ bookkeeping_period }}
+                    </span>
+
+                    is incomplete.
+                  </p>
+
+                  <p style="
+                    margin: 0;
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: #5a6d8d;
+                  ">
+                    The submitted document from
+                    <strong style="color:#445a7d;">
+                      {{ company_name }}
+                    </strong>
+                    {{ issue_sentence }}
+                    Please correct or resubmit it before the deadline.
+                  </p>
+
+                </td>
+
+
+                <!-- RIGHT DEADLINE CARD -->
+                <td
+                  width="40%"
+                  valign="top"
+                  style="
+                    background-color: #fff3ed;
+                    border-radius: 14px;
+                    padding: 24px;
+                  "
+                >
+
+                  <div style="
+                    font-size: 28px;
+                    margin-bottom: 15px;
+                  ">
+                    📅
+                  </div>
+
+                  <div style="
+                    font-size: 15px;
+                    line-height: 1.5;
+                    color: #60728f;
+                    margin-bottom: 5px;
+                  ">
+                    Submission Deadline
+                  </div>
+
+                  <div style="
+                    font-size: 21px;
+                    line-height: 1.4;
+                    font-weight: 700;
+                    color: #f04419;
+                  ">
+                    {{ deadline }}
+                  </div>
+
+                  <div style="
+                    margin-top: 4px;
+                    font-size: 15px;
+                    color: #60728f;
+                  ">
+                    {{ deadline_day }}
+                  </div>
+
+                </td>
+
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+
+        <!-- ===================== -->
+        <!-- DOCUMENT DETAILS -->
+        <!-- ===================== -->
+        <tr>
+          <td style="padding: 0 38px 35px;">
+
+            <table
+              role="presentation"
+              width="100%"
+              cellspacing="0"
+              cellpadding="0"
+              border="0"
+              style="
+                background-color: #f5f8fc;
+                border-radius: 15px;
+              "
+            >
+
+              <tr>
+                <td style="padding: 27px 25px 12px;">
+
+                  <h2 style="
+                    margin: 0;
+                    font-size: 22px;
+                    color: #0d2857;
+                  ">
+                    Document Details
+                  </h2>
+
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 10px 25px 28px;">
+
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellspacing="0"
+                    cellpadding="0"
+                    border="0"
+                    style="
+                      border-collapse: collapse;
+                      background-color: #ffffff;
+                      border: 1px solid #dbe3ee;
+                      border-radius: 10px;
+                    "
+                  >
+
+                    <!-- COMPANY -->
+                    <tr>
+                      <td style="
+                        width: 30%;
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        border-right: 1px solid #dbe3ee;
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #65758f;
+                      ">
+                        Company
+                      </td>
+
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        font-size: 15px;
+                        color: #173566;
+                      ">
+                        {{ company_name }}
+                      </td>
+                    </tr>
+
+
+                    <!-- BOOKKEEPING PERIOD -->
+                    <tr>
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        border-right: 1px solid #dbe3ee;
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #65758f;
+                      ">
+                        Bookkeeping Period
+                      </td>
+
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        font-size: 15px;
+                        color: #173566;
+                      ">
+                        {{ bookkeeping_period }}
+                      </td>
+                    </tr>
+
+
+                    <!-- ISSUE -->
+                    <tr>
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        border-right: 1px solid #dbe3ee;
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #65758f;
+                      ">
+                        Issue
+                      </td>
+
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        font-size: 15px;
+                        color: #173566;
+                      ">
+                        {{ issue }}
+                      </td>
+                    </tr>
+
+
+                    <!-- MESSAGE -->
+                    <tr>
+                      <td style="
+                        padding: 15px 18px;
+                        border-right: 1px solid #dbe3ee;
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #65758f;
+                      ">
+                        Message
+                      </td>
+
+                      <td style="
+                        padding: 15px 18px;
+                        font-size: 15px;
+                        line-height: 1.5;
+                        color: #173566;
+                      ">
+                        Please correct or resubmit the document before
+                        {{ deadline_short }}.
+                      </td>
+                    </tr>
+
+                  </table>
+
+                </td>
+              </tr>
+
+            </table>
+
+          </td>
+        </tr>
+
+
+        <!-- ===================== -->
+        <!-- BUTTON -->
+        <!-- ===================== -->
+        <tr>
+          <td align="center" style="padding: 5px 30px 20px;">
+
+            <a
+              href="{{ axiody_url }}"
+              target="_blank"
+              style="
+                display: inline-block;
+                background-color: #1473e6;
+                color: #ffffff;
+                text-decoration: none;
+                font-size: 18px;
+                font-weight: 700;
+                padding: 17px 70px;
+                border-radius: 11px;
+              "
+            >
+              Go to AXIODY &nbsp; →
+            </a>
+
+          </td>
+        </tr>
+
+
+        <tr>
+          <td
+            align="center"
+            style="
+              padding: 0 30px 35px;
+              font-size: 15px;
+              line-height: 1.6;
+              color: #61718c;
+            "
+          >
+            Log in to view your submission status and upload the correct document.
+          </td>
+        </tr>
+
+
+        <!-- ===================== -->
+        <!-- FOOTER -->
+        <!-- ===================== -->
+        <tr>
+          <td style="padding: 0 25px 30px;">
+
+            <table
+              role="presentation"
+              width="100%"
+              cellspacing="0"
+              cellpadding="0"
+              border="0"
+              style="
+                background-color: #f2f7fd;
+                border-radius: 14px;
+              "
+            >
+              <tr>
+
+                <!-- HELP -->
+                <td
+                  valign="middle"
+                  style="
+                    padding: 25px;
+                    width: 70%;
+                  "
+                >
+
+                  <table
+                    role="presentation"
+                    cellspacing="0"
+                    cellpadding="0"
+                    border="0"
+                  >
+                    <tr>
+
+                      <td
+                        valign="top"
+                        style="
+                          font-size: 28px;
+                          padding-right: 14px;
+                          color: #1473e6;
+                        "
+                      >
+                        ?
+                      </td>
+
+                      <td>
+
+                        <div style="
+                          font-size: 16px;
+                          font-weight: 700;
+                          color: #102a56;
+                          margin-bottom: 5px;
+                        ">
+                          Need help?
+                        </div>
+
+                        <div style="
+                          font-size: 13px;
+                          line-height: 1.5;
+                          color: #64748b;
+                        ">
+                          Visit our
+                          <a
+                            href="{{ help_url }}"
+                            target="_blank"
+                            style="
+                              color: #1473e6;
+                              text-decoration: none;
+                            "
+                          >
+                            Help Centre
+                          </a>
+                          or contact your account manager.
+                        </div>
+
+                      </td>
+                    </tr>
+                  </table>
+
+                </td>
+
+
+                <!-- FOOTER LOGO ONLY -->
+                <td
+                  align="right"
+                  valign="middle"
+                  style="
+                    padding: 25px;
+                    width: 30%;
+                  "
+                >
+
+                  <img
+                    src="{{ logo_url }}"
+                    alt="AXIODY"
+                    width="105"
+                    style="
+                      display: block;
+                      width: 105px;
+                      height: auto;
+                      margin-left: auto;
+                      border: 0;
+                    "
+                  >
+
+                </td>
+
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
