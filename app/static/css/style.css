@@ -110,6 +110,8 @@ button, input, select, textarea { font: inherit; }
 .notifications-page .notification-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding-top: 1px; }
 .notifications-page .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 103px; border-radius: 30px; padding: 5px 12px; font-size: 0.6875rem; font-weight: 650; line-height: 1.2; }
 .notifications-page .notification-meta time { font-size: 0.6875rem; color: var(--muted); white-space: nowrap; }
+.notifications-page .deadline-message { margin: 0; font-size: 0.875rem; line-height: 1.6; font-weight: 600; color: light-dark(#1c2a4a, #edf3ff); }
+.notifications-page .deadline-highlight { font-size: inherit; font-weight: 800; color: light-dark(#d91c30, #f08e98); }
 .notifications-page .due { display: flex; gap: 8px; align-items: flex-start; font-size: 0.75rem; color: light-dark(#d91c30, #f08e98); margin-top: 2px; }
 .notifications-page .due .icon { width: 17px; height: 17px; }
 .notifications-page .due small { display: block; font-size: 0.625rem; margin-top: 3px; }

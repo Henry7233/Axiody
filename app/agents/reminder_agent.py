@@ -160,6 +160,52 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
     sent = 0
     resolved = 0
     try:
+        missing = connection.execute(
+            """
+            SELECT d.id, d.title, d.document_date, d.validation_status, d.validation_reasons, u.email
+            FROM documents d
+            JOIN users u ON u.id = d.user_id
+            WHERE d.id = (
+                SELECT latest.id FROM documents latest
+                WHERE latest.user_id = d.user_id
+                  AND latest.title = d.title
+                  AND latest.document_date = d.document_date
+                  AND filename_stem(latest.filename) = filename_stem(d.filename)
+                ORDER BY latest.id DESC LIMIT 1
+            )
+              AND LOWER(COALESCE(TRIM(d.validation_status), '')) = 'incomplete'
+              AND NOT EXISTS (
+                  SELECT 1 FROM notifications n
+                  WHERE n.document_id = d.id AND n.status != 'resolved'
+              )
+            """
+        ).fetchall()
+
+        for row in missing:
+            title, message = _message(
+                {
+                    "document_title": row["title"],
+                    "bookkeeping_period": (row["document_date"] or "")[:7],
+                    "validation_reasons": row["validation_reasons"],
+                },
+                _deadline(today),
+            )
+            connection.execute(
+                """
+                INSERT INTO notifications (
+                    document_id, title, message, status, last_reminder_sent,
+                    next_reminder_date, reminder_count
+                ) VALUES (?, ?, ?, 'unread', ?, ?, 1)
+                """,
+                (
+                    row["id"],
+                    title,
+                    message,
+                    None,
+                    _next_reminder(today),
+                ),
+            )
+
         rows = connection.execute(
             """
             SELECT n.id, n.title, n.message, n.next_reminder_date,

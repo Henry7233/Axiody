@@ -54,29 +54,32 @@
       <span class="icon-tile {{ 'purple' if notification.category == 'deadlines' else ('red' if notification.status == 'Incomplete' else notification.color) }}">{{ icon('calendar' if notification.category == 'deadlines' else notification.status) }}</span>
       <div class="notification-copy">
         <h2 id="title-{{ notification.id }}">{% if notification.category == 'deadlines' %}Deadline reminder: {% endif %}{{ notification.title }} &middot; {{ notification.period_label }}</h2>
+        {% if notification.category == 'deadlines' and notification.deadline %}
+        <p class="deadline-message">{{ notification.message | replace(notification.deadline.deadline_label, '<span class="deadline-highlight">' ~ notification.deadline.deadline_label ~ '</span>') | safe }}</p>
+        {% else %}
         <p>{{ notification.message }}</p>
+        {% endif %}
         {% for file in notification.files %}
         <div class="file-line">{{ icon('file') }}<span><strong>File:</strong> {{ file.filename }} &middot; {{ file.status }}</span></div>
-        {% for reason in file.reasons if file.has_validation_feedback %}
-        <div class="file-line">{{ icon('file') }}<span><strong>Required change:</strong> {{ reason }}</span></div>
-        {% endfor %}
         {% endfor %}
       </div>
       <div class="notification-meta">
         <span class="badge {{ notification.color }}">{{ notification.status }}</span>
         <time datetime="{{ notification.created_at }}">{{ notification.created_label }}</time>
-        {% if notification.deadline %}
+        {% if notification.deadline and notification.category != 'deadlines' %}
         <span class="due">{{ icon('calendar') }}<span>Due by: {{ notification.deadline.deadline_label }}<small>{{ notification.deadline.kind }}</small></span></span>
         {% endif %}
       </div>
-      <button class="action{% if notification.incomplete_count %} primary{% endif %}" type="button" data-details="details-{{ notification.id }}">{{ 'View reminder' if notification.category == 'deadlines' else ('View required changes' if notification.incomplete_count else 'View details') }}</button>
+      {% if notification.category != 'deadlines' %}
+      <button class="action{% if notification.incomplete_count %} primary{% endif %}" type="button" data-details="details-{{ notification.id }}">{{ 'View required changes' if notification.incomplete_count else 'View details' }}</button>
+      {% endif %}
       <template id="details-{{ notification.id }}">
         <span class="badge {{ notification.color }}">{{ notification.status }}</span>
         <h2 id="detail-title">{% if notification.category == 'deadlines' %}Deadline reminder: {% endif %}{{ notification.title }} &middot; {{ notification.period_label }}</h2><p>{{ notification.message }}</p>
         {% if notification.incomplete_count %}
         <p>Keep the original document exact filename ({% for filename in notification.required_filenames %}<strong>{{ filename }}</strong>{% if not loop.last %}, {% endif %}{% endfor %}). You may use a different file format.</p>
         {% endif %}
-        {% if notification.category == 'deadlines' %}<a class="action primary" href="{{ url_for('client.upload') }}">Go to document submission</a>
+        {% if notification.category == 'deadlines' %}
         {% elif notification.incomplete_count %}
         <a class="action primary" href="{{ url_for('client.upload', title=notification.title, document_date=notification.upload_date) }}">Upload corrected files</a>
         {% if not notification.upload_date %}<p>These files have different dates. Use Add + on the upload form to submit each date separately.</p>{% endif %}
