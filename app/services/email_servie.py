@@ -152,6 +152,7 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
 
     issue = reminder.get("issue") or body
     period = reminder.get("bookkeeping_period") or "the selected period"
+    axiody_url = (config.get("AXIODY_URL") or "").strip().rstrip("/")
     logo_path = Path(current_app.static_folder) / "images" / "axiody-logo.svg"
     logo_content = logo_path.read_bytes()
     html = current_app.jinja_env.get_template("auth/reminder_email.html").render(
@@ -163,7 +164,7 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
         deadline=deadline.strftime("%B %d, %Y"),
         deadline_day=deadline.strftime("%A"),
         deadline_short=deadline.strftime("%B %d"),
-        axiody_url=config.get("AXIODY_URL", ""),
+        axiody_url=f"{axiody_url}/login" if axiody_url else "",
         help_url=config.get("HELP_URL", config.get("AXIODY_URL", "")),
     )
     send_email(
