@@ -71,6 +71,21 @@ html[data-theme="dark"] .dashboard-page .clients-attention-back {
   color: #fff;
 }
 
+html[data-theme="dark"] .dashboard-page .reminder-preview-stats strong,
+html[data-theme="dark"] .dashboard-page .reminder-preview-list strong {
+  color: #ededed;
+}
+
+html[data-theme="dark"] .dashboard-page .reminder-preview-stats span,
+html[data-theme="dark"] .dashboard-page .reminder-preview-list span,
+html[data-theme="dark"] .dashboard-page .reminder-preview-list small {
+  color: #b8b8b8;
+}
+
+html[data-theme="dark"] .dashboard-page .reminder-preview-list li {
+  border-color: #343434;
+}
+
 /* Neutral dark surfaces shared by every authenticated page. */
 html[data-theme="dark"] {
   --axiody-blue-soft: #1c1c1c;
