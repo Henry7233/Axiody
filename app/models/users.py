@@ -21,6 +21,22 @@ def format_created_date(created_at):
     return created_at[:10] if created_at else ""
 
 
+def normalize_email(email):
+    return (email or "").strip().lower()
+
+
+def normalize_full_name(full_name):
+    return (full_name or "").strip()
+
+
+def normalize_account_type(account_type):
+    return account_type if account_type in {"client", "admin"} else "client"
+
+
+def normalize_role(role, account_type):
+    return (role or ("Administrator" if account_type == "admin" else "Client")).strip()
+
+
 def init_user_db(database_path):
     with get_connection(database_path) as connection:
         connection.execute(
@@ -78,11 +94,11 @@ def create_user(
     full_name="",
     role=None,
 ):
-    normalized_email = email.strip().lower()
-    normalized_account_type = account_type if account_type in {"client", "admin"} else "client"
+    normalized_email = normalize_email(email)
+    normalized_account_type = normalize_account_type(account_type)
     normalized_protected = 1 if protected else 0
-    normalized_full_name = full_name.strip()
-    normalized_role = (role or ("Administrator" if normalized_account_type == "admin" else "Client")).strip()
+    normalized_full_name = normalize_full_name(full_name)
+    normalized_role = normalize_role(role, normalized_account_type)
     password_hash = generate_password_hash(password)
     created_at = datetime.now(timezone.utc).isoformat()
 
@@ -121,7 +137,7 @@ def create_user(
 
 
 def get_user_by_email(database_path, email):
-    normalized_email = email.strip().lower()
+    normalized_email = normalize_email(email)
 
     with get_connection(database_path) as connection:
         return connection.execute(
@@ -250,9 +266,9 @@ def delete_unprotected_admin_users(database_path):
 
 
 def update_user_account(database_path, user_id, full_name, email, password="", password_confirmation="", role=""):
-    normalized_full_name = (full_name or "").strip()
-    normalized_email = (email or "").strip().lower()
-    normalized_role = (role or "").strip()
+    normalized_full_name = normalize_full_name(full_name)
+    normalized_email = normalize_email(email)
+    normalized_role = normalize_role(role, "client")
 
     if not normalized_full_name:
         return {"updated": False, "reason": "missing_name"}

@@ -6,12 +6,29 @@ from datetime import datetime, timezone
 
 
 DOCUMENT_TYPES = ("Invoice", "Receipt", "Bank Statement", "Other")
+DOCUMENT_TYPE_LABELS = {
+    "invoice": "Invoice",
+    "receipt": "Receipt",
+    "bank statement": "Bank Statement",
+    "banking statement": "Bank Statement",
+}
 UNDER_REVIEW_SQL = "LOWER(REPLACE(TRIM(classification_status), ' ', '_')) = 'under_review'"
 
 
 def document_filename_stem(filename):
     """Keep the exact filename, excluding only its final format extension."""
     return os.path.splitext(filename or "")[0]
+
+
+def normalize_document_type(document_type):
+    if not document_type:
+        return "Other"
+    normalized = document_type.strip().lower().replace("_", " ")
+    return DOCUMENT_TYPE_LABELS.get(normalized, document_type.strip())
+
+
+def is_under_review_status(status):
+    return (status or "").strip().lower().replace(" ", "_") == "under_review"
 
 
 def get_connection(database_path):
@@ -58,44 +75,34 @@ def init_document_db(database_path):
                 for column in connection.execute("PRAGMA table_info(documents)").fetchall()
             }
 
-        if "user_id" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN user_id INTEGER")
-        if "description" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN description TEXT NOT NULL DEFAULT ''")
-        if "document_date" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN document_date TEXT NOT NULL DEFAULT ''")
-        if "filename" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN filename TEXT NOT NULL DEFAULT ''")
-        if "file_type" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN file_type TEXT NOT NULL DEFAULT ''")
-        if "file_size" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN file_size INTEGER NOT NULL DEFAULT 0")
-        if "file_data" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN file_data BLOB")
-        if "ai_document_type" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN ai_document_type TEXT")
-        if "ai_confidence" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN ai_confidence REAL")
-        if "document_type" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN document_type TEXT")
-        if "classification_status" not in column_names:
-            connection.execute(
-                "ALTER TABLE documents ADD COLUMN classification_status TEXT NOT NULL DEFAULT 'Pending'"
-            )
-        if "validation_status" not in column_names:
-            connection.execute(
-                "ALTER TABLE documents ADD COLUMN validation_status TEXT"
-            )
-        if "validation_reasons" not in column_names:
-            connection.execute(
-                "ALTER TABLE documents ADD COLUMN validation_reasons TEXT NOT NULL DEFAULT '[]'"
-            )
-        if "created_at" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN created_at TEXT NOT NULL DEFAULT ''")
-        if "reviewed_by" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN reviewed_by INTEGER REFERENCES users(id)")
-        if "reviewed_at" not in column_names:
-            connection.execute("ALTER TABLE documents ADD COLUMN reviewed_at TEXT")
+        column_updates = (
+            ("user_id", "ALTER TABLE documents ADD COLUMN user_id INTEGER"),
+            ("description", "ALTER TABLE documents ADD COLUMN description TEXT NOT NULL DEFAULT ''"),
+            ("document_date", "ALTER TABLE documents ADD COLUMN document_date TEXT NOT NULL DEFAULT ''"),
+            ("filename", "ALTER TABLE documents ADD COLUMN filename TEXT NOT NULL DEFAULT ''"),
+            ("file_type", "ALTER TABLE documents ADD COLUMN file_type TEXT NOT NULL DEFAULT ''"),
+            ("file_size", "ALTER TABLE documents ADD COLUMN file_size INTEGER NOT NULL DEFAULT 0"),
+            ("file_data", "ALTER TABLE documents ADD COLUMN file_data BLOB"),
+            ("ai_document_type", "ALTER TABLE documents ADD COLUMN ai_document_type TEXT"),
+            ("ai_confidence", "ALTER TABLE documents ADD COLUMN ai_confidence REAL"),
+            ("document_type", "ALTER TABLE documents ADD COLUMN document_type TEXT"),
+            (
+                "classification_status",
+                "ALTER TABLE documents ADD COLUMN classification_status TEXT NOT NULL DEFAULT 'Pending'",
+            ),
+            ("validation_status", "ALTER TABLE documents ADD COLUMN validation_status TEXT"),
+            (
+                "validation_reasons",
+                "ALTER TABLE documents ADD COLUMN validation_reasons TEXT NOT NULL DEFAULT '[]'",
+            ),
+            ("created_at", "ALTER TABLE documents ADD COLUMN created_at TEXT NOT NULL DEFAULT ''"),
+            ("reviewed_by", "ALTER TABLE documents ADD COLUMN reviewed_by INTEGER REFERENCES users(id)"),
+            ("reviewed_at", "ALTER TABLE documents ADD COLUMN reviewed_at TEXT"),
+        )
+        for column_name, alter_statement in column_updates:
+            if column_name not in column_names:
+                connection.execute(alter_statement)
+
         connection.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_documents_user_id
@@ -282,14 +289,10 @@ def list_client_document_records(database_path, user_id, period):
         connection.close()
 
     records = {}
-    type_labels = {
-        "invoice": "Invoice", "receipt": "Receipt",
-        "bank statement": "Bank Statement", "banking statement": "Bank Statement",
-    }
     for row in rows:
         document = dict(row)
         stored_type = (document["document_type"] or document["ai_document_type"] or "").strip()
-        document["type"] = type_labels.get(stored_type.lower().replace("_", " "), stored_type)
+        document["type"] = normalize_document_type(stored_type)
         document["status"] = document_validation_status(document["validation_status"])
         document["completed"] = document["status"] == "Complete"
         document["reasons"] = validation_messages(document["validation_reasons"]) if document["status"] == "Incomplete" else []
@@ -312,10 +315,10 @@ def list_client_document_records(database_path, user_id, period):
 
 def approval_record(row):
     document = dict(row)
-    document["category"] = document["document_type"] or document["ai_document_type"] or "Other"
+    document["category"] = normalize_document_type(document["document_type"] or document["ai_document_type"] or "Other")
     document["submission_date"] = (document["created_at"] or "")[:10]
     document["reasons"] = validation_messages(document["validation_reasons"])
-    document["is_under_review"] = (document["classification_status"] or "").strip().lower().replace(" ", "_") == "under_review"
+    document["is_under_review"] = is_under_review_status(document["classification_status"])
     return document
 
 
@@ -347,7 +350,7 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
         ).fetchone()
         if document is None:
             return "missing"
-        if document["classification_status"].strip().lower().replace(" ", "_") != "under_review":
+        if not is_under_review_status(document["classification_status"]):
             return "reviewed"
         if action == "rejected":
             connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))

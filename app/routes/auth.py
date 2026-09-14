@@ -81,6 +81,16 @@ def default_url_for_account(account_type):
     return url_for("client.dashboard")
 
 
+def store_user_session(user):
+    session.clear()
+    session["user_id"] = user["id"]
+    session["user_name"] = user["full_name"]
+    session["user_email"] = user["email"]
+    session["user_role"] = user["role"]
+    session["account_type"] = user["account_type"]
+    session["protected"] = user["protected"]
+
+
 def wants_json_response():
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
@@ -253,13 +263,7 @@ def login():
             return render_template("auth/login.html", email=email), 401
 
         forget_pending_account_update()
-        session.clear()
-        session["user_id"] = user["id"]
-        session["user_name"] = user["full_name"]
-        session["user_email"] = user["email"]
-        session["user_role"] = user["role"]
-        session["account_type"] = user["account_type"]
-        session["protected"] = user["protected"]
+        store_user_session(user)
         redirect_url = default_url_for_account(user["account_type"])
 
         if wants_json_response():
@@ -388,13 +392,7 @@ def register():
             flash("An account with that email already exists.", "error")
             return render_template("auth/register.html", name=full_name, email=email, role=role), 409
 
-        session.clear()
-        session["user_id"] = user["id"]
-        session["user_name"] = user["full_name"]
-        session["user_email"] = user["email"]
-        session["user_role"] = user["role"]
-        session["account_type"] = user["account_type"]
-        session["protected"] = user["protected"]
+        store_user_session(user)
         flash("Account created. You are logged in.", "success")
         return redirect(url_for("client.dashboard"))
 
