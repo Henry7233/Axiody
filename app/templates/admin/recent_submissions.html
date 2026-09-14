@@ -31,7 +31,7 @@
 
 <section class="dashboard-page">
 
-  <a href="{{ url_for('admin.dashboard') }}"
+  <a href="{{ url_for('admin.dashboard', period=selected_period) }}"
      class="recent-submissions-back"
      aria-label="Go back to dashboard"
      title="Go back to dashboard">
@@ -48,7 +48,7 @@
         <h3>Recent Submissions</h3>
       </div>
 
-      <a href="{{ url_for('admin.recent_submissions') }}" class="view-all-link">
+      <a href="{{ url_for('admin.recent_submissions', period=selected_period) }}" class="view-all-link">
         View all
       </a>
 
@@ -70,94 +70,7 @@
         </thead>
 
         <tbody>
-
-          {% if recent_submissions %}
-
-            {% for document in recent_submissions %}
-
-            <tr>
-
-              <td>{{ document.client }}</td>
-
-              <td>{{ document.filename }}</td>
-
-              <td>{{ document.type }}</td>
-
-              <td>
-
-                {% if document.status == "Bookkept" %}
-                  <span class="status-badge status-success">
-                    Bookkept
-                  </span>
-                {% else %}
-                  <span class="status-badge status-warning">
-                    Under Review
-                  </span>
-                {% endif %}
-
-              </td>
-
-              <td>{{ document.date }}</td>
-
-            </tr>
-
-            {% endfor %}
-
-          {% else %}
-
-          <tr>
-            <td>Greenline Studio</td>
-            <td>Statement_Aug.pdf</td>
-            <td>Bank Statement</td>
-            <td>
-              <span class="status-badge status-success">
-                Bookkept
-              </span>
-            </td>
-            <td>12 Sep 2026</td>
-          </tr>
-
-
-          <tr>
-            <td>Acme Supplies</td>
-            <td>Receipt_0912.jpg</td>
-            <td>Receipt</td>
-            <td>
-              <span class="status-badge status-warning">
-                Under Review
-              </span>
-            </td>
-            <td>12 Sep 2026</td>
-          </tr>
-
-
-          <tr>
-            <td>Northstar Foods</td>
-            <td>Invoice_1042.pdf</td>
-            <td>Invoice</td>
-            <td>
-              <span class="status-badge status-warning">
-                Under Review
-              </span>
-            </td>
-            <td>11 Sep 2026</td>
-          </tr>
-
-
-          <tr>
-            <td>Greenline Studio</td>
-            <td>Receipt_Taxi.jpg</td>
-            <td>Receipt</td>
-            <td>
-              <span class="status-badge status-success">
-                Bookkept
-              </span>
-            </td>
-            <td>10 Sep 2026</td>
-          </tr>
-
-          {% endif %}
-
+          {% include "admin/_recent_submission_rows.html" %}
         </tbody>
 
       </table>

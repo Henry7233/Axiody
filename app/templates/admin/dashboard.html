@@ -18,7 +18,7 @@
       </p>
     </div>
 
-    <form class="period-selector" method="get" action="{{ url_for('admin.dashboard') }}">
+    <form class="period-selector" method="get" action="{{ url_for('admin.dashboard', period=selected_period) }}">
       <span aria-hidden="true">📅</span>
       <label class="sr-only" for="dashboard-period">Reporting period</label>
       <select id="dashboard-period" name="period" onchange="this.form.submit()">
@@ -40,7 +40,7 @@
 
       <div>
         <p class="summary-label">Clients</p>
-        <h2>{{ total_clients | default(3) }}</h2>
+        <h2>{{ total_clients }}</h2>
       </div>
     </article>
 
@@ -52,7 +52,7 @@
 
       <div>
         <p class="summary-label">Submitted Documents</p>
-        <h2>{{ submitted_documents | default(12) }}</h2>
+        <h2>{{ submitted_documents }}</h2>
       </div>
     </article>
 
@@ -64,7 +64,7 @@
 
       <div>
         <p class="summary-label">Under Review</p>
-        <h2>{{ under_review | default(3) }}</h2>
+        <h2>{{ under_review }}</h2>
       </div>
     </article>
 
@@ -76,10 +76,10 @@
 
       <div>
         <p class="summary-label">Bookkept</p>
-        <h2>{{ bookkept_documents | default(9) }}</h2>
+        <h2>{{ bookkept_documents }}</h2>
       </div>
 
-      <a href="{{ url_for('admin.documents') if false else '#' }}"
+      <a href="{{ url_for('admin.recent_submissions', period=selected_period) }}"
          class="summary-arrow">
         →
       </a>
@@ -105,19 +105,19 @@
 
       <div class="progress-wrapper">
         <div class="progress-bar">
-          <div class="progress-fill progress-fill--default">
+          <div class="progress-fill" style="width: {{ bookkeeping_percentage }}%">
           </div>
         </div>
 
         <span class="progress-percentage">
-          {{ bookkeeping_percentage | default(75) }}%
+          {{ bookkeeping_percentage }}%
         </span>
       </div>
 
       <p class="progress-caption">
-        {{ bookkept_documents | default(9) }}
+        {{ bookkept_documents }}
         of
-        {{ submitted_documents | default(12) }}
+        {{ submitted_documents }}
         documents bookkept
       </p>
 
@@ -134,9 +134,9 @@
 
       <div class="breakdown-content">
 
-        <div class="donut-chart">
+        <div class="donut-chart" style="background: {{ donut_background }}">
           <div class="donut-inner">
-            <strong>{{ submitted_documents | default(12) }}</strong>
+            <strong>{{ submitted_documents }}</strong>
             <span>Total</span>
           </div>
         </div>
@@ -148,7 +148,7 @@
               <i class="breakdown-dot invoice-dot"></i>
               Invoices
             </span>
-            <strong>{{ invoice_count | default(5) }}</strong>
+            <strong>{{ invoice_count }}</strong>
           </div>
 
           <div class="breakdown-item">
@@ -156,7 +156,7 @@
               <i class="breakdown-dot receipt-dot"></i>
               Receipts
             </span>
-            <strong>{{ receipt_count | default(4) }}</strong>
+            <strong>{{ receipt_count }}</strong>
           </div>
 
           <div class="breakdown-item">
@@ -164,7 +164,7 @@
               <i class="breakdown-dot bank-dot"></i>
               Bank Statements
             </span>
-            <strong>{{ bank_statement_count | default(3) }}</strong>
+            <strong>{{ bank_statement_count }}</strong>
           </div>
 
           <div class="breakdown-item">
@@ -172,7 +172,7 @@
               <i class="breakdown-dot other-dot"></i>
               Other
             </span>
-            <strong>{{ other_count | default(0) }}</strong>
+            <strong>{{ other_count }}</strong>
           </div>
 
         </div>
@@ -187,25 +187,21 @@
 
       <div class="card-title-row">
         <div class="card-title-icon">▣</div>
-        <h3>Upcoming Deadline</h3>
+        <h3>Submission Deadline</h3>
       </div>
 
-      <h2 class="deadline-date">
-        25 Sep 2026
-      </h2>
-
-      <p class="deadline-label">
-        Monthly submission deadline
-      </p>
-
+      {% if deadline %}
+      <h2 class="deadline-date">{{ deadline.deadline_label }}</h2>
+      <p class="deadline-label">Outstanding document corrections</p>
       <div class="deadline-notice">
-        <span class="deadline-clock">◷</span>
-
         <div>
-          <strong>{{ days_left | default(13) }} days left</strong>
-          <p>Remind clients before the deadline.</p>
+          <strong>{% if days_left < 0 %}{{ -days_left }} days overdue{% elif days_left == 0 %}Due today{% else %}{{ days_left }} days left{% endif %}</strong>
+          <p>{{ deadline.message }}</p>
         </div>
       </div>
+      {% else %}
+      <p class="deadline-label">No outstanding submission deadlines for this period.</p>
+      {% endif %}
 
     </article>
 
@@ -224,7 +220,7 @@
           <h3>Clients Needing Attention</h3>
         </div>
 
-        <a href="{{ url_for('admin.clients_attention') }}" class="view-all-link">View all</a>
+        <a href="{{ url_for('admin.clients_attention', period=selected_period) }}" class="view-all-link">View all</a>
       </div>
 
 
@@ -243,97 +239,7 @@
           </thead>
 
           <tbody>
-
-            {% if attention_documents %}
-
-              {% for document in attention_documents %}
-
-              <tr>
-                <td>{{ document.client }}</td>
-
-                <td>{{ document.document }}</td>
-
-                <td>
-                  <span class="status-badge status-danger">
-                    {{ document.reason }}
-                  </span>
-                </td>
-
-                <td>{{ document.date }}</td>
-
-                <td>
-                  <a href="#"
-                     class="outline-button">
-                    Review
-                  </a>
-                </td>
-              </tr>
-
-              {% endfor %}
-
-            {% else %}
-
-              <tr>
-                <td>Acme Supplies</td>
-                <td>Invoice #1042</td>
-
-                <td>
-                  <span class="status-badge status-danger">
-                    Low confidence
-                  </span>
-                </td>
-
-                <td>12 Sep 2026</td>
-
-                <td>
-                  <a href="#" class="outline-button">
-                    Review
-                  </a>
-                </td>
-              </tr>
-
-
-              <tr>
-                <td>Northstar Foods</td>
-                <td>Receipt</td>
-
-                <td>
-                  <span class="status-badge status-danger">
-                    Validation failed
-                  </span>
-                </td>
-
-                <td>11 Sep 2026</td>
-
-                <td>
-                  <a href="#" class="outline-button">
-                    Review
-                  </a>
-                </td>
-              </tr>
-
-
-              <tr>
-                <td>Northstar Foods</td>
-                <td>Bank Statement</td>
-
-                <td>
-                  <span class="status-badge status-danger">
-                    Missing period
-                  </span>
-                </td>
-
-                <td>10 Sep 2026</td>
-
-                <td>
-                  <a href="#" class="outline-button">
-                    Review
-                  </a>
-                </td>
-              </tr>
-
-            {% endif %}
-
+            {% include "admin/_attention_rows.html" %}
           </tbody>
 
         </table>
@@ -353,7 +259,7 @@
           <h3>Recent Submissions</h3>
         </div>
 
-        <a href="{{ url_for('admin.recent_submissions') }}" class="view-all-link">
+        <a href="{{ url_for('admin.recent_submissions', period=selected_period) }}" class="view-all-link">
           View all
         </a>
 
@@ -375,94 +281,7 @@
           </thead>
 
           <tbody>
-
-            {% if recent_submissions %}
-
-              {% for document in recent_submissions %}
-
-              <tr>
-
-                <td>{{ document.client }}</td>
-
-                <td>{{ document.filename }}</td>
-
-                <td>{{ document.type }}</td>
-
-                <td>
-
-                  {% if document.status == "Bookkept" %}
-                    <span class="status-badge status-success">
-                      Bookkept
-                    </span>
-                  {% else %}
-                    <span class="status-badge status-warning">
-                      Under Review
-                    </span>
-                  {% endif %}
-
-                </td>
-
-                <td>{{ document.date }}</td>
-
-              </tr>
-
-              {% endfor %}
-
-            {% else %}
-
-            <tr>
-              <td>Greenline Studio</td>
-              <td>Statement_Aug.pdf</td>
-              <td>Bank Statement</td>
-              <td>
-                <span class="status-badge status-success">
-                  Bookkept
-                </span>
-              </td>
-              <td>12 Sep 2026</td>
-            </tr>
-
-
-            <tr>
-              <td>Acme Supplies</td>
-              <td>Receipt_0912.jpg</td>
-              <td>Receipt</td>
-              <td>
-                <span class="status-badge status-warning">
-                  Under Review
-                </span>
-              </td>
-              <td>12 Sep 2026</td>
-            </tr>
-
-
-            <tr>
-              <td>Northstar Foods</td>
-              <td>Invoice_1042.pdf</td>
-              <td>Invoice</td>
-              <td>
-                <span class="status-badge status-warning">
-                  Under Review
-                </span>
-              </td>
-              <td>11 Sep 2026</td>
-            </tr>
-
-
-            <tr>
-              <td>Greenline Studio</td>
-              <td>Receipt_Taxi.jpg</td>
-              <td>Receipt</td>
-              <td>
-                <span class="status-badge status-success">
-                  Bookkept
-                </span>
-              </td>
-              <td>10 Sep 2026</td>
-            </tr>
-
-            {% endif %}
-
+            {% include "admin/_recent_submission_rows.html" %}
           </tbody>
 
         </table>

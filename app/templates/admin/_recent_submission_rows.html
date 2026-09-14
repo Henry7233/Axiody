@@ -1,0 +1,11 @@
+{% for document in recent_submissions %}
+<tr>
+  <td>{{ document.client }}</td>
+  <td><a href="{{ url_for('admin.preview_document', document_id=document.id) }}" target="_blank" rel="noopener">{{ document.filename }}</a></td>
+  <td>{{ document.type }}</td>
+  <td><span class="status-badge {{ 'status-success' if document.status == 'Bookkept' else 'status-warning' }}">{{ document.status }}</span></td>
+  <td>{{ document.date }}</td>
+</tr>
+{% else %}
+<tr><td colspan="5">No documents submitted for this period.</td></tr>
+{% endfor %}
