@@ -37,17 +37,17 @@ def build_bookkeeping_workbook(groups, period):
         sheet["D1"].font = Font(name="Calibri", color="6B8577")
         sheet.row_dimensions[1].height = 34
         sheet.merge_cells("A2:D2")
-        sheet["A2"] = period_label
+        sheet["A2"] = f"Bookkeeping Period: {period_label}"
         sheet["A2"].font = Font(name="Calibri", color="6B8577")
 
         for column, header in enumerate(["NAME", "SUBMITTED BY", "SIZE", "DATE"], 1):
-            cell = sheet.cell(4, column, header)
+            cell = sheet.cell(3, column, header)
             cell.font = Font(name="Calibri", bold=True, color="33513F")
             cell.fill = PatternFill("solid", fgColor="EFE9D8")
             cell.alignment = Alignment(vertical="center")
-        sheet.row_dimensions[4].height = 25
+        sheet.row_dimensions[3].height = 25
 
-        for row_number, document in enumerate(group["files"], 5):
+        for row_number, document in enumerate(group["files"], 4):
             values = [document["name"], f'{document["submittedBy"]}\n{document["submittedAt"]}',
                       document["size"], document["date"]]
             for column, value in enumerate(values, 1):
@@ -60,24 +60,24 @@ def build_bookkeeping_workbook(groups, period):
             sheet.row_dimensions[row_number].height = 42
 
         # Keep a usable table on empty tabs, with one blank entry row.
-        last_row = max(5, 4 + count)
-        table = Table(displayName=f"Bookkeeping_{key}", ref=f"A4:D{last_row}")
+        last_row = max(4, 3 + count)
+        table = Table(displayName=f"Bookkeeping_{key}", ref=f"A3:D{last_row}")
         table.tableStyleInfo = TableStyleInfo(name="TableStyleLight14", showRowStripes=False)
         sheet.add_table(table)
         if not count:
-            sheet["A7"] = f"No {group['label'].lower()} for this period."
-            sheet["A7"].font = Font(name="Calibri", italic=True, color="6B8577")
+            sheet["A6"] = f"No {group['label'].lower()} for this period."
+            sheet["A6"].font = Font(name="Calibri", italic=True, color="6B8577")
         for column, width in {"A": 76, "B": 32, "C": 14, "D": 16}.items():
             sheet.column_dimensions[column].width = width
-        sheet.freeze_panes = "A5"
-        sheet.print_title_rows = "1:4"
+        sheet.freeze_panes = "A4"
+        sheet.print_title_rows = "1:3"
         sheet.print_options.horizontalCentered = True
         sheet.page_setup.orientation = "landscape"
         sheet.page_setup.paperSize = sheet.PAPERSIZE_A4
         sheet.page_setup.fitToWidth = 1
         sheet.page_setup.fitToHeight = 0
         sheet.sheet_properties.pageSetUpPr.fitToPage = True
-        sheet.print_area = f"A1:D{max(7, last_row)}"
+        sheet.print_area = f"A1:D{max(6, last_row)}"
 
     output = io.BytesIO()
     workbook.save(output)
