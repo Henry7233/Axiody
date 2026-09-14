@@ -9,6 +9,8 @@ from datetime import date, datetime
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from app.models.admin_dashboard import get_admin_dashboard_data
+from app.models.bookkeeping import get_bookkeeping_groups
+from app.services.bookkeeping_export import build_bookkeeping_workbook
 from app.models.documents import (
     DOCUMENT_TYPES,
     get_approval_documents,
@@ -543,97 +545,24 @@ def clients_attention():
     )
 
 
+def bookkeeping_request_period():
+    period = request.args.get("period", "2026-09")
+    try:
+        parsed = datetime.strptime(period, "%Y-%m")
+    except ValueError:
+        abort(400, description="Choose a valid bookkeeping month (YYYY-MM).")
+    if parsed.strftime("%Y-%m") != period:
+        abort(400, description="Choose a valid bookkeeping month (YYYY-MM).")
+    return period
+
+
 @admin_bp.route("/documents/data")
 def documents_data():
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
 
-    database_path = current_app.config["DATABASE"]
-
-    def formatted_size(size_bytes):
-        if size_bytes is None:
-            return "0 KB"
-        if size_bytes >= 1024 * 1024:
-            return f"{size_bytes / (1024 * 1024):.1f} MB"
-        if size_bytes >= 1024:
-            return f"{size_bytes / 1024:.0f} KB"
-        return f"{size_bytes} B"
-
-    def formatted_date(value):
-        if not value:
-            return ""
-        try:
-            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        except Exception:
-            return value
-        return parsed.strftime("%b %d").replace(" 0", " ")
-
-    def formatted_submitted_at(value):
-        if not value:
-            return ""
-        try:
-            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        except Exception:
-            return value
-        hour = parsed.strftime("%I").lstrip("0") or "12"
-        return f"{parsed.strftime('%b %d,')} {hour}:{parsed.strftime('%M')} {parsed.strftime('%p')}"
-
-    def category_for(title):
-        text = (title or "").lower()
-        if "invoice" in text or "bill" in text:
-            return "invoices"
-        if "receipt" in text:
-            return "receipts"
-        if "bank" in text or "statement" in text:
-            return "statements"
-        return "others"
-
-    selected_period = request.args.get("period", "2026-09")
-    with sqlite3.connect(database_path) as connection:
-        connection.row_factory = sqlite3.Row
-        rows = connection.execute(
-            """
-            SELECT
-                d.id,
-                d.title,
-                d.filename AS name,
-                d.file_size AS size_bytes,
-                d.created_at,
-                CASE
-                    WHEN TRIM(COALESCE(u.full_name, '')) <> '' THEN u.full_name
-                    ELSE u.email
-                END AS submittedBy
-            FROM documents d
-            JOIN users u
-              ON u.id = d.user_id
-                        WHERE substr(d.created_at, 1, 7) = ?
-            ORDER BY d.created_at DESC, d.id DESC
-                        """,
-                        (selected_period,),
-        ).fetchall()
-
-    grouped = {
-        "invoices": {"label": "Invoices", "files": []},
-        "receipts": {"label": "Receipts", "files": []},
-        "statements": {"label": "Bank Statements", "files": []},
-        "others": {"label": "Others", "files": []},
-    }
-
-    for row in rows:
-        category = category_for(row["title"])
-        grouped[category]["files"].append(
-            {
-                "id": row["id"],
-                "name": row["name"],
-                "size": formatted_size(row["size_bytes"]),
-                "date": formatted_date(row["created_at"]),
-                "submittedBy": row["submittedBy"] or row["name"],
-                "submittedAt": formatted_submitted_at(row["created_at"]),
-            }
-        )
-
-    return jsonify(grouped)
+    return jsonify(get_bookkeeping_groups(current_app.config["DATABASE"], bookkeeping_request_period()))
 
 
 @admin_bp.route("/bookkeeping/download")
@@ -642,38 +571,13 @@ def download_bookkeeping_period():
     if redirect_response:
         return redirect_response
 
-    selected_period = request.args.get("period", "2026-09")
-    archive = io.BytesIO()
-    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
-        documents = connection.execute(
-            """
-            SELECT filename, file_data
-            FROM documents
-            WHERE substr(created_at, 1, 7) = ?
-            ORDER BY created_at DESC, id DESC
-            """,
-            (selected_period,),
-        ).fetchall()
-
-    if not documents:
-        return "No documents found for this period.", 404
-
-    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        used_names = set()
-        for index, (filename, file_data) in enumerate(documents, start=1):
-            name = filename or f"document-{index}"
-            if name in used_names:
-                stem, separator, suffix = name.rpartition(".")
-                name = f"{stem or name}-{index}{separator}{suffix}" if separator else f"{name}-{index}"
-            used_names.add(name)
-            zip_file.writestr(name, file_data or b"")
-
-    archive.seek(0)
+    selected_period = bookkeeping_request_period()
+    groups = get_bookkeeping_groups(current_app.config["DATABASE"], selected_period)
     return send_file(
-        archive,
+        build_bookkeeping_workbook(groups, selected_period),
         as_attachment=True,
-        download_name=f"bookkeeping-{selected_period}.zip",
-        mimetype="application/zip",
+        download_name=f"bookkeeping-{selected_period}.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 
