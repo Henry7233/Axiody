@@ -1,5 +1,6 @@
 from email.message import EmailMessage
 import smtplib
+from datetime import date, datetime
 
 from flask import current_app
 
@@ -126,3 +127,31 @@ def send_password_reset_otp(config, recipient, code, expiry_minutes):
         password_reset=True,
     )
     send_email(config, recipient, "Your AXIODY password reset code", body, html=html)
+
+
+def send_reminder_email(config, recipient, subject, body, reminder=None):
+    """Send a document reminder using the branded HTML template and text body."""
+    reminder = reminder or {}
+    deadline_value = reminder.get("deadline")
+    if isinstance(deadline_value, datetime):
+        deadline = deadline_value
+    elif isinstance(deadline_value, date):
+        deadline = deadline_value
+    else:
+        deadline = date.today()
+
+    issue = reminder.get("issue") or body
+    period = reminder.get("bookkeeping_period") or "the selected period"
+    html = current_app.jinja_env.get_template("auth/reminder_email.html").render(
+        logo_url=config.get("MAIL_LOGO_URL", ""),
+        company_name=reminder.get("company_name") or "your account",
+        bookkeeping_period=period,
+        issue_sentence=reminder.get("issue_sentence") or f"was flagged because {issue}",
+        issue=issue,
+        deadline=deadline.strftime("%B %d, %Y"),
+        deadline_day=deadline.strftime("%A"),
+        deadline_short=deadline.strftime("%B %d"),
+        axiody_url=config.get("AXIODY_URL", ""),
+        help_url=config.get("HELP_URL", config.get("AXIODY_URL", "")),
+    )
+    send_email(config, recipient, subject, body, html=html)

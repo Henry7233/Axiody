@@ -2,7 +2,7 @@ from datetime import date, datetime, timedelta
 from flask import current_app
 
 from app.models.documents import get_connection
-from app.services.email_servie import send_email
+from app.services.email_servie import send_reminder_email
 
 
 REMINDER_INTERVAL_DAYS = 5
@@ -133,7 +133,18 @@ def create_initial_reminder(validation_data, database_path=None, mail_config=Non
     recipient = validation_data.get("client_email")
     if recipient:
         try:
-            send_email(mail_config or current_app.config, recipient, title, message)
+            send_reminder_email(
+                mail_config or current_app.config,
+                recipient,
+                title,
+                message,
+                reminder={
+                    "company_name": validation_data.get("company_name") or recipient,
+                    "bookkeeping_period": validation_data.get("bookkeeping_period"),
+                    "issue": validation_data.get("validation_reason") or message,
+                    "deadline": deadline,
+                },
+            )
             email_sent = True
         except Exception as error:
             email_error = str(error)
@@ -208,7 +219,8 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
 
         rows = connection.execute(
             """
-            SELECT n.id, n.title, n.message, n.next_reminder_date,
+                  SELECT n.id, n.title, n.message, n.next_reminder_date,
+                        d.document_date,
                    (
                        SELECT latest.validation_status FROM documents latest
                        WHERE latest.user_id = d.user_id AND latest.title = d.title
@@ -245,11 +257,17 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                 continue
 
             try:
-                send_email(
+                send_reminder_email(
                     mail_config or current_app.config,
                     row["email"],
                     row["title"],
                     row["message"],
+                    reminder={
+                        "company_name": row["email"],
+                        "bookkeeping_period": (row["document_date"] or "")[:7],
+                        "issue": row["message"],
+                        "deadline": _deadline(today),
+                    },
                 )
             except Exception as error:
                 current_app.logger.warning(
