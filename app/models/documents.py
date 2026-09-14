@@ -354,6 +354,7 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
         if not is_under_review_status(document["classification_status"]):
             return "reviewed"
         if action == "rejected":
+            connection.execute("DELETE FROM notifications WHERE document_id = ?", (document_id,))
             connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))
             return "ok"
         assignments, values = [], []
