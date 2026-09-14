@@ -19,16 +19,17 @@
 			<span class="queue-count" id="queueCount" aria-live="polite">{{ documents|length }} pending</span>
 		</div>
 
-		<div class="document-list" id="documentList">
+		<div class="document-list" id="documentList" data-review-token="{{ review_token }}">
 			{% for document in documents %}
-			<article class="document-card" data-document-id="{{ document.id }}">
+			<article class="document-card" data-document-id="{{ document.id }}" data-review-url="{{ url_for('admin.review_document', document_id=document.id) }}">
 				<div>
 					<h3>{{ document.title }}</h3>
 					<p>Submitted by {{ document.submitter }} on {{ document.submission_date }}</p>
+					<p>{{ document.filename }} &middot; Category: {{ document.category }}</p>
 				</div>
 				<div class="document-actions">
 					<a class="btn btn--secondary"
-						 href="{{ url_for('admin.preview_approve', client=document.submitter, document=document.id) }}">Review</a>
+						 href="{{ url_for('admin.preview_approve', document=document.id) }}">Review</a>
 					<button type="button" class="btn btn--primary decision-button" data-decision="approved">Approve</button>
 					<button type="button" class="btn btn--danger decision-button" data-decision="rejected">Reject</button>
 				</div>
@@ -47,7 +48,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/admin-dashboard.js') }}" defer></script>
 <script>
 	document.addEventListener('DOMContentLoaded', () => {
 		const documentList = document.getElementById('documentList');
@@ -57,15 +57,31 @@
 
 		if (!documentList) return;
 
-		documentList.addEventListener('click', (event) => {
+		documentList.addEventListener('click', async (event) => {
 			const button = event.target.closest('.decision-button');
-			if (!button) return;
+			if (!button || button.disabled) return;
 
 			const card = button.closest('.document-card');
 			if (!card) return;
 
 			const decision = button.dataset.decision;
 			const title = card.querySelector('h3')?.textContent ?? 'Document';
+			const buttons = card.querySelectorAll('.decision-button');
+			buttons.forEach(item => { item.disabled = true; });
+			if (dashboardMessage) dashboardMessage.textContent = 'Saving decision...';
+			try {
+				const response = await fetch(card.dataset.reviewUrl, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'X-Review-Token': documentList.dataset.reviewToken },
+					body: JSON.stringify({ action: decision }),
+				});
+				const result = await response.json().catch(() => ({}));
+				if (!response.ok || response.redirected) throw new Error(result.message || 'Unable to save the decision. Please reload and try again.');
+			} catch (error) {
+				buttons.forEach(item => { item.disabled = false; });
+				if (dashboardMessage) dashboardMessage.textContent = error.message;
+				return;
+			}
 			card.remove();
 
 			const remaining = documentList.querySelectorAll('.document-card').length;
@@ -74,7 +90,7 @@
 			if (dashboardMessage) {
 				dashboardMessage.textContent = decision === 'approved'
 					? `${title} was approved.`
-					: `${title} was rejected.`;
+					: `${title} was deleted.`;
 			}
 		});
 	});

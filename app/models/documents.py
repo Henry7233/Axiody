@@ -5,6 +5,10 @@ from contextlib import closing
 from datetime import datetime, timezone
 
 
+DOCUMENT_TYPES = ("Invoice", "Receipt", "Bank Statement", "Other")
+UNDER_REVIEW_SQL = "LOWER(REPLACE(TRIM(classification_status), ' ', '_')) = 'under_review'"
+
+
 def document_filename_stem(filename):
     """Keep the exact filename, excluding only its final format extension."""
     return os.path.splitext(filename or "")[0]
@@ -88,6 +92,10 @@ def init_document_db(database_path):
             )
         if "created_at" not in column_names:
             connection.execute("ALTER TABLE documents ADD COLUMN created_at TEXT NOT NULL DEFAULT ''")
+        if "reviewed_by" not in column_names:
+            connection.execute("ALTER TABLE documents ADD COLUMN reviewed_by INTEGER REFERENCES users(id)")
+        if "reviewed_at" not in column_names:
+            connection.execute("ALTER TABLE documents ADD COLUMN reviewed_at TEXT")
         connection.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_documents_user_id
@@ -300,6 +308,64 @@ def list_client_document_records(database_path, user_id, period):
         record["file_count"] += 1
         record["completed_count"] += document["completed"]
     return list(records.values())
+
+
+def approval_record(row):
+    document = dict(row)
+    document["category"] = document["document_type"] or document["ai_document_type"] or "Other"
+    document["submission_date"] = (document["created_at"] or "")[:10]
+    document["reasons"] = validation_messages(document["validation_reasons"])
+    document["is_under_review"] = (document["classification_status"] or "").strip().lower().replace(" ", "_") == "under_review"
+    return document
+
+
+def get_approval_documents(database_path, document_id=None):
+    """Load review metadata without copying uploaded file blobs into the queue."""
+    with closing(get_connection(database_path)) as connection:
+        rows = connection.execute(
+            """
+            SELECT d.id, d.title, d.description, d.filename, d.file_type,
+                   d.document_date, d.document_type, d.ai_document_type,
+                   d.ai_confidence, d.classification_status, d.validation_status,
+                   d.validation_reasons, d.created_at, d.reviewed_by, d.reviewed_at,
+                   COALESCE(NULLIF(TRIM(u.full_name), ''), u.email) AS submitter
+            FROM documents d JOIN users u ON u.id = d.user_id
+            WHERE """ + (UNDER_REVIEW_SQL if document_id is None else "d.id = ?") + """
+            ORDER BY d.created_at DESC, d.id DESC
+            """,
+            () if document_id is None else (document_id,),
+        ).fetchall()
+    return [approval_record(row) for row in rows]
+
+
+def save_document_review(database_path, document_id, reviewer_id, action, changes):
+    """Save corrections and decisions atomically, only while review is pending."""
+    with closing(get_connection(database_path)) as connection, connection:
+        connection.execute("BEGIN IMMEDIATE")
+        document = connection.execute(
+            "SELECT classification_status FROM documents WHERE id = ?", (document_id,)
+        ).fetchone()
+        if document is None:
+            return "missing"
+        if document["classification_status"].strip().lower().replace(" ", "_") != "under_review":
+            return "reviewed"
+        if action == "rejected":
+            connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+            return "ok"
+        assignments, values = [], []
+        for field in ("title", "description", "document_date", "document_type"):
+            if field in changes:
+                assignments.append(f"{field} = ?")
+                values.append(changes[field])
+        if action == "approved":
+            assignments.append("classification_status = ?")
+            values.append("Success")
+        assignments.extend(("reviewed_by = ?", "reviewed_at = ?"))
+        values.extend((reviewer_id, datetime.now(timezone.utc).isoformat(), document_id))
+        connection.execute(
+            "UPDATE documents SET " + ", ".join(assignments) + " WHERE id = ?", values
+        )
+    return "ok"
 
 
 def list_documents(database_path):

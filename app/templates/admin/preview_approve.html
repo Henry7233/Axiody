@@ -4,17 +4,17 @@
 
 {% block content %}
 <section class="verification-page"
-         data-client="{{ client_name }}"
-         data-document-id="{{ document_id }}"
-         data-dashboard-url="{{ url_for('admin.dashboard') }}"
+         data-review-url="{{ url_for('admin.review_document', document_id=document.id) }}"
+         data-review-token="{{ review_token }}"
+         data-queue-url="{{ url_for('admin.approve') }}"
          aria-labelledby="verify-title">
   <header class="page-header page-header--with-action">
     <div>
       <p class="page-eyebrow">Document review</p>
-      <h1 id="verify-title">Verify document</h1>
-      <p class="page-description">Review the extracted information and correct fields that need attention.</p>
+      <h1 id="verify-title">{{ document.title }}</h1>
+      <p class="page-description">Review the saved classification and validation results, and correct the document details.</p>
     </div>
-    <a class="btn btn--secondary" href="{{ url_for('admin.dashboard') }}">Back to dashboard</a>
+    <a class="btn btn--secondary" href="{{ url_for('admin.approve') }}">Back to approval queue</a>
   </header>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -22,42 +22,55 @@
   <div class="verify-grid">
     <section class="panel verify-card" aria-labelledby="fields-title">
       <div class="verify-card__intro">
-        <h2 id="fields-title">Extracted information</h2>
-        <p class="muted">Low-confidence fields need human review before approval.</p>
+        <h2 id="fields-title">Document information</h2>
+        <p class="muted">Submitted by {{ document.submitter }} on {{ document.submission_date }}.</p>
+        <p id="reviewStatus">Classification status: {{ document.classification_status }}</p>
+        <p>AI classification: {{ document.ai_document_type or 'Not available' }}</p>
+        <p>Validation: {{ document.validation_status or 'Pending validation' }}</p>
+        {% for reason in document.reasons %}<p>{{ reason }}</p>{% endfor %}
       </div>
       <form id="verifyForm">
-        <!-- JavaScript creates labelled fields from the mock extraction data. -->
-        <div id="fieldsContainer"></div>
-        <div class="verify-actions">
-          <button type="button" class="btn btn--secondary" id="saveBtn">Save changes</button>
-          <button type="submit" class="btn btn--primary" id="approveBtn">Approve document</button>
-          <button type="button" class="btn btn--danger" id="rejectBtn">Reject document</button>
-        </div>
+        <fieldset id="reviewFields" {% if not document.is_under_review %}disabled{% endif %}>
+          <div id="fieldsContainer">
+            <label class="form-field"><span>Title</span><input name="title" value="{{ document.title }}" required></label>
+            <label class="form-field"><span>Description</span><textarea name="description">{{ document.description }}</textarea></label>
+            <label class="form-field"><span>Document date</span><input type="date" name="document_date" value="{{ document.document_date }}" required></label>
+            <label class="form-field"><span>Category</span>
+              <select name="document_type" required>
+                {% if document.category not in document_types %}<option value="" selected disabled>{{ document.category }} — select a category</option>{% endif %}
+                {% for category in document_types %}<option value="{{ category }}" {% if document.category == category %}selected{% endif %}>{{ category }}</option>{% endfor %}
+              </select>
+            </label>
+          </div>
+          <div class="verify-actions">
+            <button type="button" class="btn btn--secondary" id="saveBtn">Save changes</button>
+            <button type="submit" class="btn btn--primary" id="approveBtn">Approve document</button>
+            <button type="button" class="btn btn--danger" id="rejectBtn">Reject document</button>
+          </div>
+        </fieldset>
       </form>
     </section>
 
     <aside class="panel preview-card" aria-labelledby="preview-title">
       <div class="preview-card__heading">
         <h2 id="preview-title">Document preview</h2>
-        <span id="documentConfidence" class="confidence"></span>
+        <span id="documentConfidence" class="confidence">{% if document.ai_confidence is not none %}{{ document.ai_confidence }}% confidence{% else %}Confidence unavailable{% endif %}</span>
       </div>
-      <p class="muted" id="previewMeta"></p>
+      <p class="muted" id="previewMeta">{{ document.filename }} &middot; Document #{{ document.id }}</p>
       <div class="preview-box">
-        <img id="previewImage"
-             src="{{ url_for('static', filename='samples/invoice-gst.png') }}"
-             alt="Uploaded invoice preview">
-        <div class="preview-placeholder" id="previewPlaceholder" hidden>
-          <div class="preview-icon" aria-hidden="true">&#129534;</div>
-          <strong>Sample image not found</strong>
-          <span>Add the sample invoice image to <code>static/samples</code>.</span>
-        </div>
+        {% if document.file_type in ('image/png', 'image/jpeg', 'image/gif', 'image/webp') %}
+        <img id="previewImage" src="{{ url_for('admin.preview_document', document_id=document.id) }}" alt="{{ document.filename }}">
+        <div class="preview-placeholder" id="previewPlaceholder" hidden>Preview unavailable. Download the document below.</div>
+        {% elif document.file_type == 'application/pdf' or document.filename.lower().endswith('.pdf') %}
+        <iframe src="{{ url_for('admin.preview_document', document_id=document.id) }}" title="{{ document.filename }}" width="100%" height="600"></iframe>
+        {% else %}
+        <div class="preview-placeholder">Download this document to view its contents.</div>
+        {% endif %}
       </div>
       <div class="preview-summary">
-        <strong id="documentType"></strong>
+        <strong id="documentType">{{ document.category }}</strong>
         <a class="btn btn--secondary preview-download"
-           href="{{ url_for('static', filename='samples/invoice-gst.png') }}"
-           download="{{ document_id }}.png"
-           aria-label="Download document preview">Download</a>
+           href="{{ url_for('admin.download_document', document_id=document.id) }}">Download</a>
       </div>
     </aside>
   </div>

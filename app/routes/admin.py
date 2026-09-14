@@ -1,15 +1,20 @@
 import io
 import mimetypes
+import secrets
 import sqlite3
 import zipfile
+from contextlib import closing
 from datetime import date, datetime
 
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
 from app.models.documents import (
+    DOCUMENT_TYPES,
+    get_approval_documents,
     get_client_review_data,
     list_client_summaries,
     list_documents,
+    save_document_review,
 )
 from app.models.users import (
     create_user,
@@ -119,7 +124,7 @@ def display_file_type(filename, content_type):
 
 
 def get_document_blob(document_id):
-    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+    with closing(sqlite3.connect(current_app.config["DATABASE"])) as connection:
         connection.row_factory = sqlite3.Row
         return connection.execute(
             """
@@ -196,9 +201,8 @@ def approve():
 
     return render_template(
         "admin/approve.html",
-        documents=SAMPLE_DOCUMENTS,
-        client_name=request.args.get("client", "Acme Supplies"),
-        document_id=request.args.get("document", "doc-1001"),
+        documents=get_approval_documents(current_app.config["DATABASE"]),
+        review_token=review_token(),
         **admin_context("approve"),
     )
 
@@ -210,12 +214,66 @@ def preview_approve():
     if redirect_response:
         return redirect_response
 
+    document_id = request.args.get("document", type=int)
+    if document_id is None:
+        abort(404)
+    documents = get_approval_documents(current_app.config["DATABASE"], document_id)
+    if not documents:
+        abort(404)
     return render_template(
         "admin/preview_approve.html",
-        client_name=request.args.get("client", "Acme Supplies"),
-        document_id=request.args.get("document", "doc-1001"),
+        document=documents[0],
+        document_types=DOCUMENT_TYPES,
+        review_token=review_token(),
         **admin_context("approve"),
     )
+
+
+def review_token():
+    if "document_review_token" not in session:
+        session["document_review_token"] = secrets.token_hex(32)
+    return session["document_review_token"]
+
+
+@admin_bp.post("/documents/<int:document_id>/review")
+def review_document(document_id):
+    if "user_id" not in session:
+        return jsonify(message="Please log in first."), 401
+    if session.get("account_type") != "admin":
+        return jsonify(message="Admin access is required."), 403
+    token = request.headers.get("X-Review-Token", "")
+    if not token or not secrets.compare_digest(token, session.get("document_review_token", "")):
+        return jsonify(message="Your review session has expired. Reload the page and try again."), 403
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict) or payload.get("action") not in ("saved", "approved", "rejected"):
+        return jsonify(message="Choose a valid review action."), 400
+    changes = {}
+    for field in ("title", "description", "document_date", "document_type"):
+        if field in payload:
+            if not isinstance(payload[field], str):
+                return jsonify(message="Document fields must contain text."), 400
+            changes[field] = payload[field].strip()
+    if "title" in changes and not changes["title"]:
+        return jsonify(message="A document title is required."), 400
+    if "document_type" in changes and changes["document_type"] not in DOCUMENT_TYPES:
+        return jsonify(message="Choose a valid document category."), 400
+    if "document_date" in changes:
+        try:
+            changes["document_date"] = date.fromisoformat(changes["document_date"]).isoformat()
+        except ValueError:
+            return jsonify(message="Enter a valid document date."), 400
+    result = save_document_review(
+        current_app.config["DATABASE"], document_id, session["user_id"], payload["action"], changes
+    )
+    if result == "missing":
+        return jsonify(message="Document not found."), 404
+    if result == "reviewed":
+        return jsonify(message="This document is no longer awaiting review. Reload the page."), 409
+    return jsonify(message={
+        "saved": "Changes saved for review.",
+        "approved": "Document approved.",
+        "rejected": "Document deleted.",
+    }[payload["action"]])
 
 
 @admin_bp.route("/clients.html")
