@@ -1,11 +1,14 @@
 import io
 import json
+import logging
 import os
-import re
 import zipfile
 from pathlib import Path
 from string import Template
 from xml.etree import ElementTree
+
+from pypdf import PdfReader
+from pypdf.errors import PyPdfError
 
 try:
     from dotenv import load_dotenv
@@ -46,9 +49,12 @@ def _extract_zip_xml_text(file_data, member_name):
 
 
 def _extract_pdf_text(file_data):
-    text = file_data.decode("latin-1", errors="ignore")
-    text = re.sub(r"\\([()])", r"\1", text)
-    return " ".join(re.findall(r"\(([^()]*)\)", text))
+    try:
+        reader = PdfReader(io.BytesIO(file_data))
+        return "\n".join(page.extract_text() or "" for page in reader.pages)
+    except (PyPdfError, OSError, ValueError):
+        logging.getLogger(__name__).warning("Could not extract PDF document text", exc_info=True)
+        return ""
 
 
 def _normalize_result(result):
