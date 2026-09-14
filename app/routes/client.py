@@ -24,6 +24,35 @@ from app.models.documents import (
 client_bp = Blueprint("client", __name__, url_prefix="/client")
 
 
+def format_period_date(period_date):
+    return f"{period_date.day} {period_date.strftime('%B %Y')}"
+
+
+def format_file_size(size):
+    if size >= 1024 * 1024:
+        return f"{size / (1024 * 1024):.1f} MB"
+    if size >= 1024:
+        return f"{round(size / 1024)} KB"
+    return f"{size} B"
+
+
+def submission_window(today=None):
+    today = today or date.today()
+    current_period = date(today.year, today.month, 1)
+    deadline = date(today.year, today.month, 25)
+    next_month_number = today.year * 12 + today.month
+    next_year, next_month_index = divmod(next_month_number, 12)
+    next_period = date(next_year, next_month_index + 1, 1)
+
+    return {
+        "is_closed": today.day > 25,
+        "period_label": current_period.strftime("%B %Y"),
+        "deadline_label": format_period_date(deadline),
+        "next_period_label": next_period.strftime("%B %Y"),
+        "next_period_open_label": format_period_date(next_period),
+    }
+
+
 def bookkeeping_periods():
     today = date.today()
     periods = [{"value": "all", "label": "All dates"}]
@@ -107,6 +136,7 @@ def upload():
     if redirect_response:
         return redirect_response
 
+    submission_status = submission_window()
     initial_title = request.form.get("title", "") if request.method == "POST" else request.args.get("title", "")
     initial_document_date = request.form.get("document_date", "") if request.method == "POST" else request.args.get("document_date", "")
     try:
@@ -115,10 +145,22 @@ def upload():
         initial_document_date = ""
 
     if request.method == "POST":
+        if submission_status["is_closed"]:
+            flash("The submission period for this month is closed.", "error")
+            return render_template(
+                "client/upload.html",
+                username=session.get("user_email"),
+                initial_title=initial_title,
+                initial_document_date=initial_document_date,
+                submission_status=submission_status,
+            ), 403
+
         titles = request.form.getlist("title")
         descriptions = request.form.getlist("description")
         document_dates = request.form.getlist("document_date")
         saved_count = 0
+        uploaded_files = []
+        upload_time = datetime.now()
 
         for index, title in enumerate(titles, start=1):
             description = descriptions[index - 1] if index <= len(descriptions) else ""
@@ -138,6 +180,7 @@ def upload():
 
                 filename = secure_filename(uploaded_file.filename) or uploaded_file.filename
                 content_type = uploaded_file.mimetype or ""
+                file_size = len(file_data)
                 document_id = create_document(
                     current_app.config["DATABASE"],
                     session["user_id"],
@@ -148,6 +191,10 @@ def upload():
                     content_type,
                     file_data,
                 )
+                uploaded_files.append({
+                    "filename": filename,
+                    "size": format_file_size(file_size),
+                })
                 document_text = extract_document_text(file_data, filename, content_type)
                 classification = classify_document(
                     document_text,
@@ -195,12 +242,31 @@ def upload():
 
         if saved_count == 0:
             flash("Please choose at least one file to upload.", "error")
-            return render_template("client/upload.html", username=session.get("user_email"), initial_title=initial_title, initial_document_date=initial_document_date), 400
+            return render_template(
+                "client/upload.html",
+                username=session.get("user_email"),
+                initial_title=initial_title,
+                initial_document_date=initial_document_date,
+                submission_status=submission_status,
+            ), 400
 
         flash(f"{saved_count} document file(s) submitted successfully.", "success")
+        session["upload_success"] = {
+            "count": saved_count,
+            "file": uploaded_files[0] if uploaded_files else None,
+            "uploaded_label": upload_time.strftime("%d %B %Y, %I:%M %p").lstrip("0"),
+        }
         return redirect(url_for("client.upload"))
 
-    return render_template("client/upload.html", username=session.get("user_email"), initial_title=initial_title, initial_document_date=initial_document_date)
+    upload_success = session.pop("upload_success", None)
+    return render_template(
+        "client/upload.html",
+        username=session.get("user_email"),
+        initial_title=initial_title,
+        initial_document_date=initial_document_date,
+        submission_status=submission_status,
+        upload_success=upload_success,
+    )
 
 
 @client_bp.route("/notifications")
