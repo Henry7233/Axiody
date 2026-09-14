@@ -3,32 +3,373 @@
 {% block title %}Admin Reminders | AXIODY{% endblock %}
 
 {% block content %}
-<section class="admin-page" aria-labelledby="reminders-title">
-  <header class="page-header">
-    <p class="page-eyebrow">Admin workspace</p>
-    <h1 id="reminders-title">Reminders</h1>
-    <p class="page-description">Follow up on missing or overdue client documents.</p>
+<style>
+  .dashboard-page.reminders-page {
+    background: #f4f7fc;
+    color: #07164d;
+    min-height: calc(100vh - 80px);
+    padding: 32px;
+  }
+
+  .reminders-page .dashboard-header {
+    margin-bottom: 24px;
+  }
+
+  .reminders-page .dashboard-header h1 {
+    margin: 0;
+    color: #07164d;
+    font-size: 36px;
+    letter-spacing: -0.05em;
+  }
+
+  .reminders-page .dashboard-description {
+    margin: 8px 0 0;
+    color: #586d9d;
+    font-size: 14px;
+  }
+
+  .reminders-page .summary-grid {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .reminders-page .summary-card {
+    min-height: 110px;
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .reminders-page .summary-card h2 {
+    margin: 0;
+    color: #061548;
+    font-size: 30px;
+  }
+
+  .reminders-page .summary-card .summary-label {
+    margin: 0 0 4px;
+    color: #304b7e;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .reminders-page .summary-text {
+    margin: 8px 0 0;
+    color: #6479a4;
+    font-size: 13px;
+  }
+
+  .reminders-page .dashboard-card {
+    background: #fff;
+    border: 1px solid #e0e8f5;
+    border-radius: 16px;
+    box-shadow: 0 7px 20px rgba(17, 45, 95, .04);
+  }
+
+  .reminders-page .reminders-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    padding: 24px 22px 18px;
+    border-bottom: 1px solid #edf1f6;
+  }
+
+  .reminders-page .reminders-toolbar h2 {
+    margin: 0;
+    color: #08184c;
+    font-size: 24px;
+    letter-spacing: -0.04em;
+  }
+
+  .reminders-page .reminders-toolbar p {
+    margin: 6px 0 0;
+    color: #6479a4;
+    font-size: 14px;
+  }
+
+  .reminders-page .reminders-filters {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+
+  .reminders-page .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 180px;
+  }
+
+  .reminders-page .filter-field label {
+    color: #5d6d92;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .reminders-page .filter-field select {
+    min-width: 160px;
+    border: 1px solid #d8e2f2;
+    border-radius: 10px;
+    background: #fff;
+    color: #07164d;
+    font: inherit;
+    font-size: 15px;
+    padding: 11px 36px 11px 12px;
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #5c709c 50%), linear-gradient(135deg, #5c709c 50%, transparent 50%);
+    background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+  }
+
+  .reminders-page .table-responsive {
+    overflow-x: auto;
+  }
+
+  .reminders-page .dashboard-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .reminders-page .dashboard-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #5a6f9e;
+    background: #f1f5fb;
+    border-bottom: 1px solid #edf1f6;
+  }
+
+  .reminders-page .dashboard-table td {
+    padding: 16px;
+    border-bottom: 1px solid #edf1f6;
+    color: #18305f;
+    vertical-align: middle;
+  }
+
+  .reminders-page .client-name {
+    font-weight: 700;
+    color: #08184c;
+  }
+
+  .reminders-page .client-email {
+    margin-top: 4px;
+    color: #6479a4;
+    font-size: 12px;
+  }
+
+  .reminders-page .title-cell {
+    font-weight: 600;
+    color: #152d5c;
+  }
+
+  .reminders-page .date-stack {
+    display: inline-flex;
+    flex-direction: column;
+    line-height: 1.4;
+    color: #142858;
+    font-weight: 600;
+  }
+
+  .reminders-page .date-stack small {
+    color: #6479a4;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .reminders-page .reminder-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #ffe7e7;
+    border: 1px solid rgba(216, 42, 42, 0.18);
+    color: #d82a2a;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  .reminders-page .reminder-pill::before {
+    content: "◔";
+    font-size: 0.75rem;
+  }
+
+  .reminders-page .reminder-count-badge {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #edf4ff;
+    color: #0d63e8;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .reminders-page .reminder-empty {
+    text-align: center;
+    color: #6479a4;
+    padding: 30px 16px;
+  }
+
+  .reminders-page .reminders-footer {
+    padding: 18px 22px 24px;
+    color: #6479a4;
+    font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    .dashboard-page.reminders-page {
+      padding: 20px;
+    }
+
+    .reminders-page .dashboard-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .reminders-page .summary-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .reminders-page .reminders-toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .reminders-page .reminders-filters {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .reminders-page .filter-field {
+      flex: 1 1 180px;
+      min-width: 0;
+    }
+  }
+</style>
+
+<section class="dashboard-page reminders-page" data-reminder-page aria-labelledby="reminders-title">
+  <header class="dashboard-header">
+    <div>
+      <p class="dashboard-eyebrow">ADMIN WORKSPACE</p>
+      <h1 id="reminders-title">Reminders</h1>
+      <p class="dashboard-description">Follow up on missing or overdue client documents.</p>
+    </div>
   </header>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th scope="col">Client</th>
-          <th scope="col">Reminder</th>
-          <th scope="col">Due date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for reminder in reminders %}
-        <tr>
-          <td>{{ reminder.client }}</td>
-          <td>{{ reminder.type }}</td>
-          <td>{{ reminder.due }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="summary-grid">
+    <article class="summary-card">
+      <div class="summary-icon">👥</div>
+      <div>
+        <p class="summary-label">Active Follow-ups</p>
+        <h2 data-reminder-total>{{ active_followups }}</h2>
+        <p class="summary-text">Clients with incomplete documents</p>
+      </div>
+    </article>
+
+    <article class="summary-card">
+      <div class="summary-icon" style="background:#e0f8ef; color:#0ca56b;">✈</div>
+      <div>
+        <p class="summary-label">No. of Emails Sent</p>
+        <h2 data-reminder-emails>{{ total_emails_sent }}</h2>
+        <p class="summary-text">Total reminder emails sent this month</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="dashboard-card">
+    <div class="reminders-toolbar">
+      <div>
+        <h2>Client Reminders</h2>
+        <p>Follow up on missing or overdue client documents.</p>
+      </div>
+
+      <form class="reminders-filters" action="#" method="get">
+        <div class="filter-field">
+          <label for="reminder-period">Bookkeeping Period</label>
+          <select id="reminder-period" data-reminder-period name="period">
+            {% for period in period_options %}
+            <option value="{{ period.value }}" {% if period.value == selected_period %}selected{% endif %}>{{ period.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-field">
+          <label for="reminder-client">Client</label>
+          <select id="reminder-client" data-reminder-client name="client">
+            {% for client in client_options %}
+            <option value="{{ client.value }}" {% if client.value == selected_client %}selected{% endif %}>{{ client.label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <div class="table-responsive">
+      <table class="dashboard-table">
+        <thead>
+          <tr>
+            <th scope="col">Client</th>
+            <th scope="col">Title</th>
+            <th scope="col">Last Reminder Sent</th>
+            <th scope="col">Next Reminder Date</th>
+            <th scope="col">No. of Emails Sent</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reminder in reminders %}
+          <tr data-reminder-row data-period="{{ reminder.bookkeeping_date or 'all' }}" data-client="{{ reminder.client_name }}" data-email-count="{{ reminder.reminder_count }}">
+            <td>
+              <div class="client-name">{{ reminder.client_name }}</div>
+              {% if reminder.client_email %}
+              <div class="client-email">{{ reminder.client_email }}</div>
+              {% endif %}
+            </td>
+            <td class="title-cell">{{ reminder.title }}</td>
+            <td>
+              {% if reminder.last_reminder_sent_date %}
+              <span class="date-stack">
+                <span>{{ reminder.last_reminder_sent_date }}</span>
+              </span>
+              {% else %}<span class="date-stack"><span>—</span></span>{% endif %}
+            </td>
+            <td>
+              {% if reminder.next_reminder_date %}
+              <span class="reminder-pill">{{ reminder.next_reminder_date }}</span>
+              {% else %}<span class="date-stack"><span>—</span></span>{% endif %}
+            </td>
+            <td>
+              <span class="reminder-count-badge">{{ reminder.reminder_count }}</span>
+            </td>
+          </tr>
+          {% else %}
+          <tr data-reminder-empty>
+            <td colspan="5" class="reminder-empty">No reminder records match the selected filters.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="reminders-footer" data-reminder-count>
+      Showing {{ reminders|length }} of {{ reminders|length }} reminders
+    </div>
   </div>
 </section>
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+{% endblock %}
 {% endblock %}

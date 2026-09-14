@@ -590,14 +590,107 @@ def reminders():
     if redirect_response:
         return redirect_response
 
-    reminders_data = [
-        {"client": "Acme Supplies", "due": "2026-09-10", "type": "Missing GST receipt"},
-        {"client": "Northstar Foods", "due": "2026-09-12", "type": "Payroll confirmation"},
-        {"client": "Greenline Studio", "due": "2026-09-15", "type": "Bank statement follow-up"},
+    selected_period = request.args.get("period", "all")
+    selected_client = request.args.get("client", "all")
+
+    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            """
+            SELECT
+                u.full_name AS client_name,
+                u.email AS client_email,
+                d.title AS document_title,
+                d.document_date AS bookkeeping_date,
+                n.id AS reminder_id,
+                n.title AS notification_title,
+                n.message,
+                n.last_reminder_sent,
+                n.next_reminder_date,
+                n.reminder_count,
+                n.status
+            FROM notifications n
+            JOIN documents d ON d.id = n.document_id
+            JOIN users u ON u.id = d.user_id
+            WHERE n.status != 'resolved'
+            ORDER BY n.next_reminder_date IS NULL, n.next_reminder_date ASC, n.last_reminder_sent DESC
+            """
+        ).fetchall()
+
+    unique_periods = []
+    seen_periods = set()
+    unique_clients = []
+    seen_clients = set()
+    reminders_data = []
+
+    for row in rows:
+        client_name = row["client_name"] or row["client_email"] or "Unknown client"
+        client_email = row["client_email"] or ""
+        bookkeeping_date = (row["bookkeeping_date"] or "")[:10]
+        document_title = row["document_title"] or row["notification_title"] or "Document reminder"
+
+        if bookkeeping_date and bookkeeping_date not in seen_periods:
+            seen_periods.add(bookkeeping_date)
+            try:
+                label = datetime.strptime(bookkeeping_date, "%Y-%m-%d").strftime("%B %Y")
+            except ValueError:
+                label = bookkeeping_date
+            unique_periods.append({"value": bookkeeping_date, "label": label})
+
+        if client_name not in seen_clients:
+            seen_clients.add(client_name)
+            unique_clients.append(client_name)
+
+        if selected_period != "all" and bookkeeping_date != selected_period:
+            continue
+        if selected_client != "all" and client_name != selected_client:
+            continue
+
+        last_reminder_sent = row["last_reminder_sent"]
+        last_date = last_time = ""
+        if last_reminder_sent:
+            try:
+                parsed = datetime.fromisoformat(last_reminder_sent.replace("Z", "+00:00"))
+                last_date = parsed.strftime("%Y-%m-%d")
+                last_time = parsed.strftime("%H:%M")
+            except ValueError:
+                last_date = str(last_reminder_sent)[:10]
+                last_time = str(last_reminder_sent)[11:16] if len(str(last_reminder_sent)) > 10 else ""
+
+        reminders_data.append(
+            {
+                "id": row["reminder_id"],
+                "client_name": client_name,
+                "client_email": client_email,
+                "title": document_title,
+                "message": row["message"] or "",
+                "last_reminder_sent": last_reminder_sent,
+                "last_reminder_sent_date": last_date,
+                "last_reminder_sent_time": last_time,
+                "next_reminder_date": row["next_reminder_date"],
+                "reminder_count": int(row["reminder_count"] or 0),
+                "bookkeeping_date": bookkeeping_date,
+            }
+        )
+
+    unique_periods.sort(key=lambda item: item["value"], reverse=True)
+    unique_clients.sort()
+    period_options = [{"value": "all", "label": "All dates"}] + [
+        {"value": item["value"], "label": item["label"]} for item in unique_periods
     ]
+    client_options = [{"value": "all", "label": "All Clients"}] + [
+        {"value": name, "label": name} for name in unique_clients
+    ]
+
     return render_template(
         "admin/reminders.html",
         reminders=reminders_data,
+        period_options=period_options,
+        client_options=client_options,
+        selected_period=selected_period,
+        selected_client=selected_client,
+        active_followups=len(reminders_data),
+        total_emails_sent=sum(item["reminder_count"] for item in reminders_data),
         **admin_context("reminders"),
     )
 
