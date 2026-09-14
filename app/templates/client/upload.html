@@ -32,6 +32,11 @@
     gap: 22px;
   }
 
+  .submission-list {
+    display: grid;
+    gap: 22px;
+  }
+
   .submission-entry {
     display: grid;
     grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
@@ -114,6 +119,7 @@
   }
 
   .upload-box {
+    position: relative;
     border: 2px dashed light-dark(#a9c4ea, #35415a);
     border-radius: 14px;
     min-height: 205px;
@@ -126,6 +132,35 @@
     background: light-dark(#fbfdff, #1b2b3c);
     transition: border-color 0.2s ease, background 0.2s ease;
     cursor: pointer;
+    overflow: hidden;
+  }
+
+  .remove-upload-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid light-dark(#dbe4f1, #35415a);
+    border-radius: 50%;
+    background: light-dark(#fff, #212836);
+    color: light-dark(#31415f, #d9dee8);
+    font-size: 1.15rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .remove-upload-btn:hover {
+    background: light-dark(#ffe7e7, #3d1c22);
+    color: light-dark(#b42318, #f2b4b3);
+  }
+
+  .remove-upload-btn.is-hidden {
+    display: none;
   }
 
   .upload-box:hover,
@@ -347,121 +382,123 @@
         enctype="multipart/form-data"
         action="">
 
-    <div class="submission-entry" data-submission-entry>
-      <!-- LEFT CARD -->
-      <div class="form-card">
+    <div class="submission-list" data-submission-list>
+      <div class="submission-entry" data-submission-entry>
+        <!-- LEFT CARD -->
+        <div class="form-card">
 
-        <div class="details-row">
-          <div class="form-group title-entry">
-            <label class="form-label" for="title_1">
-              Title <span class="required">*</span>
-            </label>
-            <input
-              class="form-control title-input"
-              type="text"
-              id="title_1"
-              name="title"
-              value="{{ initial_title | default('') }}"
-              placeholder="Enter a title for your submission"
-              required
-            >
-          </div>
+          <div class="details-row">
+            <div class="form-group title-entry">
+              <label class="form-label" for="title_1">
+                Title <span class="required">*</span>
+              </label>
+              <input
+                class="form-control title-input"
+                type="text"
+                id="title_1"
+                name="title"
+                value="{{ initial_title | default('') }}"
+                placeholder="Enter a title for your submission"
+                required
+              >
+            </div>
 
-          <div class="form-group date-entry">
-            <label class="form-label" for="document_date_1">
-              Date <span class="required">*</span>
-            </label>
+            <div class="form-group date-entry">
+              <label class="form-label" for="document_date_1">
+                Date <span class="required">*</span>
+              </label>
 
-            <input
-              class="form-control date-input"
-              type="date"
-              id="document_date_1"
-              name="document_date"
-              value="{{ initial_document_date | default('') }}"
-              required
-            >
+              <input
+                class="form-control date-input"
+                type="date"
+                id="document_date_1"
+                name="document_date"
+                value="{{ initial_document_date | default('') }}"
+                required
+              >
 
-            <div class="date-help">
-              Select a date in the document's reporting month and year. For bank statements, use the statement period.
+              <div class="date-help">
+                Select a date in the document's reporting month and year. For bank statements, use the statement period.
+              </div>
             </div>
           </div>
+
+          <div class="form-group description-entry">
+            <label class="form-label" for="description_1">
+              Description
+            </label>
+            <textarea
+              class="form-control description-input"
+              id="description_1"
+              name="description"
+              maxlength="500"
+              placeholder="Provide a brief description about this document (optional)"
+            ></textarea>
+            <div class="description-footer">
+              <span class="description-count">0</span>/500
+            </div>
+          </div>
+
+          <div class="submit-note">
+            After submission, AXIODY will classify and validate the uploaded document.
+          </div>
+
         </div>
 
-        <div class="form-group description-entry">
-          <label class="form-label" for="description_1">
-            Description
-          </label>
-          <textarea
-            class="form-control description-input"
-            id="description_1"
-            name="description"
-            maxlength="500"
-            placeholder="Provide a brief description about this document (optional)"
-          ></textarea>
-          <div class="description-footer">
-            <span class="description-count">0</span>/500
+        <!-- RIGHT CARD -->
+        <div class="form-card">
+          <div class="form-group upload-entry" data-upload-entry>
+            <label class="form-label" for="document_file_1">
+              File Upload <span class="required">*</span>
+            </label>
+
+            <label class="upload-box" for="document_file_1" data-upload-box>
+              <button class="remove-upload-btn is-hidden" type="button" data-remove-upload aria-label="Remove upload box">×</button>
+              <span class="upload-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M16 16l-4-4-4 4"/>
+                  <path d="M12 12v9"/>
+                  <path d="M20.4 17.5A5 5 0 0 0 18 8.2 7 7 0 0 0 4.3 10.5 4.5 4.5 0 0 0 5 19h3"/>
+                  <path d="M16 19h3"/>
+                </svg>
+              </span>
+
+              <span class="upload-title">Drag and drop file here</span>
+              <span class="upload-or">or</span>
+              <span class="choose-file-btn">Choose File</span>
+              <span class="selected-file">No file selected</span>
+              <ul class="selected-files-list" aria-label="Selected files"></ul>
+            </label>
+
+            <input
+              class="file-input"
+              type="file"
+              id="document_file_1"
+              name="document_files_1"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+              multiple
+              required
+            >
+
+            <p class="supported-files">
+              <strong>Supported files:</strong>
+              PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX.<br>
+              Bank statements, invoices, and receipts may be uploaded in different file formats.
+              You can upload more than one file at a time.
+            </p>
           </div>
         </div>
-
-        <div class="submit-note">
-          After submission, AXIODY will classify and validate the uploaded document.
-        </div>
-
       </div>
+    </div>
 
-      <!-- RIGHT CARD -->
-      <div class="form-card">
-        <div class="form-group upload-entry" data-upload-entry>
-          <label class="form-label" for="document_file_1">
-            File Upload <span class="required">*</span>
-          </label>
+    <div class="action-row" data-action-row>
+      <button class="add-upload-btn" type="button" data-add-upload>
+        Add +
+      </button>
 
-          <label class="upload-box" for="document_file_1" data-upload-box>
-            <span class="upload-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M16 16l-4-4-4 4"/>
-                <path d="M12 12v9"/>
-                <path d="M20.4 17.5A5 5 0 0 0 18 8.2 7 7 0 0 0 4.3 10.5 4.5 4.5 0 0 0 5 19h3"/>
-                <path d="M16 19h3"/>
-              </svg>
-            </span>
-
-            <span class="upload-title">Drag and drop file here</span>
-            <span class="upload-or">or</span>
-            <span class="choose-file-btn">Choose File</span>
-            <span class="selected-file">No file selected</span>
-            <ul class="selected-files-list" aria-label="Selected files"></ul>
-          </label>
-
-          <input
-            class="file-input"
-            type="file"
-            id="document_file_1"
-            name="document_files_1"
-            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
-            multiple
-            required
-          >
-
-          <p class="supported-files">
-            <strong>Supported files:</strong>
-            PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX.<br>
-            Bank statements, invoices, and receipts may be uploaded in different file formats.
-            You can upload more than one file at a time.
-          </p>
-        </div>
-      </div>
-
-      <div class="action-row">
-        <button class="add-upload-btn" type="button" data-add-upload>
-          Add +
-        </button>
-
-        <button class="submit-btn" type="submit">
-          Submit Document
-        </button>
-      </div>
-
+      <button class="submit-btn" type="submit">
+        Submit Document
+      </button>
     </div>
 
   </form>
@@ -471,7 +508,51 @@
 {% block scripts %}
 <script>
   const submissionForm = document.querySelector(".submission-form");
-  let submissionCount = 1;
+  const submissionList = document.querySelector("[data-submission-list]");
+  const addUploadButton = document.querySelector("[data-add-upload]");
+
+  function getSubmissionEntries() {
+    return Array.from(submissionList.querySelectorAll("[data-submission-entry]"));
+  }
+
+  function updateEntryNumbers() {
+    const entries = getSubmissionEntries();
+
+    entries.forEach(function (entry, index) {
+      const rowIndex = index + 1;
+      const titleInput = entry.querySelector(".title-input");
+      const descriptionInput = entry.querySelector(".description-input");
+      const dateInput = entry.querySelector(".date-input");
+      const fileInput = entry.querySelector(".file-input");
+      const titleLabel = entry.querySelector(".title-entry .form-label");
+      const descriptionLabel = entry.querySelector(".description-entry .form-label");
+      const dateLabel = entry.querySelector(".date-entry .form-label");
+      const uploadLabel = entry.querySelector(".upload-entry .form-label");
+      const uploadBox = entry.querySelector("[data-upload-box]");
+      const removeButton = entry.querySelector("[data-remove-upload]");
+
+      titleInput.id = `title_${rowIndex}`;
+      titleInput.name = "title";
+      titleLabel.setAttribute("for", titleInput.id);
+
+      descriptionInput.id = `description_${rowIndex}`;
+      descriptionInput.name = "description";
+      descriptionLabel.setAttribute("for", descriptionInput.id);
+
+      dateInput.id = `document_date_${rowIndex}`;
+      dateInput.name = "document_date";
+      dateLabel.setAttribute("for", dateInput.id);
+
+      fileInput.id = `document_file_${rowIndex}`;
+      fileInput.name = `document_files_${rowIndex}`;
+      uploadLabel.setAttribute("for", fileInput.id);
+      uploadBox.setAttribute("for", fileInput.id);
+
+      if (removeButton) {
+        removeButton.classList.toggle("is-hidden", entries.length <= 1);
+      }
+    });
+  }
 
   function setupDescriptionEntry(submissionEntry) {
     const description = submissionEntry.querySelector(".description-input");
@@ -518,7 +599,7 @@
 
   function removeFile(uploadEntry, removeIndex) {
     const fileInput = uploadEntry.querySelector(".file-input");
-    const remainingFiles = Array.from(fileInput.files).filter(function (file, index) {
+    const remainingFiles = Array.from(fileInput.files).filter(function (_file, index) {
       return index !== removeIndex;
     });
     const transfer = new DataTransfer();
@@ -534,9 +615,33 @@
   function setupUploadEntry(uploadEntry) {
     const fileInput = uploadEntry.querySelector(".file-input");
     const uploadBox = uploadEntry.querySelector("[data-upload-box]");
+    const removeButton = uploadEntry.querySelector("[data-remove-upload]");
 
     fileInput.addEventListener("change", function () {
       showFiles(uploadEntry, fileInput.files);
+    });
+
+    if (removeButton) {
+      removeButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const entry = uploadEntry.closest("[data-submission-entry]");
+        const entries = getSubmissionEntries();
+
+        if (entries.length <= 1) {
+          return;
+        }
+
+        entry.remove();
+        updateEntryNumbers();
+      });
+    }
+
+    uploadBox.addEventListener("click", function (event) {
+      if (event.target.closest("[data-remove-upload]")) {
+        return;
+      }
+      fileInput.click();
     });
 
     ["dragenter", "dragover"].forEach(function (eventName) {
@@ -563,62 +668,31 @@
     });
   }
 
-  function setupAddButton(submissionEntry) {
-    const addUploadButton = submissionEntry.querySelector("[data-add-upload]");
-
-    addUploadButton.addEventListener("click", function () {
-      addSubmissionEntry();
-    });
-  }
-
   function addSubmissionEntry() {
-    const firstEntry = submissionForm.querySelector("[data-submission-entry]");
+    const firstEntry = submissionList.querySelector("[data-submission-entry]");
     const newEntry = firstEntry.cloneNode(true);
-    const newTitleInput = newEntry.querySelector(".title-input");
-    const newTitleLabel = newEntry.querySelector(".title-entry .form-label");
-    const newDescriptionInput = newEntry.querySelector(".description-input");
-    const newDescriptionLabel = newEntry.querySelector(".description-entry .form-label");
-    const newDescriptionCount = newEntry.querySelector(".description-count");
-    const newDateInput = newEntry.querySelector(".date-input");
-    const newDateLabel = newEntry.querySelector(".date-entry .form-label");
-    const newUploadEntry = newEntry.querySelector("[data-upload-entry]");
-    const newInput = newEntry.querySelector(".file-input");
-    const newUploadLabel = newEntry.querySelector(".upload-entry .form-label");
-    const newUploadBox = newEntry.querySelector("[data-upload-box]");
-    const newIndex = ++submissionCount;
-    const newTitleId = `title_${newIndex}`;
-    const newDescriptionId = `description_${newIndex}`;
-    const newDateId = `document_date_${newIndex}`;
-    const newFileId = `document_file_${newIndex}`;
 
-    newTitleInput.id = newTitleId;
-    newTitleInput.value = "";
-    newTitleLabel.setAttribute("for", newTitleId);
-    newDescriptionInput.id = newDescriptionId;
-    newDescriptionInput.value = "";
-    newDescriptionLabel.setAttribute("for", newDescriptionId);
-    newDescriptionCount.textContent = "0";
-    newDateInput.id = newDateId;
-    newDateInput.value = "";
-    newDateLabel.setAttribute("for", newDateId);
-    newInput.id = newFileId;
-    newInput.name = `document_files_${newIndex}`;
-    newInput.value = "";
-    newUploadLabel.setAttribute("for", newFileId);
-    newUploadBox.setAttribute("for", newFileId);
+    newEntry.querySelector(".title-input").value = "";
+    newEntry.querySelector(".description-input").value = "";
+    newEntry.querySelector(".date-input").value = "";
+    newEntry.querySelector(".file-input").value = "";
+    newEntry.querySelector(".description-count").textContent = "0";
     newEntry.querySelector(".selected-file").textContent = "No file selected";
     newEntry.querySelector(".selected-files-list").replaceChildren();
 
-    submissionForm.appendChild(newEntry);
+    submissionList.appendChild(newEntry);
     setupDescriptionEntry(newEntry);
-    setupUploadEntry(newUploadEntry);
-    setupAddButton(newEntry);
+    setupUploadEntry(newEntry.querySelector("[data-upload-entry]"));
+    updateEntryNumbers();
   }
 
-  document.querySelectorAll("[data-submission-entry]").forEach(function (submissionEntry) {
-    setupDescriptionEntry(submissionEntry);
-    setupAddButton(submissionEntry);
+  addUploadButton.addEventListener("click", addSubmissionEntry);
+
+  document.querySelectorAll("[data-submission-entry]").forEach(function (entry) {
+    setupDescriptionEntry(entry);
+    setupUploadEntry(entry.querySelector("[data-upload-entry]"));
   });
-  document.querySelectorAll("[data-upload-entry]").forEach(setupUploadEntry);
+
+  updateEntryNumbers();
 </script>
 {% endblock %}
