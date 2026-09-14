@@ -194,6 +194,7 @@ def upload():
                             initial_title=initial_title,
                             initial_document_date=initial_document_date,
                             required_filenames=sorted(required_filenames),
+                            submission_status=submission_status,
                         ), 400
 
         for index, title in enumerate(titles, start=1):
@@ -222,6 +223,7 @@ def upload():
                             initial_title=initial_title,
                             initial_document_date=initial_document_date,
                             required_filenames=sorted(required_filenames),
+                            submission_status=submission_status,
                         ), 400
 
                 file_data = uploaded_file.read()
@@ -307,12 +309,15 @@ def upload():
         }
         return redirect(url_for("client.upload"))
 
+    upload_success = session.pop("upload_success", None)
     return render_template(
         "client/upload.html",
         username=session.get("user_email"),
         initial_title=initial_title,
         initial_document_date=initial_document_date,
         required_filenames=sorted(required_filenames),
+        submission_status=submission_status,
+        upload_success=upload_success,
     )
 
 

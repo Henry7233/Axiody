@@ -649,6 +649,11 @@
     background: light-dark(#f4f8ff, #1b273c);
   }
 
+  .upload-box:focus-within {
+    outline: 3px solid light-dark(#0d63e8, #89b4f5);
+    outline-offset: 3px;
+  }
+
   .upload-icon {
     width: 52px;
     height: 52px;
@@ -691,7 +696,15 @@
   }
 
   .file-input {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .selected-file {
@@ -1050,7 +1063,7 @@
               <button class="remove-upload-btn is-hidden" type="button" data-remove-upload aria-label="Remove upload box">×</button>
             </div>
 
-            <label class="upload-box" for="document_file_1" data-upload-box>
+            <label class="upload-box" for="document_file_1" data-upload-box role="button" tabindex="0" aria-label="Choose document files">
               <span class="upload-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
                   <path d="M16 16l-4-4-4 4"/>
@@ -1064,7 +1077,7 @@
               <span class="upload-or">or</span>
               <span class="choose-file-btn">Choose File</span>
               <span class="selected-file">No file selected</span>
-              <ul class="selected-files-list" aria-label="Selected files"></ul>
+              <ul class="selected-files-list" aria-label="Selected files" aria-live="polite"></ul>
             </label>
 
             <input
@@ -1450,6 +1463,13 @@
         return;
       }
       fileInput.click();
+    });
+
+    uploadBox.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        fileInput.click();
+      }
     });
 
     ["dragenter", "dragover"].forEach(function (eventName) {
