@@ -1,7 +1,7 @@
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime, timezone
 
+from app.time import singapore_now
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -100,7 +100,7 @@ def create_user(
     normalized_full_name = normalize_full_name(full_name)
     normalized_role = normalize_role(role, normalized_account_type)
     password_hash = generate_password_hash(password)
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = singapore_now().isoformat()
 
     with get_connection(database_path) as connection:
         try:

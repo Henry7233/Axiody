@@ -2,8 +2,9 @@ import json
 import os
 import sqlite3
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import datetime
 
+from app.time import singapore_now
 
 DOCUMENT_TYPES = ("Invoice", "Receipt", "Bank Statement", "Other")
 DOCUMENT_TYPE_LABELS = {
@@ -148,7 +149,7 @@ def create_document(
     content_type,
     file_data,
 ):
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = singapore_now().isoformat()
 
     with closing(get_connection(database_path)) as connection, connection:
         cursor = connection.execute(
@@ -364,7 +365,7 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
             assignments.append("classification_status = ?")
             values.append("Success")
         assignments.extend(("reviewed_by = ?", "reviewed_at = ?"))
-        values.extend((reviewer_id, datetime.now(timezone.utc).isoformat(), document_id))
+        values.extend((reviewer_id, singapore_now().isoformat(), document_id))
         connection.execute(
             "UPDATE documents SET " + ", ".join(assignments) + " WHERE id = ?", values
         )

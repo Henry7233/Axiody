@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from app.agents.reminder_agent import document_reminder
 from app.models.documents import (
@@ -7,14 +7,14 @@ from app.models.documents import (
     get_connection,
     validation_messages,
 )
+from app.time import SINGAPORE_TZ, to_singapore
 
 
 def _timestamp(value):
     try:
-        timestamp = datetime.fromisoformat(value or "")
-        return timestamp.replace(tzinfo=timezone.utc) if timestamp.tzinfo is None else timestamp
+        return to_singapore(value or "")
     except ValueError:
-        return datetime.min.replace(tzinfo=timezone.utc)
+        return datetime.min.replace(tzinfo=SINGAPORE_TZ)
 
 
 def list_client_notifications(database_path, user_id, today=None):
@@ -119,7 +119,7 @@ def list_client_notifications(database_path, user_id, today=None):
             group.update(status="Complete", color="green", category="successful",
                          message=f'All {complete} file(s) have passed validation. No changes are needed.')
         group["created_at"] = group["updated"].isoformat()
-        group["created_label"] = group["updated"].astimezone(timezone.utc).strftime("%b %d, %Y, %H:%M UTC")
+        group["created_label"] = group["updated"].strftime("%b %d, %Y, %H:%M SGT")
     notifications.sort(key=lambda group: group["updated"], reverse=True)
     reminders = [group for group in notifications if group["category"] == "deadlines"]
     deadlines = [group["deadline"] for group in reminders if group["deadline"]]

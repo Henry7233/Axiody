@@ -12,6 +12,7 @@ from flask import Blueprint, abort, current_app, flash, jsonify, redirect, rende
 from app.models.admin_dashboard import get_admin_dashboard_data
 from app.models.bookkeeping import get_bookkeeping_groups
 from app.services.bookkeeping_export import build_bookkeeping_workbook
+from app.time import to_singapore
 from app.models.documents import (
     DOCUMENT_TYPES,
     get_approval_documents,
@@ -89,7 +90,7 @@ def format_display_date(value):
     if not value:
         return ""
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = to_singapore(value)
     except ValueError:
         return value
     return parsed.strftime("%b %d, %Y")
@@ -650,7 +651,7 @@ def reminders():
         last_date = last_time = ""
         if last_reminder_sent:
             try:
-                parsed = datetime.fromisoformat(last_reminder_sent.replace("Z", "+00:00"))
+                parsed = to_singapore(last_reminder_sent)
                 last_date = parsed.strftime("%Y-%m-%d")
                 last_time = parsed.strftime("%H:%M")
             except ValueError:

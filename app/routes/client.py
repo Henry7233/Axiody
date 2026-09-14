@@ -1,8 +1,9 @@
-from datetime import date, datetime
+from datetime import date
 
 from flask import Blueprint, current_app, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
 
+from app.time import singapore_now, singapore_today, to_singapore
 from app.agents.classification_agent import classify_document, extract_document_text
 from app.agents.reminder_agent import (
     create_initial_reminder,
@@ -37,7 +38,7 @@ def format_file_size(size):
 
 
 def submission_window(today=None):
-    today = today or date.today()
+    today = today or singapore_today()
     current_period = date(today.year, today.month, 1)
     deadline = date(today.year, today.month, 25)
     next_month_number = today.year * 12 + today.month
@@ -54,7 +55,7 @@ def submission_window(today=None):
 
 
 def bookkeeping_periods():
-    today = date.today()
+    today = singapore_today()
     periods = [{"value": "all", "label": "All dates"}]
     for offset in range(12):
         year, month = divmod(today.year * 12 + today.month - 1 - offset, 12)
@@ -79,7 +80,7 @@ def dashboard():
     records = list_client_document_records(current_app.config["DATABASE"], session["user_id"], selected_period)
     submitted_count = sum(record["file_count"] for record in records)
     completed_count = sum(record["completed_count"] for record in records)
-    today = date.today()
+    today = singapore_today()
     notification_data = list_client_notifications(current_app.config["DATABASE"], session["user_id"], today)
     reminders = [
         notification for notification in notification_data["notifications"]
@@ -101,7 +102,7 @@ def dashboard():
 
     account = g.account
     try:
-        member_since = datetime.fromisoformat(account["created_at"]).strftime("%b %Y")
+        member_since = to_singapore(account["created_at"]).strftime("%b %Y")
     except (TypeError, ValueError):
         member_since = "Not provided"
 
@@ -160,7 +161,7 @@ def upload():
         document_dates = request.form.getlist("document_date")
         saved_count = 0
         uploaded_files = []
-        upload_time = datetime.now()
+        upload_time = singapore_now()
 
         for index, title in enumerate(titles, start=1):
             description = descriptions[index - 1] if index <= len(descriptions) else ""
