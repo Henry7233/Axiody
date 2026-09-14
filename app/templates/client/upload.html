@@ -6,7 +6,15 @@
 {% block head %}
 <style>
   .submission-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
     margin-bottom: 26px;
+  }
+
+  .submission-heading {
+    min-width: 0;
   }
 
   .submission-header h1 {
@@ -21,6 +29,478 @@
     margin: 0;
     color: light-dark(#657598, #dadee7);
     font-size: 1.05rem;
+  }
+
+  .period-card {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    gap: 13px;
+    min-width: 300px;
+    padding: 17px 18px;
+    border: 1px solid light-dark(#e4ebf5, #35415a);
+    border-radius: 12px;
+    background: light-dark(#ffffff, #212836);
+    box-shadow: 0 10px 28px rgba(48, 76, 121, 0.07);
+    color: light-dark(#101b3a, #cfd8f2);
+  }
+
+  .period-card svg {
+    width: 28px;
+    height: 28px;
+    color: light-dark(#66759a, #d8deea);
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .period-card small {
+    display: block;
+    margin-bottom: 5px;
+    color: light-dark(#657598, #dadee7);
+    font-size: 0.76rem;
+  }
+
+  .period-card strong {
+    display: block;
+    color: light-dark(#0c1738, #cfd8f2);
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .closed-state {
+    display: grid;
+    gap: 22px;
+  }
+
+  .closed-alert {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    min-height: 172px;
+    padding: 30px 44px;
+    border: 1px solid light-dark(#ffc8cf, #4a242a);
+    border-radius: 12px;
+    background: light-dark(#fff0f3, #351d22);
+    color: light-dark(#9d0013, #f19aa4);
+  }
+
+  .closed-icon,
+  .info-icon {
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    flex: 0 0 auto;
+  }
+
+  .closed-icon {
+    width: 86px;
+    height: 86px;
+    background: light-dark(#ffdce2, #4a242a);
+    color: light-dark(#cf1630, #f19aa4);
+  }
+
+  .closed-icon svg,
+  .info-icon svg,
+  .help-link svg {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .closed-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .closed-alert h2 {
+    margin: 0 0 9px;
+    color: light-dark(#9d0013, #f19aa4);
+    font-size: 1.55rem;
+    letter-spacing: -0.3px;
+  }
+
+  .closed-alert p {
+    margin: 0;
+    color: light-dark(#5f6f91, #dadee7);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .closed-alert p strong {
+    color: light-dark(#d12037, #ff9faa);
+  }
+
+  .closed-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .closed-info-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: 92px;
+    padding: 20px 22px;
+    border: 1px solid light-dark(#d7e5fb, #35415a);
+    border-radius: 12px;
+    background: light-dark(#fbfdff, #212836);
+    box-shadow: 0 8px 22px rgba(48, 76, 121, 0.055);
+  }
+
+  .info-icon {
+    width: 58px;
+    height: 58px;
+    background: light-dark(#e6f0ff, #21324a);
+    color: light-dark(#0870ff, #89b4f5);
+  }
+
+  .info-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .closed-info-card h3 {
+    margin: 0 0 5px;
+    color: light-dark(#101b3a, #cfd8f2);
+    font-size: 0.95rem;
+  }
+
+  .closed-info-card p {
+    margin: 0;
+    color: light-dark(#657598, #dadee7);
+    font-size: 0.83rem;
+    line-height: 1.5;
+  }
+
+  .closed-info-card p strong {
+    color: light-dark(#101b3a, #cfd8f2);
+  }
+
+  .help-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-left: auto;
+    min-height: 40px;
+    padding: 10px 15px;
+    border: 1px solid light-dark(#a9c8ff, #35415a);
+    border-radius: 6px;
+    color: light-dark(#0865e9, #89b4f5);
+    background: light-dark(#ffffff, #1b283c);
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .help-link svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .upload-help-dialog {
+    width: min(650px, calc(100% - 32px));
+    max-height: calc(100dvh - 48px);
+    overflow: auto;
+    padding: 26px;
+    border: 1px solid light-dark(#d8e2f2, #35415a);
+    border-radius: 15px;
+    background: light-dark(#ffffff, #212836);
+    color: light-dark(#07164d, #cfd8f2);
+    box-shadow: 0 24px 100px rgba(7, 25, 54, 0.27);
+  }
+
+  .upload-help-dialog::backdrop {
+    background: rgba(8, 24, 48, 0.53);
+    backdrop-filter: blur(3px);
+  }
+
+  .upload-help-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .upload-help-heading h2 {
+    margin: 0;
+    color: light-dark(#07164d, #cfd8f2);
+    font-size: 1.5rem;
+  }
+
+  .upload-help-close {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: light-dark(#eef5ff, #1b283c);
+    color: light-dark(#07164d, #cfd8f2);
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .upload-help-content h3 {
+    margin: 22px 0 12px;
+    color: light-dark(#07164d, #cfd8f2);
+    font-size: 1.1rem;
+  }
+
+  .upload-help-content details {
+    border-bottom: 1px solid light-dark(#d8e2f2, #35415a);
+    padding: 12px 0;
+  }
+
+  .upload-help-content summary {
+    color: light-dark(#07164d, #cfd8f2);
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .upload-help-content p,
+  .upload-help-content li {
+    color: light-dark(#53699b, #dadee7);
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .upload-help-content details p {
+    margin: 10px 0 3px;
+  }
+
+  .upload-help-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 18px;
+  }
+
+  .upload-help-done {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 108px;
+    min-height: 40px;
+    padding: 9px 18px;
+    border: 1px solid #0667ff;
+    border-radius: 6px;
+    background: #0667ff;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .success-dialog {
+    width: min(520px, calc(100% - 32px));
+    padding: 32px 38px 28px;
+    border: 1px solid light-dark(#e4ebf5, #35415a);
+    border-radius: 12px;
+    background: light-dark(#ffffff, #212836);
+    color: light-dark(#07164d, #cfd8f2);
+    box-shadow: 0 24px 100px rgba(7, 25, 54, 0.25);
+    text-align: center;
+  }
+
+  .success-logo,
+  .submitting-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto 20px;
+    color: light-dark(#07164d, #cfd8f2);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+
+  .success-logo svg,
+  .submitting-logo svg {
+    width: 38px;
+    height: 38px;
+    display: block;
+  }
+
+  .success-dialog::backdrop {
+    background: rgba(8, 24, 48, 0.36);
+    backdrop-filter: blur(2px);
+  }
+
+  .success-mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 14px;
+    border: 1px solid #a9ebc9;
+    border-radius: 50%;
+    background: #d9f8e7;
+    color: #16b66f;
+    box-shadow: inset 0 0 0 5px rgba(255, 255, 255, 0.24);
+  }
+
+  .success-mark::before,
+  .success-mark::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 28px;
+    height: 22px;
+    border-top: 2px solid #91e5bc;
+    border-bottom: 2px solid #91e5bc;
+    transform: translateY(-50%);
+  }
+
+  .success-mark::before {
+    right: calc(100% + 16px);
+    border-left: 0;
+  }
+
+  .success-mark::after {
+    left: calc(100% + 16px);
+    border-right: 0;
+  }
+
+  .success-mark svg {
+    width: 42px;
+    height: 42px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .success-dialog h2 {
+    margin: 0 0 8px;
+    color: light-dark(#07164d, #cfd8f2);
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+
+  .success-dialog p {
+    margin: 0 auto;
+    max-width: 360px;
+    color: light-dark(#53699b, #dadee7);
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .success-file {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    padding: 15px 17px;
+    border-radius: 8px;
+    background: light-dark(#f2f7ff, #1b293c);
+    text-align: left;
+  }
+
+  .success-file svg {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    color: light-dark(#5872a8, #9db7ef);
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .success-file strong {
+    display: block;
+    color: light-dark(#07164d, #cfd8f2);
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+  }
+
+  .success-file span {
+    display: block;
+    margin-top: 3px;
+    color: light-dark(#53699b, #dadee7);
+    font-size: 0.76rem;
+    line-height: 1.4;
+  }
+
+  .success-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    margin-top: 24px;
+    padding: 10px 18px;
+    border: 1px solid #0667ff;
+    border-radius: 7px;
+    background: #0667ff;
+    color: #ffffff;
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .submitting-dialog {
+    width: min(430px, calc(100% - 32px));
+    padding: 32px 36px;
+    border: 1px solid light-dark(#e4ebf5, #35415a);
+    border-radius: 12px;
+    background: light-dark(#ffffff, #212836);
+    color: light-dark(#07164d, #cfd8f2);
+    box-shadow: 0 24px 100px rgba(7, 25, 54, 0.25);
+    text-align: center;
+  }
+
+  .submitting-dialog::backdrop {
+    background: rgba(8, 24, 48, 0.36);
+    backdrop-filter: blur(2px);
+  }
+
+  .submitting-spinner {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 18px;
+    border: 5px solid light-dark(#ddecff, #24354d);
+    border-top-color: #0667ff;
+    border-radius: 50%;
+    animation: upload-spin 0.85s linear infinite;
+  }
+
+  .submitting-dialog h2 {
+    margin: 0 0 8px;
+    color: light-dark(#07164d, #cfd8f2);
+    font-size: 1.35rem;
+    line-height: 1.2;
+  }
+
+  .submitting-dialog p {
+    margin: 0;
+    color: light-dark(#53699b, #dadee7);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  @keyframes upload-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .submission-form {
@@ -347,6 +827,34 @@
   }
 
   @media (max-width: 880px) {
+    .submission-header {
+      flex-direction: column;
+    }
+
+    .period-card {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .closed-alert,
+    .closed-info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .closed-alert {
+      padding: 24px;
+    }
+
+    .closed-info-card {
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .help-link {
+      width: 100%;
+      margin-left: 78px;
+    }
+
     .submission-entry {
       grid-template-columns: 1fr;
     }
@@ -366,6 +874,12 @@
     }
 
   }
+
+  @media (max-width: 560px) {
+    .help-link {
+      margin-left: 0;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -373,10 +887,84 @@
 <section class="submission-page">
 
   <div class="submission-header">
-    <h1>Submission Page</h1>
-    <p>Upload your financial documents for processing and review.</p>
+    <div class="submission-heading">
+      <h1>Submission Page</h1>
+      <p>Upload your financial documents for processing and review.</p>
+    </div>
+
+    <div class="period-card" aria-label="Current bookkeeping period">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 2v4"/>
+        <path d="M16 2v4"/>
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <path d="M3 10h18"/>
+      </svg>
+      <span>
+        <small>Current Bookkeeping Period</small>
+        <strong>{{ submission_status.period_label }}</strong>
+      </span>
+    </div>
   </div>
 
+  {% if submission_status.is_closed %}
+    <div class="closed-state">
+      <section class="closed-alert" aria-labelledby="submission-closed-title">
+        <div class="closed-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="5" y="10" width="14" height="11" rx="2"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+            <path d="M12 15v2"/>
+          </svg>
+        </div>
+        <div>
+          <h2 id="submission-closed-title">Submission Closed</h2>
+          <p>
+            <strong>The submission period for this month has ended on {{ submission_status.deadline_label }}.</strong><br>
+            You can no longer upload new documents for this period.
+          </p>
+        </div>
+      </section>
+
+      <div class="closed-info-grid">
+        <section class="closed-info-card" aria-label="Next submission period">
+          <div class="info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M8 2v4"/>
+              <path d="M16 2v4"/>
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M3 10h18"/>
+              <path d="M8 15h4"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Next Submission Period</h3>
+            <p>The next submission period will open on <strong>{{ submission_status.next_period_open_label }}</strong>.</p>
+          </div>
+        </section>
+
+        <section class="closed-info-card" aria-label="Help centre">
+          <div class="info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+          </div>
+          <div>
+            <h3>Need Help?</h3>
+            <p>If you have any questions, please visit our Help Centre.</p>
+          </div>
+          <button class="help-link" type="button" data-upload-help>
+            Help Centre
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 17 17 7"/>
+              <path d="M8 7h9v9"/>
+            </svg>
+          </button>
+        </section>
+      </div>
+    </div>
+  {% else %}
   <form class="submission-form"
         method="POST"
         enctype="multipart/form-data"
@@ -511,10 +1099,183 @@
     </div>
 
   </form>
+  {% endif %}
+
+  <dialog class="submitting-dialog" aria-labelledby="upload-submitting-title" data-upload-submitting-dialog>
+    <div class="submitting-logo" aria-label="AXIODY">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="uploadSubmittingLogoBlue1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0b72f0"/>
+            <stop offset="100%" stop-color="#0854c7"/>
+          </linearGradient>
+          <linearGradient id="uploadSubmittingLogoBlue2" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1f8cff"/>
+            <stop offset="100%" stop-color="#1266dc"/>
+          </linearGradient>
+        </defs>
+        <path d="M31.5 5 8 47.5h14.2L32 29.7l10.1 17.8H56L32.6 5Z" fill="url(#uploadSubmittingLogoBlue1)"/>
+        <path d="M17.5 47.5 25 60h14l7.3-12.5H32Z" fill="url(#uploadSubmittingLogoBlue2)"/>
+      </svg>
+      <span>AXIODY</span>
+    </div>
+    <div class="submitting-spinner" aria-hidden="true"></div>
+    <h2 id="upload-submitting-title">Submitting</h2>
+    <p>Please wait while your documents are uploaded and prepared for processing.</p>
+  </dialog>
+
+  <dialog class="upload-help-dialog" aria-labelledby="upload-help-title" data-upload-help-dialog>
+    <div class="upload-help-heading">
+      <h2 id="upload-help-title">Help Centre</h2>
+      <button class="upload-help-close" type="button" data-upload-help-close aria-label="Close help">x</button>
+    </div>
+    <div class="upload-help-content">
+      <h3>General guides &amp; FAQs</h3>
+      <details open>
+        <summary>How do I get started?</summary>
+        <p>Sign in with your own account. Review your account information, choose a comfortable theme and text size, then read the guide for your role below.</p>
+      </details>
+      <details>
+        <summary>Where are my settings saved?</summary>
+        <p>Theme and font size are saved to your signed-in account and apply across all pages and devices. Other preferences are stored in this browser for your account.</p>
+      </details>
+      <details>
+        <summary>What do Save Changes and Close do?</summary>
+        <p>Save Changes validates and saves the account form. Close discards edits made since the last save and returns to the account summary. Appearance and notification choices save immediately.</p>
+      </details>
+
+      <h3>Client guides &amp; FAQs</h3>
+      <details open>
+        <summary>How do I submit documents?</summary>
+        <p>Open Submit, enter a title and the document date, add a description if helpful, then choose your files. Check the selected files before submitting. Use Add + for another document entry.</p>
+      </details>
+      <details>
+        <summary>What if my document needs changes?</summary>
+        <p>Read the review feedback, correct the specific issue and provide a complete, readable copy. Check the requested reporting period and deadline. Contact support if the request is unclear.</p>
+      </details>
+    </div>
+    <div class="upload-help-footer">
+      <button class="upload-help-done" type="button" data-upload-help-close>Done</button>
+    </div>
+  </dialog>
+
+  {% if upload_success | default(None) %}
+  <dialog class="success-dialog" aria-labelledby="upload-success-title" data-upload-success-dialog>
+    <div class="success-logo" aria-label="AXIODY">
+      <svg viewBox="0 0 64 64" aria-hidden="true">
+        <defs>
+          <linearGradient id="uploadSuccessLogoBlue1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0b72f0"/>
+            <stop offset="100%" stop-color="#0854c7"/>
+          </linearGradient>
+          <linearGradient id="uploadSuccessLogoBlue2" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stop-color="#1f8cff"/>
+            <stop offset="100%" stop-color="#1266dc"/>
+          </linearGradient>
+        </defs>
+        <path d="M31.5 5 8 47.5h14.2L32 29.7l10.1 17.8H56L32.6 5Z" fill="url(#uploadSuccessLogoBlue1)"/>
+        <path d="M17.5 47.5 25 60h14l7.3-12.5H32Z" fill="url(#uploadSuccessLogoBlue2)"/>
+      </svg>
+      <span>AXIODY</span>
+    </div>
+    <div class="success-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6"/>
+      </svg>
+    </div>
+    <h2 id="upload-success-title">Submission Successful</h2>
+    <p>Your document has been uploaded successfully and is now being processed by AXIODY.</p>
+
+    {% if upload_success.file %}
+    <div class="success-file">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+        <path d="M14 2v6h6"/>
+        <path d="M8 13h8"/>
+        <path d="M8 17h5"/>
+      </svg>
+      <span>
+        <strong>{{ upload_success.file.filename }}</strong>
+        {{ upload_success.file.size }} &middot; Uploaded on {{ upload_success.uploaded_label }}
+        {% if upload_success.count > 1 %}<br>{{ upload_success.count - 1 }} more file(s) uploaded.{% endif %}
+      </span>
+    </div>
+    {% endif %}
+
+    <a class="success-action" href="{{ url_for('client.notifications') }}">View Notifications</a>
+  </dialog>
+  {% endif %}
 </section>
 {% endblock %}
 
 {% block scripts %}
+<script>
+  const uploadHelpButton = document.querySelector("[data-upload-help]");
+  const uploadHelpDialog = document.querySelector("[data-upload-help-dialog]");
+
+  if (uploadHelpButton && uploadHelpDialog) {
+    uploadHelpButton.addEventListener("click", function () {
+      uploadHelpDialog.showModal();
+    });
+
+    uploadHelpDialog.querySelectorAll("[data-upload-help-close]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        uploadHelpDialog.close();
+      });
+    });
+
+    uploadHelpDialog.addEventListener("click", function (event) {
+      const bounds = uploadHelpDialog.getBoundingClientRect();
+      const isOutside =
+        event.target === uploadHelpDialog &&
+        (event.clientX < bounds.left ||
+          event.clientX > bounds.right ||
+          event.clientY < bounds.top ||
+          event.clientY > bounds.bottom);
+
+      if (isOutside) {
+        uploadHelpDialog.close();
+      }
+    });
+  }
+
+  const uploadSuccessDialog = document.querySelector("[data-upload-success-dialog]");
+
+  if (uploadSuccessDialog) {
+    uploadSuccessDialog.showModal();
+
+    uploadSuccessDialog.addEventListener("click", function (event) {
+      const bounds = uploadSuccessDialog.getBoundingClientRect();
+      const isOutside =
+        event.target === uploadSuccessDialog &&
+        (event.clientX < bounds.left ||
+          event.clientX > bounds.right ||
+          event.clientY < bounds.top ||
+          event.clientY > bounds.bottom);
+
+      if (isOutside) {
+        uploadSuccessDialog.close();
+      }
+    });
+  }
+
+  const uploadForm = document.querySelector(".submission-form");
+  const uploadSubmittingDialog = document.querySelector("[data-upload-submitting-dialog]");
+
+  if (uploadForm && uploadSubmittingDialog) {
+    uploadForm.addEventListener("submit", function (event) {
+      if (!uploadForm.checkValidity()) {
+        return;
+      }
+
+      uploadSubmittingDialog.showModal();
+      uploadForm.querySelectorAll("button").forEach(function (button) {
+        button.disabled = true;
+      });
+    });
+  }
+</script>
+{% if not submission_status.is_closed %}
 <script>
   const submissionForm = document.querySelector(".submission-form");
   const submissionList = document.querySelector("[data-submission-list]");
@@ -742,4 +1503,5 @@
 
   updateEntryNumbers();
 </script>
+{% endif %}
 {% endblock %}

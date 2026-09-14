@@ -1,9 +1,9 @@
 """Shared file listings for the bookkeeping page and its Excel export."""
 
 from contextlib import closing
-from datetime import datetime
 
 from app.models.documents import get_connection
+from app.time import to_singapore
 
 
 def _file_size(size_bytes):
@@ -20,7 +20,7 @@ def _display_dates(value):
     if not value:
         return "", ""
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = to_singapore(value)
     except ValueError:
         return value, value
     hour = parsed.strftime("%I").lstrip("0") or "12"

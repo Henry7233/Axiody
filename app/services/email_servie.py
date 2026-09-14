@@ -5,6 +5,8 @@ from pathlib import Path
 
 from flask import current_app
 
+from app.time import singapore_today
+
 
 class EmailConfigError(RuntimeError):
     """Raised when required SMTP settings are missing."""
@@ -148,7 +150,7 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
     elif isinstance(deadline_value, date):
         deadline = deadline_value
     else:
-        deadline = date.today()
+        deadline = singapore_today()
 
     issue = reminder.get("issue") or body
     period = reminder.get("bookkeeping_period") or "the selected period"

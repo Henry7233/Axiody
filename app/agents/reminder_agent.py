@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 from flask import current_app
 
+from app.time import singapore_now, singapore_today, to_singapore
 from app.models.documents import get_connection
 from app.services.email_servie import send_reminder_email
 
@@ -30,9 +31,9 @@ def _next_reminder(today):
 
 def document_reminder(created_at, today=None):
     """Describe the submission's deadline for the portal without sending email."""
-    today = today or date.today()
+    today = today or singapore_today()
     try:
-        submitted = date.fromisoformat((created_at or "")[:10])
+        submitted = to_singapore(created_at).date()
     except ValueError:
         return None
     deadline = _deadline(submitted)
@@ -73,7 +74,7 @@ def create_initial_reminder(validation_data, database_path=None, mail_config=Non
     if not document_id:
         return {"success": False, "message": "document_id is required."}
 
-    today = date.today()
+    today = singapore_today()
     deadline = _deadline(today)
     if today >= deadline:
         return {
@@ -114,15 +115,16 @@ def create_initial_reminder(validation_data, database_path=None, mail_config=Non
             """
             INSERT INTO notifications (
                 document_id, title, message, status, last_reminder_sent,
-                next_reminder_date, reminder_count
-            ) VALUES (?, ?, ?, 'unread', ?, ?, 1)
+                next_reminder_date, reminder_count, created_at
+            ) VALUES (?, ?, ?, 'unread', ?, ?, 1, ?)
             """,
             (
                 document_id,
                 title,
                 message,
-                date.today().isoformat(),
+                today.isoformat(),
                 _next_reminder(today),
+                singapore_now().isoformat(),
             ),
         )
         connection.commit()
@@ -166,7 +168,7 @@ def create_initial_reminder(validation_data, database_path=None, mail_config=Non
 def process_due_reminders(database_path=None, mail_config=None, today=None):
     """Send due reminders every five days until the 25th of the month."""
     database_path = _database_path(database_path)
-    today = today or date.today()
+    today = today or singapore_today()
     connection = _get_connection(database_path)
     sent = 0
     resolved = 0
@@ -204,8 +206,8 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                 """
                 INSERT INTO notifications (
                     document_id, title, message, status, last_reminder_sent,
-                    next_reminder_date, reminder_count
-                ) VALUES (?, ?, ?, 'unread', ?, ?, 1)
+                    next_reminder_date, reminder_count, created_at
+                ) VALUES (?, ?, ?, 'unread', ?, ?, 1, ?)
                 """,
                 (
                     row["id"],
@@ -213,6 +215,7 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                     message,
                     None,
                     _next_reminder(today),
+                    singapore_now().isoformat(),
                 ),
             )
 

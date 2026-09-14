@@ -6,10 +6,11 @@ from datetime import date, datetime
 
 from app.agents.reminder_agent import document_reminder
 from app.models.documents import document_validation_status, get_connection
+from app.time import singapore_today, to_singapore
 
 
 def get_admin_dashboard_data(database_path, period="all", today=None):
-    today = today or date.today()
+    today = today or singapore_today()
     with closing(get_connection(database_path)) as connection:
         stored_periods = connection.execute(
             "SELECT DISTINCT substr(document_date, 1, 7) FROM documents"
@@ -69,7 +70,7 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
         validation = document_validation_status(row["validation_status"])
         document["status"] = "Bookkept" if validation == "Complete" else "Under Review"
         try:
-            document["date"] = datetime.fromisoformat(row["created_at"].replace("Z", "+00:00")).strftime("%d %b %Y")
+            document["date"] = to_singapore(row["created_at"]).strftime("%d %b %Y")
         except (AttributeError, ValueError):
             document["date"] = "Date not recorded"
         document["filename"] = row["filename"] or row["title"]
