@@ -3,6 +3,7 @@ import mimetypes
 import secrets
 import sqlite3
 import zipfile
+from collections import Counter
 from contextlib import closing
 from datetime import date, datetime
 
@@ -26,34 +27,11 @@ from app.models.users import (
     delete_user,
     get_user_by_id,
     list_admin_users,
-    list_users,
     update_admin_user,
 )
 
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
-
-
-SAMPLE_DOCUMENTS = [
-    {
-        "id": "doc-1001",
-        "title": "September GST Invoice",
-        "submitter": "Acme Supplies",
-        "submission_date": "2026-09-03",
-    },
-    {
-        "id": "doc-1002",
-        "title": "August Payroll Summary",
-        "submitter": "Northstar Foods",
-        "submission_date": "2026-09-05",
-    },
-    {
-        "id": "doc-1003",
-        "title": "Bank Statement Review",
-        "submitter": "Greenline Studio",
-        "submission_date": "2026-09-07",
-    },
-]
 
 
 def require_admin():
@@ -653,12 +631,13 @@ def admin_management():
     admins = list_admin_users(current_app.config["DATABASE"])
     admin_roles = sorted({admin["role"] for admin in admins} | {"Admin manager", "Administrator", "Reviewer"})
     standard_roles = {"Administrator", "Admin manager", "Reviewer"}
+    role_counts = Counter(admin["role"] for admin in admins)
     admin_role_counts = {
         "total": len(admins),
-        "administrator": sum(1 for admin in admins if admin["role"] == "Administrator"),
-        "admin_manager": sum(1 for admin in admins if admin["role"] == "Admin manager"),
-        "reviewer": sum(1 for admin in admins if admin["role"] == "Reviewer"),
-        "other": sum(1 for admin in admins if admin["role"] not in standard_roles),
+        "administrator": role_counts.get("Administrator", 0),
+        "admin_manager": role_counts.get("Admin manager", 0),
+        "reviewer": role_counts.get("Reviewer", 0),
+        "other": sum(count for role, count in role_counts.items() if role not in standard_roles),
     }
     return render_template(
         "admin/admin_management.html",
