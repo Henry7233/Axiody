@@ -100,7 +100,7 @@
 
       <div class="progress-wrapper">
         <div class="progress-bar">
-          <div class="progress-fill" style="width: {{ bookkeeping_percentage }}%">
+          <div class="progress-fill" data-progress-width="{{ bookkeeping_percentage }}">
           </div>
         </div>
 
@@ -129,7 +129,7 @@
 
       <div class="breakdown-content">
 
-        <div class="donut-chart" style="background: {{ donut_background }}">
+        <div class="donut-chart" data-donut-background="{{ donut_background }}">
           <div class="donut-inner">
             <strong>{{ submitted_documents }}</strong>
             <span>Total</span>
@@ -289,5 +289,20 @@
 
 
 </section>
+
+<script>
+  document.querySelectorAll('[data-progress-width]').forEach((element) => {
+    const percentage = Number(element.dataset.progressWidth);
+    if (Number.isFinite(percentage)) {
+      element.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+    }
+  });
+
+  document.querySelectorAll('[data-donut-background]').forEach((element) => {
+    if (element.dataset.donutBackground) {
+      element.style.background = element.dataset.donutBackground;
+    }
+  });
+</script>
 
 {% endblock %}

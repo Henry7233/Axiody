@@ -103,7 +103,7 @@ def send_account_update_otp(config, recipient, code, expiry_minutes):
         f"This code expires in {expiry_minutes} minutes. "
         "If you did not request this account change, you can ignore this email."
     )
-    html = current_app.jinja_env.get_template("otp_email.html").render(
+    html = current_app.jinja_env.get_template("auth/otp_email.html").render(
         otp=code,
         expiry_minutes=expiry_minutes,
         logo_url=config.get("MAIL_LOGO_URL", ""),
@@ -119,7 +119,7 @@ def send_password_reset_otp(config, recipient, code, expiry_minutes):
         f"This code expires in {expiry_minutes} minutes. "
         "If you did not request a password reset, you can ignore this email."
     )
-    html = current_app.jinja_env.get_template("otp_email.html").render(
+    html = current_app.jinja_env.get_template("auth/otp_email.html").render(
         otp=code,
         expiry_minutes=expiry_minutes,
         logo_url=config.get("MAIL_LOGO_URL", ""),
