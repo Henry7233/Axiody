@@ -19,7 +19,7 @@ import secrets
 import sqlite3
 
 from app.models.users import create_user, delete_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, update_user_password, verify_user
-from app.services.email_servie import send_account_update_otp, send_password_reset_otp
+from app.services.email_servie import EmailConfigError, EmailConnectionError, send_account_update_otp, send_password_reset_otp
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -118,10 +118,12 @@ def send_account_otp(pending):
 
 def otp_send_error_response(error):
     current_app.logger.exception("Unable to send account update OTP")
-    if isinstance(error, RuntimeError):
+    if isinstance(error, EmailConfigError):
         message = "Email settings are not configured. Check your .env mail values."
     elif isinstance(error, smtplib.SMTPAuthenticationError):
         message = "Gmail rejected the email login. Create a new Gmail App Password for MAIL_USERNAME and put it in MAIL_PASSWORD."
+    elif isinstance(error, EmailConnectionError):
+        message = "Unable to connect to the email server. Outbound SMTP may be blocked, or MAIL_SERVER, MAIL_PORT, and SSL/TLS settings may be wrong."
     elif isinstance(error, (smtplib.SMTPConnectError, smtplib.SMTPServerDisconnected, TimeoutError, OSError)):
         message = "Unable to connect to the email server. Check MAIL_SERVER, MAIL_PORT, and SSL/TLS settings."
     else:
