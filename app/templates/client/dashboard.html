@@ -129,16 +129,6 @@
   .dashboard-overview dl { display: grid; grid-template-columns: minmax(95px, .85fr) minmax(0, 1fr); gap: 18px 12px; margin: 25px 0 8px; font-size: 1rem; }
   .dashboard-overview dt { color: var(--dash-muted); }
   .dashboard-overview dd { margin: 0; overflow-wrap: anywhere; }
-  .dashboard-solution { display: flex; align-items: flex-start; gap: 28px; padding: 24px; margin-top: 22px; border-radius: 15px; background: linear-gradient(110deg, light-dark(#eaf0ff, #1b243c), light-dark(#f0f3ff, #1b213c)); }
-  .dashboard-solution .dashboard-icon { border-radius: 50%; background: light-dark(#dce1ff, #21274a); color: light-dark(#4933ff, #9589f5); }
-  .dashboard-solution-copy { flex: 1; }
-  .dashboard-solution .eyebrow { color: light-dark(#0055c9, #89b7f5); text-transform: none; letter-spacing: 0; font-size: 0.875rem; font-weight: 500; margin-bottom: 5px; }
-  .dashboard-solution h2 { color: light-dark(#0b1356, #8e98f1); font-size: 1.5rem; margin-bottom: 12px; }
-  .dashboard-solution p { font-size: 0.875rem; }
-  .dashboard-illustration { position: relative; align-self: center; width: 100px; height: 120px; margin: 0 30px; background: #ffffffb0; border-radius: 18px 30px 18px 18px; padding: 28px 17px; }
-  .dashboard-illustration i { display: block; height: 5px; border-radius: 5px; margin-bottom: 12px; background: light-dark(#dfe7ff, #212b4a); }
-  .dashboard-illustration i:last-of-type { width: 40%; }
-  .dashboard-illustration span { position: absolute; right: -22px; bottom: 12px; padding: 7px; border-radius: 50%; background: #29b9c2; color: white; }
   @media (max-width: 1200px) {
     .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dashboard-columns { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
@@ -248,7 +238,6 @@
     </aside>
   </div>
 
-  <section class="dashboard-solution" aria-labelledby="solution-title"><span class="dashboard-icon">{{ icon('bulb') }}</span><div class="dashboard-solution-copy"><p class="eyebrow">Our Solution</p><h2 id="solution-title">Simpler Document Collection, Faster Bookkeeping</h2><p>Keep your bookkeeping organized with your documents and account information in one place.<br>Prepare the right supporting documents and keep your bookkeeping on track with fewer follow-ups and fewer delays.</p></div><div class="dashboard-illustration" aria-hidden="true"><i></i><i></i><i></i><i></i><span>{{ icon('check') }}</span></div></section>
   <dialog class="client-records-dialog" id="client-records-dialog" aria-labelledby="client-records-title" aria-describedby="client-records-description">
     <header class="client-records-header">
       <div>
