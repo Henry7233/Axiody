@@ -33,7 +33,7 @@
   <!-- SUMMARY CARDS -->
   <div class="summary-grid">
 
-    <article class="summary-card clients-card">
+    <a class="summary-card clients-card" href="{{ url_for('admin.clients') }}">
       <div class="summary-icon">
         👥
       </div>
@@ -42,10 +42,10 @@
         <p class="summary-label">Clients</p>
         <h2>{{ total_clients }}</h2>
       </div>
-    </article>
+    </a>
 
 
-    <article class="summary-card submitted-card">
+    <a class="summary-card submitted-card" href="{{ url_for('admin.recent_submissions', period=selected_period) }}">
       <div class="summary-icon">
         📄
       </div>
@@ -54,10 +54,10 @@
         <p class="summary-label">Submitted Documents</p>
         <h2>{{ submitted_documents }}</h2>
       </div>
-    </article>
+    </a>
 
 
-    <article class="summary-card review-card">
+    <a class="summary-card review-card" href="{{ url_for('admin.approve', period=selected_period) }}">
       <div class="summary-icon">
         ⏱
       </div>
@@ -66,10 +66,10 @@
         <p class="summary-label">Under Review</p>
         <h2>{{ under_review }}</h2>
       </div>
-    </article>
+    </a>
 
 
-    <article class="summary-card bookkept-card">
+    <a class="summary-card bookkept-card" href="{{ url_for('admin.bookkeeping', period=selected_period) }}">
       <div class="summary-icon">
         ✓
       </div>
@@ -78,12 +78,7 @@
         <p class="summary-label">Bookkept</p>
         <h2>{{ bookkept_documents }}</h2>
       </div>
-
-      <a href="{{ url_for('admin.recent_submissions', period=selected_period) }}"
-         class="summary-arrow">
-        →
-      </a>
-    </article>
+    </a>
 
   </div>
 

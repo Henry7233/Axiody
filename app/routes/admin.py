@@ -551,10 +551,11 @@ def download_bookkeeping_period():
 
     selected_period = bookkeeping_request_period()
     groups = get_bookkeeping_groups(current_app.config["DATABASE"], selected_period)
+    period_label = datetime.strptime(selected_period, "%Y-%m").strftime("%B %Y")
     return send_file(
         build_bookkeeping_workbook(groups, selected_period),
         as_attachment=True,
-        download_name=f"bookkeeping-{selected_period}.xlsx",
+        download_name=f"{period_label} Bookkeeping.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
