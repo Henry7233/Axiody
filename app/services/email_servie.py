@@ -1,6 +1,7 @@
 from email.message import EmailMessage
 import smtplib
 from datetime import date, datetime
+from pathlib import Path
 
 from flask import current_app
 
@@ -65,7 +66,7 @@ def _send_with_mode(server, port, use_ssl, use_tls, username, password, message)
                 pass
 
 
-def send_email(config, recipient, subject, body, html=None):
+def send_email(config, recipient, subject, body, html=None, inline_images=None):
     server = (config.get("MAIL_SERVER") or "").strip()
     username = (config.get("MAIL_USERNAME") or "").strip()
     password = "".join((config.get("MAIL_PASSWORD") or "").split())
@@ -81,6 +82,15 @@ def send_email(config, recipient, subject, body, html=None):
     message.set_content(body)
     if html:
         message.add_alternative(html, subtype="html")
+        html_part = message.get_body(preferencelist=("html",))
+        for image in inline_images or ():
+            html_part.add_related(
+                image["content"],
+                maintype=image["maintype"],
+                subtype=image["subtype"],
+                cid=image["cid"],
+                filename=image.get("filename"),
+            )
 
     connection_errors = []
     for port, use_ssl, use_tls in _smtp_modes(config):
@@ -142,8 +152,10 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
 
     issue = reminder.get("issue") or body
     period = reminder.get("bookkeeping_period") or "the selected period"
+    logo_path = Path(current_app.static_folder) / "images" / "axiody-logo.svg"
+    logo_content = logo_path.read_bytes()
     html = current_app.jinja_env.get_template("auth/reminder_email.html").render(
-        logo_url=config.get("MAIL_LOGO_URL", ""),
+        logo_url="cid:axiody-logo",
         company_name=reminder.get("company_name") or "your account",
         bookkeeping_period=period,
         issue_sentence=reminder.get("issue_sentence") or f"was flagged because {issue}",
@@ -154,4 +166,19 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
         axiody_url=config.get("AXIODY_URL", ""),
         help_url=config.get("HELP_URL", config.get("AXIODY_URL", "")),
     )
-    send_email(config, recipient, subject, body, html=html)
+    send_email(
+        config,
+        recipient,
+        subject,
+        body,
+        html=html,
+        inline_images=(
+            {
+                "content": logo_content,
+                "maintype": "image",
+                "subtype": "svg+xml",
+                "cid": "axiody-logo",
+                "filename": "axiody-logo.svg",
+            },
+        ),
+    )
