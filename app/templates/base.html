@@ -466,19 +466,6 @@
           </a>
         </li>
 
-        <!-- Reminders -->
-        <li>
-          <a class="nav-link"
-             href="{{ url_for('admin.reminders') }}"
-             {% if active_page | default('') == 'reminders' %}aria-current="page"{% endif %}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M18 8a6 6 0 0 0-12 0c0 6-3 7-3 9h18c0-2-3-3-3-9"/>
-              <path d="M10 21h4"/>
-            </svg>
-            <span>Reminders</span>
-          </a>
-        </li>
-
         <!-- Admin management -->
         {% if admin_can_manage_admins | default(false) %}
         <li>

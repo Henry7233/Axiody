@@ -229,6 +229,26 @@
     font-size: 13px;
   }
 
+  .reminders-page .reminders-back {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 40px;
+    margin-bottom: 18px;
+    padding: 0 16px;
+    border: 1px solid light-dark(#bdd3ff, #555);
+    border-radius: 8px;
+    background: light-dark(#fff, #1c1c1c);
+    color: light-dark(#086cf0, #a9c8ff);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .reminders-page .reminders-back:hover {
+    background: light-dark(#eef5ff, #292929);
+  }
+
   @media (max-width: 900px) {
     .dashboard-page.reminders-page {
       padding: 20px;
@@ -261,6 +281,8 @@
 </style>
 
 <section class="dashboard-page reminders-page" data-reminder-page aria-labelledby="reminders-title">
+  <a class="reminders-back" href="{{ url_for('admin.dashboard', period=selected_period) }}">Back to Dashboard</a>
+
   <header class="dashboard-header">
     <div>
       <p class="dashboard-eyebrow">ADMIN WORKSPACE</p>

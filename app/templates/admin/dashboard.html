@@ -177,26 +177,42 @@
     </article>
 
 
-    <!-- DEADLINE -->
-    <article class="dashboard-card deadline-card">
+    <!-- REMINDER PREVIEW -->
+    <article class="dashboard-card deadline-card reminder-preview-card">
 
       <div class="card-title-row">
-        <div class="card-title-icon">▣</div>
-        <h3>Submission Deadline</h3>
-      </div>
-
-      {% if deadline %}
-      <h2 class="deadline-date">{{ deadline.deadline_label }}</h2>
-      <p class="deadline-label">Outstanding document corrections</p>
-      <div class="deadline-notice">
+        <div class="card-title-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 0 0-12 0c0 6-3 7-3 9h18c0-2-3-3-3-9"/>
+            <path d="M10 21h4"/>
+          </svg>
+        </div>
         <div>
-          <strong>{% if days_left < 0 %}{{ -days_left }} days overdue{% elif days_left == 0 %}Due today{% else %}{{ days_left }} days left{% endif %}</strong>
-          <p>{{ deadline.message }}</p>
+          <h3>Reminders</h3>
+          <p>Missing or overdue document follow-ups</p>
         </div>
       </div>
+
+      <div class="reminder-preview-stats">
+        <div><strong>{{ active_followups }}</strong><span>Active follow-ups</span></div>
+        <div><strong>{{ total_reminder_emails }}</strong><span>Emails sent</span></div>
+      </div>
+
+      {% if reminder_preview %}
+      <ul class="reminder-preview-list">
+        {% for reminder in reminder_preview %}
+        <li>
+          <strong>{{ reminder.client }}</strong>
+          <span>{{ reminder.document_title }}</span>
+          <small>{{ reminder.next_reminder_date or 'No next date' }}</small>
+        </li>
+        {% endfor %}
+      </ul>
       {% else %}
-      <p class="deadline-label">No outstanding submission deadlines for this period.</p>
+      <p class="deadline-label">No active reminders for this period.</p>
       {% endif %}
+
+      <a class="view-all-link reminder-preview-link" href="{{ url_for('admin.reminders', period=selected_period) }}">View reminders</a>
 
     </article>
 

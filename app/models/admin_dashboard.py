@@ -45,11 +45,16 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
         ).fetchall()
         reminders = connection.execute(
             """
-            SELECT n.created_at FROM notifications n
+                        SELECT n.created_at, n.title, n.next_reminder_date, n.reminder_count,
+                                     d.title AS document_title,
+                                     COALESCE(NULLIF(TRIM(u.full_name), ''), u.email, 'Unknown client') AS client
+                        FROM notifications n
             JOIN documents d ON d.id = n.document_id
+                        JOIN users u ON u.id = d.user_id
             WHERE n.status != 'resolved' AND lower(trim(d.validation_status)) = 'incomplete'
               AND (? = 'all' OR substr(d.document_date, 1, 7) = ?)
-            """, (period, period),
+                        ORDER BY n.next_reminder_date IS NULL, n.next_reminder_date ASC, n.created_at DESC
+                        """, (period, period),
         ).fetchall()
 
     documents = []
@@ -88,6 +93,15 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
     deadlines = [document_reminder(row["created_at"], today) for row in reminders]
     deadline = min((item for item in deadlines if item), key=lambda item: item["deadline"], default=None)
     days_left = (date.fromisoformat(deadline["deadline"]) - today).days if deadline else None
+    reminder_preview = [
+        {
+            "client": row["client"],
+            "document_title": row["document_title"] or row["title"] or "Document reminder",
+            "next_reminder_date": row["next_reminder_date"],
+            "reminder_count": int(row["reminder_count"] or 0),
+        }
+        for row in reminders[:3]
+    ]
     invoice_end = counts["Invoice"] / submitted * 100 if submitted else 0
     receipt_end = invoice_end + (counts["Receipt"] / submitted * 100 if submitted else 0)
     bank_end = receipt_end + (counts["Bank Statement"] / submitted * 100 if submitted else 0)
@@ -108,4 +122,7 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
         ) if submitted else "#e7edf5",
         "recent_submissions": documents, "attention_documents": attention,
         "deadline": deadline, "days_left": days_left,
+        "active_followups": len(reminders),
+        "total_reminder_emails": sum(int(row["reminder_count"] or 0) for row in reminders),
+        "reminder_preview": reminder_preview,
     }
