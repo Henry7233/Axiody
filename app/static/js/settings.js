@@ -365,13 +365,11 @@ window.AxiodySettings = (() => {
       }
       setBusy(true);
       status(accountStatus, 'saving');
-      const abort = new AbortController();
-      const timeout = setTimeout(() => abort.abort(), 15000);
       try {
         const response = await fetch(accountUrl, {
           method: 'POST', body: payload, credentials: 'same-origin',
           headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-          signal: abort.signal, redirect: 'error'
+          redirect: 'error'
         });
         const result = await jsonFrom(response, 'Account update failed');
         if (!response.ok) throw new Error(result.message || 'Account update failed');
@@ -385,7 +383,6 @@ window.AxiodySettings = (() => {
       } catch (error) {
         plainStatus(accountStatus, error.message || message('saveError'), true);
       } finally {
-        clearTimeout(timeout);
         setBusy(false);
       }
     });

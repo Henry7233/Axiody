@@ -4,15 +4,74 @@ import smtplib
 from flask import current_app
 
 
-def send_email(config, recipient, subject, body, html=None):
-    server = config.get("MAIL_SERVER")
-    username = config.get("MAIL_USERNAME")
-    password = config.get("MAIL_PASSWORD")
-    sender = config.get("MAIL_DEFAULT_SENDER") or username
+class EmailConfigError(RuntimeError):
+    """Raised when required SMTP settings are missing."""
+
+
+class EmailConnectionError(RuntimeError):
+    """Raised when all configured SMTP connection attempts fail."""
+
+
+def _enabled(value):
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def _smtp_modes(config):
+    server = (config.get("MAIL_SERVER") or "").strip().lower()
     port = int(config.get("MAIL_PORT") or 587)
+    use_ssl = _enabled(config.get("MAIL_USE_SSL"))
+    use_tls = _enabled(config.get("MAIL_USE_TLS"))
+
+    if server == "smtp.gmail.com":
+        gmail_modes = [(587, False, True), (465, True, False)]
+        configured = (port, use_ssl, use_tls)
+        return [configured] + [mode for mode in gmail_modes if mode != configured] if configured[0] not in {465, 587} else gmail_modes
+
+    modes = [(port, use_ssl, use_tls)]
+    return modes
+
+
+def _send_with_mode(server, port, use_ssl, use_tls, username, password, message):
+    smtp = None
+    if use_ssl:
+        try:
+            smtp = smtplib.SMTP_SSL(server, port, timeout=20)
+            smtp.login(username, password)
+            smtp.send_message(message)
+            return
+        finally:
+            if smtp is not None:
+                try:
+                    smtp.quit()
+                except (smtplib.SMTPServerDisconnected, TimeoutError, OSError):
+                    pass
+
+    try:
+        smtp = smtplib.SMTP(server, port, timeout=20)
+        smtp.ehlo()
+        if use_tls:
+            smtp.starttls()
+            smtp.ehlo()
+        smtp.login(username, password)
+        smtp.send_message(message)
+    finally:
+        if smtp is not None:
+            try:
+                smtp.quit()
+            except (smtplib.SMTPServerDisconnected, TimeoutError, OSError):
+                pass
+
+
+def send_email(config, recipient, subject, body, html=None):
+    server = (config.get("MAIL_SERVER") or "").strip()
+    username = (config.get("MAIL_USERNAME") or "").strip()
+    password = "".join((config.get("MAIL_PASSWORD") or "").split())
+    sender = (config.get("MAIL_DEFAULT_SENDER") or username).strip()
 
     if not server or not username or not password or not sender:
-        raise RuntimeError("Email settings are not configured.")
+        raise EmailConfigError("Email settings are not configured.")
 
     message = EmailMessage()
     message["Subject"] = subject
@@ -22,17 +81,19 @@ def send_email(config, recipient, subject, body, html=None):
     if html:
         message.add_alternative(html, subtype="html")
 
-    if config.get("MAIL_USE_SSL"):
-        with smtplib.SMTP_SSL(server, port, timeout=20) as smtp:
-            smtp.login(username, password)
-            smtp.send_message(message)
-        return
+    connection_errors = []
+    for port, use_ssl, use_tls in _smtp_modes(config):
+        try:
+            _send_with_mode(server, port, use_ssl, use_tls, username, password, message)
+            return
+        except (smtplib.SMTPAuthenticationError, smtplib.SMTPRecipientsRefused):
+            raise
+        except (smtplib.SMTPException, TimeoutError, OSError) as error:
+            connection_errors.append(f"{server}:{port} {'SSL' if use_ssl else 'STARTTLS' if use_tls else 'plain'} failed: {error}")
+            continue
 
-    with smtplib.SMTP(server, port, timeout=20) as smtp:
-        if config.get("MAIL_USE_TLS"):
-            smtp.starttls()
-        smtp.login(username, password)
-        smtp.send_message(message)
+    detail = "; ".join(connection_errors) or "No SMTP connection attempts were made."
+    raise EmailConnectionError(detail)
 
 
 def send_account_update_otp(config, recipient, code, expiry_minutes):
