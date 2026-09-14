@@ -81,7 +81,7 @@
         {% endif %}
         {% if notification.category == 'deadlines' %}
         {% elif notification.incomplete_count %}
-        <a class="action primary" href="{{ url_for('client.upload', title=notification.title, document_date=notification.upload_date) }}">Upload corrected files</a>
+        <a class="action primary" href="{{ url_for('client.upload', title=notification.title, document_date=notification.upload_date, required_filenames=notification.required_filenames | join(',')) }}">Upload corrected files</a>
         {% if not notification.upload_date %}<p>These files have different dates. Use Add + on the upload form to submit each date separately.</p>{% endif %}
         {% endif %}
         <h3>{{ 'Documents to submit before the deadline' if notification.category == 'deadlines' else 'Documents and validation results' }}</h3><ul>

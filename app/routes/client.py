@@ -1,4 +1,5 @@
-from datetime import date
+import os
+from datetime import date, datetime
 
 from flask import Blueprint, current_app, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.utils import secure_filename
@@ -140,10 +141,17 @@ def upload():
     submission_status = submission_window()
     initial_title = request.form.get("title", "") if request.method == "POST" else request.args.get("title", "")
     initial_document_date = request.form.get("document_date", "") if request.method == "POST" else request.args.get("document_date", "")
+    required_filenames_raw = request.form.get("required_filenames", "") if request.method == "POST" else request.args.get("required_filenames", "")
     try:
         initial_document_date = date.fromisoformat(initial_document_date).isoformat()
     except ValueError:
         initial_document_date = ""
+
+    required_filenames = {
+        os.path.splitext(item.strip())[0].lower()
+        for item in required_filenames_raw.split(",")
+        if item and item.strip()
+    }
 
     if request.method == "POST":
         if submission_status["is_closed"]:
@@ -163,6 +171,31 @@ def upload():
         uploaded_files = []
         upload_time = singapore_now()
 
+        if required_filenames:
+            for index, title in enumerate(titles, start=1):
+                description = descriptions[index - 1] if index <= len(descriptions) else ""
+                document_date = document_dates[index - 1] if index <= len(document_dates) else ""
+                files = request.files.getlist(f"document_files_{index}")
+                if not title.strip() or not document_date:
+                    continue
+                for uploaded_file in files:
+                    if not uploaded_file or not uploaded_file.filename:
+                        continue
+                    filename = secure_filename(uploaded_file.filename) or uploaded_file.filename
+                    stem = os.path.splitext(filename)[0].lower()
+                    if stem not in required_filenames:
+                        flash(
+                            "Please upload the exact required file name(s): " + ", ".join(sorted(required_filenames)),
+                            "error",
+                        )
+                        return render_template(
+                            "client/upload.html",
+                            username=session.get("user_email"),
+                            initial_title=initial_title,
+                            initial_document_date=initial_document_date,
+                            required_filenames=sorted(required_filenames),
+                        ), 400
+
         for index, title in enumerate(titles, start=1):
             description = descriptions[index - 1] if index <= len(descriptions) else ""
             document_date = document_dates[index - 1] if index <= len(document_dates) else ""
@@ -175,11 +208,26 @@ def upload():
                 if not uploaded_file or not uploaded_file.filename:
                     continue
 
+                filename = secure_filename(uploaded_file.filename) or uploaded_file.filename
+                if required_filenames:
+                    stem = os.path.splitext(filename)[0].lower()
+                    if stem not in required_filenames:
+                        flash(
+                            "Please upload the exact required file name(s): " + ", ".join(sorted(required_filenames)),
+                            "error",
+                        )
+                        return render_template(
+                            "client/upload.html",
+                            username=session.get("user_email"),
+                            initial_title=initial_title,
+                            initial_document_date=initial_document_date,
+                            required_filenames=sorted(required_filenames),
+                        ), 400
+
                 file_data = uploaded_file.read()
                 if not file_data:
                     continue
 
-                filename = secure_filename(uploaded_file.filename) or uploaded_file.filename
                 content_type = uploaded_file.mimetype or ""
                 file_size = len(file_data)
                 document_id = create_document(
@@ -259,14 +307,12 @@ def upload():
         }
         return redirect(url_for("client.upload"))
 
-    upload_success = session.pop("upload_success", None)
     return render_template(
         "client/upload.html",
         username=session.get("user_email"),
         initial_title=initial_title,
         initial_document_date=initial_document_date,
-        submission_status=submission_status,
-        upload_success=upload_success,
+        required_filenames=sorted(required_filenames),
     )
 
 
