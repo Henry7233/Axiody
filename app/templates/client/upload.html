@@ -380,7 +380,11 @@
   <form class="submission-form"
         method="POST"
         enctype="multipart/form-data"
-        action="">
+        action=""
+        data-required-filenames="{{ required_filenames | join(',') if required_filenames else '' }}">
+    {% if required_filenames %}
+    <input type="hidden" name="required_filenames" value="{{ required_filenames | join(',') }}">
+    {% endif %}
 
     <div class="submission-list" data-submission-list>
       <div class="submission-entry" data-submission-entry>
@@ -441,6 +445,9 @@
 
           <div class="submit-note">
             After submission, AXIODY will classify and validate the uploaded document.
+            {% if required_filenames %}
+              <br><strong>Required file name pattern:</strong> {{ required_filenames | join(', ') }}
+            {% endif %}
           </div>
 
         </div>
@@ -512,6 +519,44 @@
   const submissionForm = document.querySelector(".submission-form");
   const submissionList = document.querySelector("[data-submission-list]");
   const addUploadButton = document.querySelector("[data-add-upload]");
+
+  function normalizeRequiredName(name) {
+    return (name || "").split(".")[0].trim().toLowerCase();
+  }
+
+  function getRequiredFilenames() {
+    const raw = submissionForm.getAttribute("data-required-filenames") || "";
+    return raw.split(",").map(normalizeRequiredName).filter(Boolean);
+  }
+
+  function validateRequiredFilenamePattern(event) {
+    const requiredNames = getRequiredFilenames();
+    if (!requiredNames.length) {
+      return;
+    }
+
+    const uploadedFiles = Array.from(document.querySelectorAll(".file-input")).flatMap(function (fileInput) {
+      return Array.from(fileInput.files || []);
+    });
+
+    if (uploadedFiles.length === 0) {
+      return;
+    }
+
+    const mismatched = uploadedFiles.filter(function (file) {
+      const fileName = file.name || "";
+      const stem = normalizeRequiredName(fileName);
+      return !requiredNames.includes(stem);
+    });
+
+    if (mismatched.length > 0) {
+      event.preventDefault();
+      const label = requiredNames.join(", ");
+      alert("Please upload the exact required file name(s): " + label);
+    }
+  }
+
+  submissionForm.addEventListener("submit", validateRequiredFilenamePattern);
 
   function getSubmissionEntries() {
     return Array.from(submissionList.querySelectorAll("[data-submission-entry]"));

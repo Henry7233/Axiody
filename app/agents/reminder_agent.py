@@ -180,7 +180,6 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                 SELECT latest.id FROM documents latest
                 WHERE latest.user_id = d.user_id
                   AND latest.title = d.title
-                  AND latest.document_date = d.document_date
                   AND filename_stem(latest.filename) = filename_stem(d.filename)
                 ORDER BY latest.id DESC LIMIT 1
             )
@@ -224,7 +223,6 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                    (
                        SELECT latest.validation_status FROM documents latest
                        WHERE latest.user_id = d.user_id AND latest.title = d.title
-                         AND latest.document_date = d.document_date
                          AND filename_stem(latest.filename) = filename_stem(d.filename)
                        ORDER BY latest.id DESC LIMIT 1
                    ) AS validation_status, u.email
@@ -315,7 +313,7 @@ def resolve_notification(document_id, database_path=None):
 def resolve_replaced_document_reminders(
     user_id, title, document_date, database_path=None
 ):
-    """Stop reminders for an older submission replaced by a new upload."""
+    """Stop reminders for older duplicate uploads that match the same title and filename."""
     database_path = _database_path(database_path)
     connection = _get_connection(database_path)
     try:
@@ -325,8 +323,10 @@ def resolve_replaced_document_reminders(
             SET status = 'resolved', next_reminder_date = NULL
             WHERE status != 'resolved'
               AND document_id IN (
-                  SELECT id FROM documents
-                  WHERE user_id = ? AND title = ? AND document_date = ?
+                  SELECT d.id FROM documents d
+                  WHERE d.user_id = ?
+                    AND d.title = ?
+                    AND d.document_date = ?
               )
             """,
             (user_id, title.strip(), document_date),

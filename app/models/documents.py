@@ -205,6 +205,7 @@ def update_document_classification(database_path, document_id, classification):
 
 def update_document_validation(database_path, document_id, validation):
     with closing(get_connection(database_path)) as connection, connection:
+        validation_status = validation["validation_status"]
         connection.execute(
             """
             UPDATE documents
@@ -214,21 +215,38 @@ def update_document_validation(database_path, document_id, validation):
             WHERE id = ?
             """,
             (
-                validation["validation_status"],
-                json.dumps(validation.get("reasons", []) if validation["validation_status"] != "Complete" else []),
+                validation_status,
+                json.dumps(validation.get("reasons", []) if validation_status != "Complete" else []),
                 validation["ai_confidence"],
                 document_id,
             ),
         )
-        if validation["validation_status"] == "Complete":
+        if validation_status == "Complete":
+            connection.execute(
+                """
+                UPDATE documents
+                SET validation_status = 'Complete', validation_reasons = '[]'
+                WHERE user_id = (
+                    SELECT user_id FROM documents WHERE id = ?
+                )
+                  AND title = (
+                    SELECT title FROM documents WHERE id = ?
+                  )
+                  AND filename_stem(filename) = filename_stem(
+                    (SELECT filename FROM documents WHERE id = ?)
+                  )
+                  AND LOWER(COALESCE(TRIM(validation_status), '')) = 'incomplete'
+                """,
+                (document_id, document_id, document_id),
+            )
             connection.execute(
                 """
                 UPDATE notifications SET status = 'resolved', next_reminder_date = NULL
                 WHERE document_id IN (
                     SELECT older.id FROM documents older
                     JOIN documents current ON current.id = ?
-                    WHERE older.user_id = current.user_id AND older.title = current.title
-                      AND older.document_date = current.document_date
+                    WHERE older.user_id = current.user_id
+                      AND older.title = current.title
                       AND filename_stem(older.filename) = filename_stem(current.filename)
                       AND older.id <= current.id
                 )
@@ -317,7 +335,6 @@ def approval_record(row):
     document = dict(row)
     document["category"] = normalize_document_type(document["document_type"] or document["ai_document_type"] or "Other")
     document["submission_date"] = (document["created_at"] or "")[:10]
-    document["reasons"] = validation_messages(document["validation_reasons"])
     document["is_under_review"] = is_under_review_status(document["classification_status"])
     return document
 
@@ -330,10 +347,11 @@ def get_approval_documents(database_path, document_id=None):
             SELECT d.id, d.title, d.description, d.filename, d.file_type,
                    d.document_date, d.document_type, d.ai_document_type,
                    d.ai_confidence, d.classification_status, d.validation_status,
-                   d.validation_reasons, d.created_at, d.reviewed_by, d.reviewed_at,
+                   d.created_at, d.reviewed_by, d.reviewed_at,
                    COALESCE(NULLIF(TRIM(u.full_name), ''), u.email) AS submitter
             FROM documents d JOIN users u ON u.id = d.user_id
             WHERE """ + (UNDER_REVIEW_SQL if document_id is None else "d.id = ?") + """
+              AND LOWER(TRIM(COALESCE(d.validation_status, ''))) <> 'incomplete'
             ORDER BY d.created_at DESC, d.id DESC
             """,
             () if document_id is None else (document_id,),
@@ -346,12 +364,14 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
     with closing(get_connection(database_path)) as connection, connection:
         connection.execute("BEGIN IMMEDIATE")
         document = connection.execute(
-            "SELECT classification_status FROM documents WHERE id = ?", (document_id,)
+            "SELECT classification_status, validation_status FROM documents WHERE id = ?", (document_id,)
         ).fetchone()
         if document is None:
             return "missing"
         if not is_under_review_status(document["classification_status"]):
             return "reviewed"
+        if (document["validation_status"] or "").strip().lower() == "incomplete":
+            return "incomplete"
         if action == "rejected":
             connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))
             return "ok"
