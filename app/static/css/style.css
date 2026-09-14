@@ -797,6 +797,13 @@ body:has(.verification-page) .site-content {
   margin-bottom: 18px;
 }
 
+.verification-page fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .form-field {
   display: grid;
   gap: 8px;
@@ -809,7 +816,9 @@ body:has(.verification-page) .site-content {
   font-weight: 700;
 }
 
-.form-field input {
+.form-field input,
+.verification-page .form-field select,
+.verification-page .form-field textarea {
   border-color: light-dark(#cbd6e6, #35415a);
   border-radius: 9px;
   color: var(--admin-text);
