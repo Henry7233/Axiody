@@ -12,7 +12,7 @@
     <div>
       <p class="page-eyebrow">Document review</p>
       <h1 id="verify-title">{{ document.title }}</h1>
-      <p class="page-description">Review the saved classification and validation results, and correct the document details.</p>
+      <p class="page-description">Review the classification and select the correct category before approving or rejecting the document.</p>
     </div>
     <a class="btn btn--secondary" href="{{ url_for('admin.approve') }}">Back to approval queue</a>
   </header>
@@ -26,8 +26,6 @@
         <p class="muted">Submitted by {{ document.submitter }} on {{ document.submission_date }}.</p>
         <p id="reviewStatus">Classification status: {{ document.classification_status }}</p>
         <p>AI classification: {{ document.ai_document_type or 'Not available' }}</p>
-        <p>Validation: {{ document.validation_status or 'Pending validation' }}</p>
-        {% for reason in document.reasons %}<p>{{ reason }}</p>{% endfor %}
       </div>
       <form id="verifyForm">
         <fieldset id="reviewFields" {% if not document.is_under_review %}disabled{% endif %}>

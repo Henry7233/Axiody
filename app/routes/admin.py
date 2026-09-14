@@ -240,6 +240,8 @@ def review_document(document_id):
         return jsonify(message="Document not found."), 404
     if result == "reviewed":
         return jsonify(message="This document is no longer awaiting review. Reload the page."), 409
+    if result == "incomplete":
+        return jsonify(message="This document is no longer eligible for classification review. Reload the approval queue."), 409
     return jsonify(message={
         "saved": "Changes saved for review.",
         "approved": "Document approved.",
