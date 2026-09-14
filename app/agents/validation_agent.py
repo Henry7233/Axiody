@@ -50,7 +50,8 @@ def _fallback_validation(document_text, title="", description="", expected_perio
     if not document_text or not document_text.strip():
         reasons.append("missing_document_text")
 
-    detected_dates = _extract_dates(evidence)
+    # Submission metadata cannot substitute for a date visible in the document.
+    detected_dates = _extract_dates(document_text)
     if not detected_dates:
         reasons.append("missing_date")
     elif expected_period:
@@ -87,27 +88,37 @@ def _fallback_validation(document_text, title="", description="", expected_perio
 
 
 def _extract_dates(value):
+    """Read ISO, numeric and named-month dates; ambiguous numeric dates use D/M/Y."""
     dates = []
+    month = r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
     patterns = (
-        ("%Y-%m-%d", r"\b\d{4}-\d{2}-\d{2}\b"),
-        ("%m/%d/%Y", r"\b\d{1,2}/\d{1,2}/\d{4}\b"),
-        ("%m/%d/%y", r"\b\d{1,2}/\d{1,2}/\d{2}\b"),
-        ("%b %d %Y", r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b"),
+        (("%Y-%m-%d",), r"\b\d{4}-\d{1,2}-\d{1,2}\b"),
+        (("%d %b %Y", "%d %B %Y"), rf"\b\d{{1,2}}[\s-]+{month}[\s-]+\d{{4}}\b"),
+        (("%b %d %Y", "%B %d %Y"), rf"\b{month}\s+\d{{1,2}},?\s+\d{{4}}\b"),
     )
-    for date_format, pattern in patterns:
+    for date_formats, pattern in patterns:
         for match in re.findall(pattern, value, re.IGNORECASE):
-            normalized = match.replace(",", "")
-            if date_format == "%b %d %Y":
-                normalized = " ".join(normalized.split()[:3])
-            try:
-                dates.append(datetime.strptime(normalized, date_format))
-            except ValueError:
-                if date_format != "%b %d %Y":
-                    continue
+            normalized = match if date_formats == ("%Y-%m-%d",) else " ".join(
+                match.replace(",", "").replace("-", " ").split()
+            )
+            for date_format in date_formats:
                 try:
-                    dates.append(datetime.strptime(normalized, "%B %d %Y"))
+                    dates.append(datetime.strptime(normalized, date_format))
+                    break
                 except ValueError:
                     continue
+
+    numeric_dates = re.findall(r"\b(\d{1,2})([/.-])(\d{1,2})\2(\d{4}|\d{2})\b", value)
+    # Use unambiguous dates elsewhere in the same document to identify US ordering.
+    day_first = any(int(first) > 12 for first, _, second, year in numeric_dates)
+    month_first = not day_first and any(int(second) > 12 for first, _, second, year in numeric_dates)
+    for first, separator, second, year in numeric_dates:
+        date_format = "%m/%d/" if month_first else "%d/%m/"
+        date_format += "%Y" if len(year) == 4 else "%y"
+        try:
+            dates.append(datetime.strptime(f"{first}/{second}/{year}", date_format))
+        except ValueError:
+            continue
     return dates
 
 
