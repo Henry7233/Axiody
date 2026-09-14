@@ -248,6 +248,7 @@ def save_verified_account_update(payload):
     return jsonify({"message": "Account changes saved.", "account": result["account"]})
 
 
+@auth_bp.route("/login.html", methods=["GET", "POST"])
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":

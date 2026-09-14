@@ -164,7 +164,7 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
         deadline=deadline.strftime("%B %d, %Y"),
         deadline_day=deadline.strftime("%A"),
         deadline_short=deadline.strftime("%B %d"),
-        axiody_url=f"{axiody_url}/login" if axiody_url else "",
+        axiody_url=f"{axiody_url}/login.html" if axiody_url else "/login.html",
         help_url=config.get("HELP_URL", config.get("AXIODY_URL", "")),
     )
     send_email(
