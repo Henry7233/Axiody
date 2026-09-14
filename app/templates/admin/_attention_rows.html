@@ -1,0 +1,11 @@
+{% for document in attention_documents %}
+<tr>
+  <td>{{ document.client }}</td>
+  <td>{{ document.filename }}</td>
+  <td><span class="status-badge status-danger">{{ document.reason }}</span></td>
+  <td>{{ document.date }}</td>
+  <td><a href="{{ url_for('admin.client_detail', client_id=document.user_id) }}" class="outline-button">Review</a></td>
+</tr>
+{% else %}
+<tr><td colspan="5">No documents need attention for this period.</td></tr>
+{% endfor %}

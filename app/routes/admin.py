@@ -6,6 +6,7 @@ from datetime import date, datetime
 
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
+from app.models.admin_dashboard import get_admin_dashboard_data
 from app.models.documents import (
     get_client_review_data,
     list_client_summaries,
@@ -143,25 +144,15 @@ def dashboard():
     if redirect_response:
         return redirect_response
 
-    period_options = [
-        {"value": "2026-09", "label": "September 2026"},
-        {"value": "2026-08", "label": "August 2026"},
-        {"value": "2026-07", "label": "July 2026"},
-        {"value": "2026-06", "label": "June 2026"},
-    ]
-    selected_period = request.args.get("period", period_options[0]["value"])
-    if selected_period not in {period["value"] for period in period_options}:
-        selected_period = period_options[0]["value"]
-    selected_period_label = next(
-        period["label"] for period in period_options if period["value"] == selected_period
+    data = get_admin_dashboard_data(
+        current_app.config["DATABASE"], request.args.get("period", "all")
     )
+    data["recent_submissions"] = data["recent_submissions"][:5]
+    data["attention_documents"] = data["attention_documents"][:5]
 
     return render_template(
         "admin/dashboard.html",
-        documents=SAMPLE_DOCUMENTS,
-        period_options=period_options,
-        selected_period=selected_period,
-        selected_period_label=selected_period_label,
+        **data,
         **admin_context("dashboard"),
     )
 
@@ -475,6 +466,7 @@ def recent_submissions():
 
     return render_template(
         "admin/recent_submissions.html",
+        **get_admin_dashboard_data(current_app.config["DATABASE"], request.args.get("period", "all")),
         **admin_context("dashboard"),
     )
 
@@ -488,6 +480,7 @@ def clients_attention():
 
     return render_template(
         "admin/clients_attention.html",
+        **get_admin_dashboard_data(current_app.config["DATABASE"], request.args.get("period", "all")),
         **admin_context("dashboard"),
     )
 
