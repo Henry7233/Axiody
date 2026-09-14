@@ -12,3 +12,290 @@ html[data-theme="dark"] .btn--primary {
   background: #0864ff;
   color: #fff;
 }
+
+/* Admin dashboard pages use a later fixed-color layout override. */
+html[data-theme="dark"] .dashboard-page {
+  background: #0b0b0b;
+  color: #ededed;
+}
+
+html[data-theme="dark"] .dashboard-page .dashboard-header h1,
+html[data-theme="dark"] .dashboard-page .dashboard-card h3,
+html[data-theme="dark"] .dashboard-page .summary-card h2,
+html[data-theme="dark"] .dashboard-page .summary-label,
+html[data-theme="dark"] .dashboard-page .progress-percentage,
+html[data-theme="dark"] .dashboard-page .reminder-stat strong {
+  color: #f2f2f2;
+}
+
+html[data-theme="dark"] .dashboard-page .dashboard-description,
+html[data-theme="dark"] .dashboard-page .card-title-row p,
+html[data-theme="dark"] .dashboard-page .summary-text,
+html[data-theme="dark"] .dashboard-page .deadline-label,
+html[data-theme="dark"] .dashboard-page .deadline-notice p,
+html[data-theme="dark"] .dashboard-page .reminder-stat p {
+  color: #b8b8b8;
+}
+
+html[data-theme="dark"] .dashboard-page .period-selector,
+html[data-theme="dark"] .dashboard-page .summary-card,
+html[data-theme="dark"] .dashboard-page .dashboard-card {
+  background: #151515;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] .dashboard-page .dashboard-table thead {
+  background: #222;
+}
+
+html[data-theme="dark"] .dashboard-page .dashboard-table th {
+  color: #cfcfcf;
+}
+
+html[data-theme="dark"] .dashboard-page .dashboard-table td {
+  border-color: #343434;
+  color: #d6d6d6;
+}
+
+html[data-theme="dark"] .dashboard-page .status-success { background: #174b38; color: #8ce8bc; }
+html[data-theme="dark"] .dashboard-page .status-warning { background: #55451e; color: #f4cf7a; }
+html[data-theme="dark"] .dashboard-page .status-danger { background: #572b34; color: #ffabb2; }
+html[data-theme="dark"] .dashboard-page .outline-button {
+  border-color: #666;
+  color: #a9c8ff;
+}
+html[data-theme="dark"] .dashboard-page .view-all-link { color: #a9c8ff; }
+html[data-theme="dark"] .dashboard-page .recent-submissions-back,
+html[data-theme="dark"] .dashboard-page .clients-attention-back {
+  background: #0864ff;
+  color: #fff;
+}
+
+/* Neutral dark surfaces shared by every authenticated page. */
+html[data-theme="dark"] {
+  --axiody-blue-soft: #1c1c1c;
+  --axiody-text: #ededed;
+  --axiody-muted: #b8b8b8;
+  --axiody-border: #343434;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .site-content,
+html[data-theme="dark"] .main {
+  background: #0b0b0b;
+  color: #ededed;
+}
+
+html[data-theme="dark"] .site-header {
+  background: #0b0b0b;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] .nav-link:hover,
+html[data-theme="dark"] .nav-link[aria-current="page"] {
+  background: #1c1c1c;
+}
+
+html[data-theme="dark"] .site-footer {
+  background: #111;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] body:has(.client-dashboard),
+html[data-theme="dark"] body:has(.notifications-page) {
+  background: #0b0b0b;
+}
+
+html[data-theme="dark"] .client-dashboard .dashboard-card,
+html[data-theme="dark"] .client-dashboard .client-records-dialog,
+html[data-theme="dark"] .client-dashboard .client-records-category {
+  background: #151515;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] .client-dashboard .dashboard-period,
+html[data-theme="dark"] .client-dashboard .document-checklist {
+  background: #1c1c1c;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] .notifications-page .summary-card,
+html[data-theme="dark"] .notifications-page .notification-card,
+html[data-theme="dark"] .notifications-page .filters,
+html[data-theme="dark"] .notifications-page .panel {
+  background: #151515;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] body:has(.settings-page) {
+  --settings-bg: #0b0b0b;
+  --settings-surface: #151515;
+  --settings-soft: #1c1c1c;
+  --settings-text: #ededed;
+  --settings-muted: #b8b8b8;
+  --settings-border: #343434;
+  --settings-selected: #242424;
+}
+
+html[data-theme="dark"] .notifications-page {
+  --muted: #b8b8b8;
+  --border: #343434;
+}
+
+html[data-theme="dark"] .client-dashboard {
+  --dash-muted: #b8b8b8;
+  color: #ededed;
+}
+
+/* Page-local dark branches use blue-tinted values, so normalize their surfaces here. */
+html[data-theme="dark"] body:has(.submission-page),
+html[data-theme="dark"] body:has(.admin-bookkeeping-page),
+html[data-theme="dark"] body:has(.client-dashboard) {
+  background: #0b0b0b !important;
+}
+
+html[data-theme="dark"] .submission-page,
+html[data-theme="dark"] .admin-bookkeeping-page,
+html[data-theme="dark"] .client-dashboard {
+  background: transparent !important;
+  color: #ededed !important;
+}
+
+html[data-theme="dark"] .submission-page .form-card,
+html[data-theme="dark"] .submission-page .form-control,
+html[data-theme="dark"] .submission-page .selected-files,
+html[data-theme="dark"] .submission-page .upload-box,
+html[data-theme="dark"] .admin-bookkeeping-page .panel,
+html[data-theme="dark"] .admin-bookkeeping-page .file-list,
+html[data-theme="dark"] .client-dashboard .dashboard-card,
+html[data-theme="dark"] .client-dashboard .client-records-dialog,
+html[data-theme="dark"] .client-dashboard .client-records-category {
+  background: #151515 !important;
+  border-color: #343434 !important;
+  color: #ededed !important;
+}
+
+html[data-theme="dark"] .submission-page .upload-box:hover,
+html[data-theme="dark"] .submission-page .upload-box.dragging,
+html[data-theme="dark"] .submission-page .add-upload-btn:hover,
+html[data-theme="dark"] .client-dashboard .document-checklist,
+html[data-theme="dark"] .client-dashboard .dashboard-period {
+  background: #1c1c1c !important;
+}
+
+html[data-theme="dark"] .submission-page .form-label,
+html[data-theme="dark"] .submission-page .upload-title,
+html[data-theme="dark"] .submission-page .form-control,
+html[data-theme="dark"] .admin-bookkeeping-page h1,
+html[data-theme="dark"] .admin-bookkeeping-page h2,
+html[data-theme="dark"] .admin-bookkeeping-page h3,
+html[data-theme="dark"] .client-dashboard h1,
+html[data-theme="dark"] .client-dashboard h2,
+html[data-theme="dark"] .client-dashboard h3 {
+  color: #ededed !important;
+}
+
+html[data-theme="dark"] .submission-page p,
+html[data-theme="dark"] .submission-page .description-footer,
+html[data-theme="dark"] .submission-page .upload-or,
+html[data-theme="dark"] .submission-page .upload-help,
+html[data-theme="dark"] .admin-bookkeeping-page p,
+html[data-theme="dark"] .client-dashboard p {
+  color: #b8b8b8 !important;
+}
+
+html[data-theme="dark"] .submission-page .add-upload-btn,
+html[data-theme="dark"] .admin-bookkeeping-page .bookkeeping-period,
+html[data-theme="dark"] .admin-bookkeeping-page .bookkeeping-download {
+  background: #1c1c1c !important;
+  border-color: #555 !important;
+  color: #a9c8ff !important;
+}
+
+html[data-theme="dark"] .admin-bookkeeping-page .bookkeeping-table th {
+  background: #222 !important;
+  color: #d0d0d0 !important;
+}
+
+html[data-theme="dark"] .admin-bookkeeping-page .bookkeeping-table td {
+  border-color: #343434 !important;
+  color: #d6d6d6 !important;
+}
+
+html[data-theme="dark"] .admin-bookkeeping-page {
+  --ink: #ededed;
+  --paper: #0b0b0b;
+  --panel: #151515;
+  --line: #343434;
+  --moss: #d6d6d6;
+  --moss-dim: #b8b8b8;
+  --rust: #ffaaa0;
+  --sand: #242424;
+  --shadow: rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .admin-bookkeeping-page .panel {
+  background: #151515 !important;
+  border-color: #343434 !important;
+}
+
+html[data-theme="dark"] .notifications-page .search,
+html[data-theme="dark"] .notifications-page .filters button,
+html[data-theme="dark"] .notifications-page .sort select,
+html[data-theme="dark"] .notifications-page .action,
+html[data-theme="dark"] .notifications-page .close-dialog {
+  background: #1c1c1c !important;
+  border-color: #343434 !important;
+  color: #d6d6d6 !important;
+}
+
+html[data-theme="dark"] .notifications-page dialog,
+html[data-theme="dark"] .notifications-page .empty-state {
+  background: #151515 !important;
+  border-color: #343434 !important;
+  color: #ededed !important;
+}
+
+html[data-theme="dark"] body:has(.admin-dashboard) {
+  background: #0b0b0b !important;
+  color: #ededed !important;
+}
+
+html[data-theme="dark"] .admin-dashboard {
+  --admin-text: #ededed;
+  --admin-muted: #b8b8b8;
+  --admin-border: #343434;
+  --admin-surface: #151515;
+  --admin-soft: #1c1c1c;
+}
+
+html[data-theme="dark"] .admin-dashboard .dashboard-section,
+html[data-theme="dark"] .admin-dashboard .dashboard-panel,
+html[data-theme="dark"] .admin-dashboard .metric-card,
+html[data-theme="dark"] .admin-dashboard .document-card,
+html[data-theme="dark"] .admin-dashboard .empty-state {
+  background: #151515 !important;
+  border-color: #343434 !important;
+  color: #ededed !important;
+}
+
+html[data-theme="dark"] .admin-dashboard .clients-table thead,
+html[data-theme="dark"] .admin-dashboard .clients-table th {
+  background: #222 !important;
+  color: #d0d0d0 !important;
+}
+
+html[data-theme="dark"] .admin-dashboard .clients-table td,
+html[data-theme="dark"] .admin-dashboard .document-card p,
+html[data-theme="dark"] .admin-dashboard .empty-state p,
+html[data-theme="dark"] .admin-dashboard .dashboard-message {
+  color: #b8b8b8 !important;
+  border-color: #343434 !important;
+}
+
+html[data-theme="dark"] .admin-dashboard .document-card h3,
+html[data-theme="dark"] .admin-dashboard .empty-state h3,
+html[data-theme="dark"] .admin-dashboard .section-heading h2,
+html[data-theme="dark"] .admin-dashboard .page-header h1 {
+  color: #ededed !important;
+}
