@@ -9,7 +9,7 @@ window.AxiodySettings = (() => {
     temporary: 'Changes apply for this visit only. Sign in to save preferences for your account.',
     storageError: 'Browser storage is unavailable. Your changes are temporary; allow site storage and try again.',
     localSaved: 'Profile saved on this browser. Your sign-in email and password have not changed.',
-    accountSaved: 'Account changes saved.',
+    accountSaved: 'Changes saved.',
     discarded: 'Account editor closed. Unsaved edits were discarded.',
     saving: 'Saving changes...',
     saveError: 'Unable to confirm the account update. Your edits are still here. Please try again.',
