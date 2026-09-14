@@ -5,10 +5,6 @@
 
 {% block head %}
 <style>
-  .submission-page {
-    padding: 42px 0 60px;
-  }
-
   .submission-header {
     margin-bottom: 26px;
   }
@@ -118,8 +114,15 @@
     font-size: 0.87rem;
   }
 
+  .upload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+  }
+
   .upload-box {
-    position: relative;
     border: 2px dashed light-dark(#a9c4ea, #35415a);
     border-radius: 14px;
     min-height: 205px;
@@ -136,9 +139,6 @@
   }
 
   .remove-upload-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -151,7 +151,7 @@
     font-size: 1.15rem;
     line-height: 1;
     cursor: pointer;
-    z-index: 2;
+    flex-shrink: 0;
   }
 
   .remove-upload-btn:hover {
@@ -448,12 +448,14 @@
         <!-- RIGHT CARD -->
         <div class="form-card">
           <div class="form-group upload-entry" data-upload-entry>
-            <label class="form-label" for="document_file_1">
-              File Upload <span class="required">*</span>
-            </label>
+            <div class="upload-header">
+              <label class="form-label" for="document_file_1">
+                File Upload <span class="required">*</span>
+              </label>
+              <button class="remove-upload-btn is-hidden" type="button" data-remove-upload aria-label="Remove upload box">×</button>
+            </div>
 
             <label class="upload-box" for="document_file_1" data-upload-box>
-              <button class="remove-upload-btn is-hidden" type="button" data-remove-upload aria-label="Remove upload box">×</button>
               <span class="upload-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
                   <path d="M16 16l-4-4-4 4"/>
