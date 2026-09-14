@@ -2,7 +2,7 @@
 
 from contextlib import closing
 
-from app.models.documents import get_connection
+from app.models.documents import get_connection, normalize_document_type
 from app.time import to_singapore
 
 
@@ -30,23 +30,23 @@ def _display_dates(value):
     )
 
 
-def _category_for(title):
-    text = (title or "").lower()
-    if "invoice" in text or "bill" in text:
-        return "invoices"
-    if "receipt" in text:
-        return "receipts"
-    if "bank" in text or "statement" in text:
-        return "statements"
-    return "others"
+def _category_for(document_type, ai_document_type):
+    normalized_type = normalize_document_type(document_type or ai_document_type or "Other")
+    return {
+        "Invoice": "invoices",
+        "Receipt": "receipts",
+        "Bank Statement": "statements",
+        "Other": "others",
+    }.get(normalized_type, "others")
 
 
 def get_bookkeeping_groups(database_path, period):
-    # Keep the page's existing upload-month filter and title-based grouping.
+    # Keep the page's existing upload-month filter while grouping by stored type.
     with closing(get_connection(database_path)) as connection:
         rows = connection.execute(
             """
-            SELECT d.id, d.title, d.filename AS name, d.file_size AS size_bytes,
+                  SELECT d.id, d.title, d.document_type, d.ai_document_type,
+                        d.filename AS name, d.file_size AS size_bytes,
                    d.created_at,
                    COALESCE(NULLIF(TRIM(u.full_name), ''), u.email) AS submitted_by
             FROM documents d JOIN users u ON u.id = d.user_id
@@ -62,7 +62,8 @@ def get_bookkeeping_groups(database_path, period):
     }
     for row in rows:
         display_date, submitted_at = _display_dates(row["created_at"])
-        grouped[_category_for(row["title"])]["files"].append({
+        category = _category_for(row["document_type"], row["ai_document_type"])
+        grouped[category]["files"].append({
             "id": row["id"], "name": row["name"], "size": _file_size(row["size_bytes"]),
             "date": display_date, "submittedBy": row["submitted_by"] or row["name"],
             "submittedAt": submitted_at,
