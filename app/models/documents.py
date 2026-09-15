@@ -85,6 +85,7 @@ def init_document_db(database_path):
                 document_id INTEGER NOT NULL,
                 title TEXT NOT NULL,
                 message TEXT NOT NULL,
+                notification_type TEXT NOT NULL DEFAULT 'reminder',
                 status TEXT NOT NULL DEFAULT 'unread',
                 last_reminder_sent TIMESTAMP,
                 next_reminder_date DATE,
@@ -94,6 +95,14 @@ def init_document_db(database_path):
             )
             """
         )
+        notification_columns = {
+            column["name"]
+            for column in connection.execute("PRAGMA table_info(notifications)").fetchall()
+        }
+        if "notification_type" not in notification_columns:
+            connection.execute(
+                "ALTER TABLE notifications ADD COLUMN notification_type TEXT NOT NULL DEFAULT 'reminder'"
+            )
         columns = connection.execute("PRAGMA table_info(documents)").fetchall()
         column_names = {column["name"] for column in columns}
         foreign_keys = connection.execute("PRAGMA foreign_key_list(documents)").fetchall()
@@ -453,8 +462,14 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
         if not needs_document_approval(document):
             return "reviewed"
         if action == "rejected":
-            connection.execute("DELETE FROM notifications WHERE document_id = ?", (document_id,))
-            connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+            connection.execute(
+                """
+                UPDATE documents
+                SET classification_status = 'Rejected', reviewed_by = ?, reviewed_at = ?
+                WHERE id = ?
+                """,
+                (reviewer_id, singapore_now().isoformat(), document_id),
+            )
             return "ok"
         assignments, values = [], []
         for field in ("title", "description", "document_date", "document_type"):

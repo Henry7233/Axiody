@@ -10,6 +10,54 @@ from app.models.documents import (
 from app.time import SINGAPORE_TZ, to_singapore
 
 
+def create_decision_notification(database_path, document_id, decision):
+    """Save an admin decision notification and return its client email data."""
+    connection = get_connection(database_path)
+    try:
+        document = connection.execute(
+            """
+                 SELECT d.title, d.document_date, d.filename, d.document_type,
+                     d.ai_document_type, d.created_at, d.reviewed_at, u.email
+            FROM documents d JOIN users u ON u.id = d.user_id
+            WHERE d.id = ?
+            """,
+            (document_id,),
+        ).fetchone()
+        if document is None:
+            return None
+
+        approved = decision == "approved"
+        title = "Document approved" if approved else "Document rejected"
+        message = (
+            f"{document['title']} was approved by the AXIODY admin team."
+            if approved
+            else f"{document['title']} was rejected by the AXIODY admin team. Please review the document and submit a corrected copy."
+        )
+        cursor = connection.execute(
+            """
+            INSERT INTO notifications (
+                document_id, title, message, notification_type, status, created_at
+            ) VALUES (?, ?, ?, 'decision', 'unread', CURRENT_TIMESTAMP)
+            """,
+            (document_id, title, message),
+        )
+        connection.commit()
+        return {
+            "notification_id": cursor.lastrowid,
+            "title": title,
+            "message": message,
+            "document_title": document["title"],
+            "document_date": document["document_date"],
+            "filename": document["filename"],
+            "document_type": document["document_type"] or document["ai_document_type"] or "Other",
+            "submission_date": document["created_at"],
+            "reviewed_date": document["reviewed_at"],
+            "email": document["email"],
+        }
+    finally:
+        connection.close()
+
+
 def _timestamp(value):
     try:
         return to_singapore(value or "")
@@ -35,6 +83,7 @@ def list_client_notifications(database_path, user_id, today=None):
                   AND SUBSTR(original.document_date, 1, 7) = SUBSTR(d.document_date, 1, 7)
                   AND filename_stem(original.filename) = filename_stem(d.filename)
                   AND original.id <= d.id AND reminder.status != 'resolved'
+                  AND reminder.notification_type = 'reminder'
                 ORDER BY reminder.id DESC LIMIT 1
             )
             WHERE d.user_id = ?
@@ -49,10 +98,47 @@ def list_client_notifications(database_path, user_id, today=None):
             """,
             (user_id,),
         ).fetchall()
+
+        decision_rows = connection.execute(
+            """
+            SELECT n.id, n.title, n.message, n.created_at, n.status,
+                   d.title AS document_title, d.document_date, d.filename
+            FROM notifications n
+            JOIN documents d ON d.id = n.document_id
+            WHERE d.user_id = ? AND n.notification_type = 'decision'
+            ORDER BY n.created_at DESC, n.id DESC
+            """,
+            (user_id,),
+        ).fetchall()
     finally:
         connection.close()
 
     groups = {}
+    for row in decision_rows:
+        period = (row["document_date"] or "")[:7]
+        try:
+            period_label = datetime.strptime(period, "%Y-%m").strftime("%B %Y")
+        except ValueError:
+            period_label = "Period not recorded"
+        approved = "approved" in row["title"].lower()
+        groups[("decision", row["id"])] = {
+            "id": f'decision-{row["id"]}',
+            "title": row["title"],
+            "period_label": period_label,
+            "category": "updates",
+            "files": [{
+                "filename": row["filename"],
+                "document_date": row["document_date"],
+                "status": "Approved" if approved else "Rejected",
+                "reasons": [],
+            }],
+            "reminders": [],
+            "deadlines": [],
+            "updated": _timestamp(row["created_at"]),
+            "decision_message": row["message"],
+            "decision_status": "Approved" if approved else "Rejected",
+            "decision_color": "green" if approved else "red",
+        }
     for row in rows:
         period = (row["document_date"] or "")[:7]
         try:
@@ -106,7 +192,13 @@ def list_client_notifications(database_path, user_id, today=None):
         group["pending_count"] = sum(file["status"] == "Pending validation" for file in group["files"])
         complete = len(group["files"]) - group["incomplete_count"] - group["pending_count"]
         group["deadline"] = min(group["deadlines"], key=lambda item: item["deadline"]) if group["deadlines"] else None
-        if is_reminder:
+        if group.get("category") == "updates":
+            group.update(
+                status=group["decision_status"],
+                color=group["decision_color"],
+                message=group["decision_message"],
+            )
+        elif is_reminder:
             group.update(status=group["deadline"]["kind"] if group["deadline"] else "Reminder",
                          color="blue", message=group["deadline"]["message"] if group["deadline"] else "You have a saved reminder for these documents. Review the reminder details below.")
         elif group["incomplete_count"]:
@@ -122,6 +214,7 @@ def list_client_notifications(database_path, user_id, today=None):
         group["created_label"] = group["updated"].strftime("%b %d, %Y, %H:%M SGT")
     notifications.sort(key=lambda group: group["updated"], reverse=True)
     reminders = [group for group in notifications if group["category"] == "deadlines"]
+    updates = [group for group in notifications if group["category"] == "updates"]
     deadlines = [group["deadline"] for group in reminders if group["deadline"]]
     return {
         "notifications": notifications,
@@ -129,5 +222,6 @@ def list_client_notifications(database_path, user_id, today=None):
         "changes_count": sum(group["incomplete_count"] > 0 for group in notifications),
         "files_to_change": sum(group["incomplete_count"] for group in notifications),
         "deadline_count": len(reminders),
+        "updates_count": len(updates),
         "next_deadline": min(deadlines, key=lambda item: item["deadline"]) if deadlines else None,
     }
