@@ -12,8 +12,9 @@ DOCUMENT_TYPE_LABELS = {
     "receipt": "Receipt",
     "bank statement": "Bank Statement",
     "banking statement": "Bank Statement",
+    "other": "Other",
+    "others": "Other",
 }
-UNDER_REVIEW_SQL = "LOWER(REPLACE(TRIM(classification_status), ' ', '_')) = 'under_review'"
 
 
 def document_filename_stem(filename):
@@ -30,6 +31,40 @@ def normalize_document_type(document_type):
 
 def is_under_review_status(status):
     return (status or "").strip().lower().replace(" ", "_") == "under_review"
+
+
+def document_category(document):
+    stored_type = (document["document_type"] or "").strip()
+    return normalize_document_type(stored_type or document["ai_document_type"] or "Other")
+
+
+def needs_document_approval(document):
+    if document_validation_status(document["validation_status"]) != "Complete":
+        return False
+    status = (document["classification_status"] or "").strip().lower()
+    if status == "success" and document["reviewed_by"] is not None:
+        return False
+    if status != "success" and not is_under_review_status(status):
+        return False
+    # Keep an Other document in review when an admin saves a category correction.
+    return document_category(document) == "Other" or (
+        is_under_review_status(status)
+        and bool((document["ai_document_type"] or "").strip())
+        and normalize_document_type(document["ai_document_type"]) == "Other"
+    )
+
+
+def is_bookkeeping_ready(document):
+    if document_validation_status(document["validation_status"]) != "Complete":
+        return False
+    if needs_document_approval(document):
+        return False
+    category = document_category(document)
+    status = (document["classification_status"] or "").strip().lower()
+    if category == "Other":
+        return status == "success" and document["reviewed_by"] is not None
+    # Older standard classifications may still carry the confidence-based status.
+    return category in DOCUMENT_TYPES and (status == "success" or is_under_review_status(status))
 
 
 def get_connection(database_path):
@@ -374,9 +409,9 @@ def list_client_document_records(database_path, user_id, period):
 
 def approval_record(row):
     document = dict(row)
-    document["category"] = normalize_document_type(document["document_type"] or document["ai_document_type"] or "Other")
+    document["category"] = document_category(document)
     document["submission_date"] = (document["created_at"] or "")[:10]
-    document["is_under_review"] = is_under_review_status(document["classification_status"])
+    document["is_under_review"] = needs_document_approval(document)
     return document
 
 
@@ -391,13 +426,14 @@ def get_approval_documents(database_path, document_id=None):
                    d.created_at, d.reviewed_by, d.reviewed_at,
                    COALESCE(NULLIF(TRIM(u.full_name), ''), u.email) AS submitter
             FROM documents d JOIN users u ON u.id = d.user_id
-            WHERE """ + (UNDER_REVIEW_SQL if document_id is None else "d.id = ?") + """
-              AND LOWER(TRIM(COALESCE(d.validation_status, ''))) <> 'incomplete'
+            WHERE """ + ("1 = 1" if document_id is None else "d.id = ?") + """
+              AND LOWER(TRIM(COALESCE(d.validation_status, ''))) = 'complete'
             ORDER BY d.created_at DESC, d.id DESC
             """,
             () if document_id is None else (document_id,),
         ).fetchall()
-    return [approval_record(row) for row in rows]
+    return [approval_record(row) for row in rows if needs_document_approval(row)
+            or (document_id is not None and is_bookkeeping_ready(row))]
 
 
 def save_document_review(database_path, document_id, reviewer_id, action, changes):
@@ -405,14 +441,15 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
     with closing(get_connection(database_path)) as connection, connection:
         connection.execute("BEGIN IMMEDIATE")
         document = connection.execute(
-            "SELECT classification_status, validation_status FROM documents WHERE id = ?", (document_id,)
+            """SELECT classification_status, validation_status, document_type,
+                      ai_document_type, reviewed_by FROM documents WHERE id = ?""", (document_id,)
         ).fetchone()
         if document is None:
             return "missing"
-        if not is_under_review_status(document["classification_status"]):
-            return "reviewed"
-        if (document["validation_status"] or "").strip().lower() == "incomplete":
+        if document_validation_status(document["validation_status"]) != "Complete":
             return "incomplete"
+        if not needs_document_approval(document):
+            return "reviewed"
         if action == "rejected":
             connection.execute("DELETE FROM notifications WHERE document_id = ?", (document_id,))
             connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))
@@ -425,8 +462,15 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
         if action == "approved":
             assignments.append("classification_status = ?")
             values.append("Success")
-        assignments.extend(("reviewed_by = ?", "reviewed_at = ?"))
-        values.extend((reviewer_id, singapore_now().isoformat(), document_id))
+            assignments.extend(("reviewed_by = ?", "reviewed_at = ?"))
+            values.extend((reviewer_id, singapore_now().isoformat()))
+        else:
+            assignments.append("classification_status = ?")
+            values.append("Under review")
+            if not (document["ai_document_type"] or "").strip():
+                assignments.append("ai_document_type = ?")
+                values.append(document_category(document))
+        values.append(document_id)
         connection.execute(
             "UPDATE documents SET " + ", ".join(assignments) + " WHERE id = ?", values
         )

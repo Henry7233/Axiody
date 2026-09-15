@@ -2,7 +2,7 @@
 
 from contextlib import closing
 
-from app.models.documents import get_connection, normalize_document_type
+from app.models.documents import get_connection, is_bookkeeping_ready, normalize_document_type
 from app.time import to_singapore
 
 
@@ -41,17 +41,17 @@ def _category_for(document_type, ai_document_type):
 
 
 def get_bookkeeping_groups(database_path, period):
-    # Keep the page's existing upload-month filter while grouping by stored type.
+    # Use the document's accounting month, matching the dashboard.
     with closing(get_connection(database_path)) as connection:
         rows = connection.execute(
             """
                   SELECT d.id, d.title, d.document_type, d.ai_document_type,
                         d.filename AS name, d.file_size AS size_bytes,
-                   d.created_at,
+                   d.created_at, d.validation_status, d.classification_status, d.reviewed_by,
                    COALESCE(NULLIF(TRIM(u.full_name), ''), u.email) AS submitted_by
             FROM documents d JOIN users u ON u.id = d.user_id
-            WHERE substr(d.created_at, 1, 7) = ?              AND d.classification_status = 'Success'
-              AND d.reviewed_by IS NOT NULL            ORDER BY d.created_at DESC, d.id DESC
+            WHERE substr(d.document_date, 1, 7) = ?
+            ORDER BY d.created_at DESC, d.id DESC
             """, (period,),
         ).fetchall()
     grouped = {
@@ -61,6 +61,8 @@ def get_bookkeeping_groups(database_path, period):
         "others": {"label": "Others", "files": []},
     }
     for row in rows:
+        if not is_bookkeeping_ready(row):
+            continue
         display_date, submitted_at = _display_dates(row["created_at"])
         category = _category_for(row["document_type"], row["ai_document_type"])
         grouped[category]["files"].append({

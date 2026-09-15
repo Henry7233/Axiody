@@ -15,7 +15,7 @@
   border-radius: 9px;
   background: #0564f7;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
   transition: background 0.2s;
@@ -62,7 +62,7 @@
 
   background: #edf4ff;
 
-  font-size: 32px;
+  font-size: 2rem;
 }
 
 
@@ -71,7 +71,7 @@
 
   color: #071b50;
 
-  font-size: 28px;
+  font-size: 1.75rem;
 }
 
 
@@ -88,7 +88,7 @@
 
   color: #53658a;
 
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 
@@ -114,7 +114,7 @@
 .info-label {
   color: #627190;
 
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 
@@ -136,7 +136,7 @@
 
   color: #168454;
 
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -178,7 +178,7 @@
 
   color: #071b50;
 
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 
@@ -236,7 +236,7 @@
 
   border-radius: 9px;
 
-  font-size: 23px;
+  font-size: 1.4375rem;
 }
 
 
@@ -257,7 +257,7 @@
 
   color: #071b50;
 
-  font-size: 14px;
+  font-size: 0.875rem;
 
   text-overflow: ellipsis;
 
@@ -268,14 +268,14 @@
 .document-item-info span {
   color: #627190;
 
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 
 .document-arrow {
   color: #0066ff;
 
-  font-size: 26px;
+  font-size: 1.625rem;
 }
 
 
@@ -339,7 +339,7 @@
 
   color: #071b50;
 
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 
 
@@ -351,7 +351,7 @@
 
   color: #647495;
 
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 
