@@ -60,7 +60,8 @@ h1 { font-size: clamp(30px, 2.9vw, 46px); line-height: 1.2; letter-spacing: -1.2
 .hint { margin: 9px 0 0; color: #65748b; font-size: 13px; line-height: 1.5; }
 label { display: block; margin-bottom: 9px; font-size: 15px; font-weight: 600; }
 .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.forgot-password { margin-bottom: 9px; font-size: 13px; text-decoration: none; }
+.form-link-row { display: flex; justify-content: flex-end; margin: -8px 0 18px; }
+.forgot-password { font-size: 12px; text-decoration: none; }
 .input-wrap { position: relative; }
 .input-icon { position: absolute; left: 17px; top: 17px; width: 22px; height: 22px; fill: none; stroke: #667a94; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 input { width: 100%; min-width: 0; height: 56px; padding: 0 16px 0 48px; border: 1px solid #c7d1df; border-radius: 9px; background: #fff; color: #152c4d; font-size: 16px; transition: border-color .15s, box-shadow .15s; }
