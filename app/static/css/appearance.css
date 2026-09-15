@@ -19,7 +19,6 @@ html[data-theme="dark"] .dashboard-page {
   color: #ededed;
 }
 
-html[data-theme="dark"] .dashboard-page .dashboard-header h1,
 html[data-theme="dark"] .dashboard-page .dashboard-card h3,
 html[data-theme="dark"] .dashboard-page .summary-card h2,
 html[data-theme="dark"] .dashboard-page .summary-label,
