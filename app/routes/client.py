@@ -9,7 +9,6 @@ from app.agents.classification_agent import classify_document, extract_document_
 from app.agents.reminder_agent import (
     create_initial_reminder,
     process_due_reminders,
-    resolve_replaced_document_reminders,
 )
 from app.agents.validation_agent import validate_document
 
@@ -280,13 +279,6 @@ def upload():
                             "validation_reasons": validation.get("reasons", []),
                             "client_email": g.account["email"],
                         },
-                        current_app.config["DATABASE"],
-                    )
-                else:
-                    resolve_replaced_document_reminders(
-                        session["user_id"],
-                        title,
-                        document_date,
                         current_app.config["DATABASE"],
                     )
                 saved_count += 1

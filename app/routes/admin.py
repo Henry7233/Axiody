@@ -9,7 +9,7 @@ from datetime import date, datetime
 
 from flask import Blueprint, abort, current_app, flash, jsonify, redirect, render_template, request, send_file, session, url_for
 
-from app.models.admin_dashboard import get_admin_dashboard_data
+from app.models.admin_dashboard import get_admin_dashboard_data, get_admin_period_options
 from app.models.bookkeeping import get_bookkeeping_groups
 from app.services.bookkeeping_export import build_bookkeeping_workbook
 from app.time import singapore_today, to_singapore
@@ -609,8 +609,11 @@ def reminders():
 
     selected_period = request.args.get("period", "all")
     selected_client = request.args.get("client", "all")
+    period_options = get_admin_period_options(current_app.config["DATABASE"])
+    if selected_period not in {option["value"] for option in period_options}:
+        selected_period = "all"
 
-    with sqlite3.connect(current_app.config["DATABASE"]) as connection:
+    with closing(sqlite3.connect(current_app.config["DATABASE"])) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
             """
@@ -634,8 +637,6 @@ def reminders():
             """
         ).fetchall()
 
-    unique_periods = []
-    seen_periods = set()
     unique_clients = []
     seen_clients = set()
     reminders_data = []
@@ -646,19 +647,11 @@ def reminders():
         bookkeeping_date = (row["bookkeeping_date"] or "")[:10]
         document_title = row["document_title"] or row["notification_title"] or "Document reminder"
 
-        if bookkeeping_date and bookkeeping_date not in seen_periods:
-            seen_periods.add(bookkeeping_date)
-            try:
-                label = datetime.strptime(bookkeeping_date, "%Y-%m-%d").strftime("%B %Y")
-            except ValueError:
-                label = bookkeeping_date
-            unique_periods.append({"value": bookkeeping_date, "label": label})
-
         if client_name not in seen_clients:
             seen_clients.add(client_name)
             unique_clients.append(client_name)
 
-        if selected_period != "all" and bookkeeping_date != selected_period:
+        if selected_period != "all" and bookkeeping_date[:7] != selected_period:
             continue
         if selected_client != "all" and client_name != selected_client:
             continue
@@ -690,11 +683,7 @@ def reminders():
             }
         )
 
-    unique_periods.sort(key=lambda item: item["value"], reverse=True)
     unique_clients.sort()
-    period_options = [{"value": "all", "label": "All dates"}] + [
-        {"value": item["value"], "label": item["label"]} for item in unique_periods
-    ]
     client_options = [{"value": "all", "label": "All Clients"}] + [
         {"value": name, "label": name} for name in unique_clients
     ]

@@ -182,6 +182,7 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                 SELECT latest.id FROM documents latest
                 WHERE latest.user_id = d.user_id
                   AND latest.title = d.title
+                  AND SUBSTR(latest.document_date, 1, 7) = SUBSTR(d.document_date, 1, 7)
                   AND filename_stem(latest.filename) = filename_stem(d.filename)
                 ORDER BY latest.id DESC LIMIT 1
             )
@@ -226,6 +227,7 @@ def process_due_reminders(database_path=None, mail_config=None, today=None):
                    (
                        SELECT latest.validation_status FROM documents latest
                        WHERE latest.user_id = d.user_id AND latest.title = d.title
+                         AND SUBSTR(latest.document_date, 1, 7) = SUBSTR(d.document_date, 1, 7)
                          AND filename_stem(latest.filename) = filename_stem(d.filename)
                        ORDER BY latest.id DESC LIMIT 1
                    ) AS validation_status, u.email

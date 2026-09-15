@@ -331,7 +331,7 @@
         <p>Follow up on missing or overdue client documents.</p>
       </div>
 
-      <form class="reminders-filters" action="#" method="get">
+      <form class="reminders-filters" action="{{ url_for('admin.reminders') }}" method="get">
         <div class="filter-field">
           <label for="reminder-period">Bookkeeping Period</label>
           <select id="reminder-period" data-reminder-period name="period">
@@ -349,6 +349,7 @@
             {% endfor %}
           </select>
         </div>
+        <noscript><button type="submit">Apply filters</button></noscript>
       </form>
     </div>
 
@@ -365,7 +366,7 @@
         </thead>
         <tbody>
           {% for reminder in reminders %}
-          <tr data-reminder-row data-period="{{ reminder.bookkeeping_date or 'all' }}" data-client="{{ reminder.client_name }}" data-email-count="{{ reminder.reminder_count }}">
+          <tr data-reminder-row data-period="{{ reminder.bookkeeping_date[:7] or 'all' }}" data-client="{{ reminder.client_name }}" data-email-count="{{ reminder.reminder_count }}">
             <td>
               <div class="client-name">{{ reminder.client_name }}</div>
               {% if reminder.client_email %}

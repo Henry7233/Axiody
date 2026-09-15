@@ -1277,7 +1277,7 @@
 
   if (uploadForm && uploadSubmittingDialog) {
     uploadForm.addEventListener("submit", function (event) {
-      if (!uploadForm.checkValidity()) {
+      if (event.defaultPrevented || !uploadForm.checkValidity()) {
         return;
       }
 
@@ -1330,7 +1330,8 @@
     }
   }
 
-  submissionForm.addEventListener("submit", validateRequiredFilenamePattern);
+  // Validate before the loading-dialog submit handler runs.
+  submissionForm.addEventListener("submit", validateRequiredFilenamePattern, true);
 
   function getSubmissionEntries() {
     return Array.from(submissionList.querySelectorAll("[data-submission-entry]"));

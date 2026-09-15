@@ -262,9 +262,6 @@
       </form>
       {% if not account_update_url | default('') %}<p class="settings-hint settings-local-note">{{ tr('Name and email edits are saved on this browser only. Sign-in details and passwords cannot be changed here yet.') }}</p>{% endif %}
       <p class="settings-status" data-account-status role="status" aria-live="polite"></p>
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}<p class="settings-status" data-error="{{ 'true' if category == 'error' else 'false' }}" role="status">{{ message }}</p>{% endfor %}
-      {% endwith %}
       <div class="settings-delete-account">
         <div><h3>{{ tr('Delete account') }}</h3><p class="settings-hint">{{ tr('Permanently delete your account and uploaded documents. This cannot be undone.') }}</p></div>
         {% if current_account and not current_account.protected %}
