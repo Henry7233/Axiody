@@ -9,7 +9,8 @@ from app.models.documents import document_validation_status, get_connection
 from app.time import singapore_today, to_singapore
 
 
-def get_admin_dashboard_data(database_path, period="all", today=None):
+def get_admin_period_options(database_path, today=None):
+    """Share the dashboard's recent and stored bookkeeping months."""
     today = today or singapore_today()
     recent_month_values = []
     current = date(today.year, today.month, 1)
@@ -43,9 +44,16 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
             {"value": month, "label": datetime.strptime(month, "%Y-%m").strftime("%B %Y")}
             for month in priority_months
         ]
-        if period not in {option["value"] for option in period_options}:
-            period = "all"
+    return period_options
 
+
+def get_admin_dashboard_data(database_path, period="all", today=None):
+    today = today or singapore_today()
+    period_options = get_admin_period_options(database_path, today)
+    if period not in {option["value"] for option in period_options}:
+        period = "all"
+
+    with closing(get_connection(database_path)) as connection:
         total_clients = connection.execute(
             "SELECT COUNT(*) FROM users WHERE account_type = 'client'"
         ).fetchone()[0]

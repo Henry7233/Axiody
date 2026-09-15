@@ -6,57 +6,12 @@
   if (reminderPage) {
     const periodSelect = reminderPage.querySelector('[data-reminder-period]');
     const clientSelect = reminderPage.querySelector('[data-reminder-client]');
-    const rows = Array.from(reminderPage.querySelectorAll('[data-reminder-row]'));
-    const emptyState = reminderPage.querySelector('[data-reminder-empty]');
-    const countLabel = reminderPage.querySelector('[data-reminder-count]');
-    const totalFollowups = reminderPage.querySelector('[data-reminder-total]');
-    const totalEmails = reminderPage.querySelector('[data-reminder-emails]');
-
-    const updateSummary = (visibleRows, sentTotal) => {
-      if (totalFollowups) {
-        totalFollowups.textContent = String(visibleRows);
-      }
-      if (totalEmails) {
-        totalEmails.textContent = String(sentTotal);
-      }
-      if (countLabel) {
-        countLabel.textContent = `Showing ${visibleRows} of ${rows.length} reminders`;
-      }
-    };
-
-    const applyFilters = () => {
-      const selectedPeriod = periodSelect ? periodSelect.value : 'all';
-      const selectedClient = clientSelect ? clientSelect.value : 'all';
-      let visibleRows = 0;
-      let sentTotal = 0;
-
-      rows.forEach((row) => {
-        const matchesPeriod = selectedPeriod === 'all' || row.dataset.period === selectedPeriod;
-        const matchesClient = selectedClient === 'all' || row.dataset.client === selectedClient;
-        const shouldShow = matchesPeriod && matchesClient;
-
-        row.hidden = !shouldShow;
-
-        if (shouldShow) {
-          visibleRows += 1;
-          sentTotal += Number(row.dataset.emailCount || 0);
-        }
-      });
-
-      if (emptyState) {
-        emptyState.hidden = visibleRows !== 0;
-      }
-
-      updateSummary(visibleRows, sentTotal);
-    };
-
     [periodSelect, clientSelect].forEach((control) => {
       if (control) {
-        control.addEventListener('change', applyFilters);
+        control.addEventListener('change', () => control.form.requestSubmit());
       }
     });
 
-    applyFilters();
     return;
   }
 

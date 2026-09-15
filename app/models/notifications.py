@@ -32,6 +32,7 @@ def list_client_notifications(database_path, user_id, today=None):
                 SELECT reminder.id FROM notifications reminder
                 JOIN documents original ON original.id = reminder.document_id
                 WHERE original.user_id = d.user_id AND original.title = d.title
+                  AND SUBSTR(original.document_date, 1, 7) = SUBSTR(d.document_date, 1, 7)
                   AND filename_stem(original.filename) = filename_stem(d.filename)
                   AND original.id <= d.id AND reminder.status != 'resolved'
                 ORDER BY reminder.id DESC LIMIT 1
@@ -40,6 +41,7 @@ def list_client_notifications(database_path, user_id, today=None):
               AND NOT EXISTS (
                   SELECT 1 FROM documents newer
                   WHERE newer.user_id = d.user_id AND newer.title = d.title
+                    AND SUBSTR(newer.document_date, 1, 7) = SUBSTR(d.document_date, 1, 7)
                     AND filename_stem(newer.filename) = filename_stem(d.filename)
                     AND newer.id > d.id
               )

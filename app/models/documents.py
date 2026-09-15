@@ -149,9 +149,45 @@ def create_document(
     content_type,
     file_data,
 ):
+    """Save one current upload per client, record month, and filename stem."""
     created_at = singapore_now().isoformat()
 
     with closing(get_connection(database_path)) as connection, connection:
+        connection.execute("BEGIN IMMEDIATE")
+        existing = connection.execute(
+            """
+            SELECT id FROM documents
+            WHERE user_id = ? AND title = ?
+              AND SUBSTR(document_date, 1, 7) = ?
+              AND filename_stem(filename) = ?
+            ORDER BY id DESC LIMIT 1
+            """,
+            (user_id, title.strip(), document_date[:7], document_filename_stem(filename)),
+        ).fetchone()
+        if existing is not None:
+            document_id = existing["id"]
+            connection.execute(
+                """
+                UPDATE documents
+                SET description = ?, document_date = ?, filename = ?, file_type = ?,
+                    file_size = ?, file_data = ?, created_at = ?,
+                    ai_document_type = NULL, ai_confidence = NULL, document_type = NULL,
+                    classification_status = 'Pending', validation_status = NULL,
+                    validation_reasons = '[]', reviewed_by = NULL, reviewed_at = NULL
+                WHERE id = ?
+                """,
+                (description.strip(), document_date, filename, content_type or "",
+                 len(file_data), file_data, created_at, document_id),
+            )
+            connection.execute(
+                """
+                UPDATE notifications SET status = 'resolved', next_reminder_date = NULL
+                WHERE document_id = ?
+                """,
+                (document_id,),
+            )
+            return document_id
+
         cursor = connection.execute(
             """
             INSERT INTO documents (
@@ -233,12 +269,15 @@ def update_document_validation(database_path, document_id, validation):
                   AND title = (
                     SELECT title FROM documents WHERE id = ?
                   )
+                  AND SUBSTR(document_date, 1, 7) = (
+                    SELECT SUBSTR(document_date, 1, 7) FROM documents WHERE id = ?
+                  )
                   AND filename_stem(filename) = filename_stem(
                     (SELECT filename FROM documents WHERE id = ?)
                   )
                   AND LOWER(COALESCE(TRIM(validation_status), '')) = 'incomplete'
                 """,
-                (document_id, document_id, document_id),
+                (document_id, document_id, document_id, document_id),
             )
             connection.execute(
                 """
@@ -248,6 +287,7 @@ def update_document_validation(database_path, document_id, validation):
                     JOIN documents current ON current.id = ?
                     WHERE older.user_id = current.user_id
                       AND older.title = current.title
+                      AND SUBSTR(older.document_date, 1, 7) = SUBSTR(current.document_date, 1, 7)
                       AND filename_stem(older.filename) = filename_stem(current.filename)
                       AND older.id <= current.id
                 )
@@ -296,7 +336,7 @@ def list_client_document_records(database_path, user_id, period):
                   SELECT 1 FROM documents newer
                   WHERE newer.user_id = current_document.user_id
                     AND newer.title = current_document.title
-                    AND newer.document_date = current_document.document_date
+                    AND SUBSTR(newer.document_date, 1, 7) = SUBSTR(current_document.document_date, 1, 7)
                     AND filename_stem(newer.filename) = filename_stem(current_document.filename)
                     AND newer.id > current_document.id
               )
