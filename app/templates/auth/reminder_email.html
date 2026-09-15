@@ -112,7 +112,7 @@
                       padding: 2px 9px;
                       border-radius: 6px;
                     ">
-                      {{ bookkeeping_period }}
+                      {{ bookkeeping_period_display }}
                     </span>
 
                     is incomplete.
@@ -281,7 +281,7 @@
                         font-size: 15px;
                         color: #173566;
                       ">
-                        {{ bookkeeping_period }}
+                        {{ bookkeeping_period_display }}
                       </td>
                     </tr>
 
@@ -303,9 +303,11 @@
                         padding: 15px 18px;
                         border-bottom: 1px solid #dbe3ee;
                         font-size: 15px;
+                        line-height: 1.5;
                         color: #173566;
                       ">
-                        {{ issue }}
+                        Reason<br>
+                        {{ issue_clean }}
                       </td>
                     </tr>
 

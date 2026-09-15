@@ -152,17 +152,21 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
     else:
         deadline = singapore_today()
 
-    issue = reminder.get("issue") or body
-    period = reminder.get("bookkeeping_period") or "the selected period"
+    issue = str(reminder.get("issue") or body).strip().strip("[]\"").replace("_", " ")
+    issue = issue[:1].upper() + issue[1:] if issue else "The document is missing required information."
+    try:
+        period = datetime.strptime(str(reminder.get("bookkeeping_period")), "%Y-%m").strftime("%B %Y")
+    except (TypeError, ValueError):
+        period = reminder.get("bookkeeping_period") or "the selected period"
     axiody_url = (config.get("AXIODY_URL") or "").strip().rstrip("/")
     logo_path = Path(current_app.static_folder) / "images" / "axiody-logo.svg"
     logo_content = logo_path.read_bytes()
     html = current_app.jinja_env.get_template("auth/reminder_email.html").render(
         logo_url="cid:axiody-logo",
         company_name=reminder.get("company_name") or "your account",
-        bookkeeping_period=period,
+        bookkeeping_period_display=period,
         issue_sentence=reminder.get("issue_sentence") or f"was flagged because {issue}",
-        issue=issue,
+        issue_clean=issue,
         deadline=deadline.strftime("%B %d, %Y"),
         deadline_day=deadline.strftime("%A"),
         deadline_short=deadline.strftime("%B %d"),

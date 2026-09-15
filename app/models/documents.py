@@ -234,9 +234,10 @@ def create_document(
                 file_type,
                 file_size,
                 file_data,
+                classification_status,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -247,6 +248,7 @@ def create_document(
                 content_type or "",
                 len(file_data),
                 file_data,
+                "Pending",
                 created_at,
             ),
         )

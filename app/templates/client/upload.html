@@ -1215,7 +1215,7 @@
     </div>
     {% endif %}
 
-    <a class="success-action" href="{{ url_for('client.notifications') }}">View Notifications</a>
+    <a class="success-action" href="{{ url_for('client.notifications') }}" data-success-notifications>View Notifications</a>
   </dialog>
   {% endif %}
 </section>
@@ -1256,6 +1256,15 @@
 
   if (uploadSuccessDialog) {
     uploadSuccessDialog.showModal();
+
+    const notificationsLink = uploadSuccessDialog.querySelector("[data-success-notifications]");
+    if (notificationsLink) {
+      notificationsLink.addEventListener("click", function (event) {
+        event.preventDefault();
+        uploadSuccessDialog.close();
+        window.location.assign(notificationsLink.href);
+      });
+    }
 
     uploadSuccessDialog.addEventListener("click", function (event) {
       const bounds = uploadSuccessDialog.getBoundingClientRect();
