@@ -2,8 +2,10 @@
 import os
 import re
 from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 from string import Template
+from app.services.ai_service import parse_agent_response, log_agent_fallback
 
 try:
     from dotenv import load_dotenv
@@ -15,6 +17,49 @@ load_dotenv()
 
 MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID")
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "validation_agent_prompt.txt"
+IMAGE_FORMATS = {
+    "image/jpeg": "jpeg",
+    "image/png": "png",
+    "image/gif": "gif",
+    "image/webp": "webp",
+}
+
+
+def read_image(document_bytes, content_type=""):
+    """Extract readable text from an image with the configured vision model."""
+    image_format = IMAGE_FORMATS.get(content_type)
+    if not MODEL_ID or not image_format or not document_bytes:
+        return ""
+
+    try:
+        import boto3
+
+        bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "us-east-1"))
+        response = bedrock.converse(
+            modelId=MODEL_ID,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "text": (
+                                "Read this document image. Transcribe all visible text, dates, "
+                                "amounts, labels, and totals exactly as shown. Return only the "
+                                "transcribed text, with no commentary."
+                            )
+                        },
+                        {"image": {"format": image_format, "source": {"bytes": document_bytes}}},
+                    ],
+                }
+            ],
+            inferenceConfig={"maxTokens": 1200, "temperature": 0},
+        )
+        return "".join(
+            block.get("text", "") for block in response["output"]["message"]["content"]
+        ).strip()
+    except Exception as error:
+        log_agent_fallback(__name__, error)
+        return ""
 
 
 def _normalize_result(result):
@@ -36,11 +81,49 @@ def _normalize_result(result):
     if validation_status == "Complete":
         reasons = []
 
-    return {
+    logical_error = (
+        str(result.get("logical_error") or "").strip()
+        or str(result.get("validation_reason") or "").strip()
+        or (reasons[0] if reasons else "")
+    )
+
+    if validation_status == "Complete":
+        logical_error = ""
+
+    normalized = {
         "validation_status": validation_status,
         "reasons": reasons,
         "ai_confidence": confidence,
+        "logical_error": logical_error,
+        "validation_reason": logical_error,
     }
+    return normalized
+
+
+def _bank_summary_reasons(document_text):
+    """Reconcile explicit statement summaries with exact decimal arithmetic.
+
+    Skip absent or ambiguous summaries instead of guessing column positions or
+    mixing accounts. This check does not depend on filenames or AI availability.
+    """
+    text = " ".join(document_text.lower().split())
+    labels = {
+        "opening": r"(?:opening|beginning)\s+balance",
+        "closing": r"(?:closing|ending)\s+balance",
+        "credits": r"total\s+(?:credits|deposits)",
+        "debits": r"total\s+(?:debits|withdrawals)",
+    }
+    amount = r"(-?\d[\d,]*\.\d{2})(?![\d.,])"
+    currency = r"(?:(?:sgd|usd|gbp|eur|aud|s\$|us\$|\$|£|€)\s*)?"
+    values = {}
+    for name, label in labels.items():
+        matches = re.findall(r"\b" + label + r"\s*:?\s*" + currency + amount, text)
+        amounts = {Decimal(match.replace(",", "")) for match in matches}
+        if len(amounts) != 1:
+            return []
+        values[name] = amounts.pop()
+    expected = values["opening"] + values["credits"] - values["debits"]
+    return ["totals_mismatch"] if expected != values["closing"] else []
 
 
 def _fallback_validation(document_text, title="", description="", expected_period="", filename=""):
@@ -68,22 +151,15 @@ def _fallback_validation(document_text, title="", description="", expected_perio
     if "blurry" in evidence or "cut off" in evidence or "unreadable" in evidence:
         reasons.append("image_quality_issue")
 
-    logical_issue_terms = (
-        "total mismatch",
-        "totals mismatch",
-        "does not match",
-        "do not match",
-        "inconsistent",
-        "contradictory",
-        "invalid total",
-    )
-    if any(term in evidence for term in logical_issue_terms):
-        reasons.append("totals_mismatch")
+    reasons.extend(_bank_summary_reasons(document_text))
+    logical_error = reasons[0] if reasons else ""
 
     return {
         "validation_status": "Incomplete" if reasons else "Complete",
         "reasons": reasons,
         "confidence": 0.85 if reasons else 0.95,
+        "logical_error": logical_error,
+        "validation_reason": logical_error,
     }
 
 
@@ -131,6 +207,9 @@ def validate_document(
     expected_period="",
     document_bytes=None,
 ):
+    if not document_text and document_bytes:
+        document_text = read_image(document_bytes, content_type)
+
     prompt = Template(PROMPT_PATH.read_text(encoding="utf-8")).safe_substitute(
         title=title,
         description=description,
@@ -145,13 +224,7 @@ def validate_document(
 
             bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "us-east-1"))
             message_content = [{"text": prompt}]
-            image_formats = {
-                "image/jpeg": "jpeg",
-                "image/png": "png",
-                "image/gif": "gif",
-                "image/webp": "webp",
-            }
-            image_format = image_formats.get(content_type)
+            image_format = IMAGE_FORMATS.get(content_type)
             if image_format and document_bytes:
                 message_content.append(
                     {"image": {"format": image_format, "source": {"bytes": document_bytes}}}
@@ -160,14 +233,35 @@ def validate_document(
             response = bedrock.converse(
                 modelId=MODEL_ID,
                 messages=[{"role": "user", "content": message_content}],
-                inferenceConfig={"maxTokens": 200, "temperature": 0},
+                inferenceConfig={"maxTokens": 800, "temperature": 0},
             )
-            response_text = response["output"]["message"]["content"][0]["text"]
-            result = json.loads(response_text)
-        except Exception:
+            result = parse_agent_response(response)
+            if result.get("validation_status") not in {"Complete", "Incomplete"} or not isinstance(result.get("reasons"), list) or "confidence" not in result:
+                raise ValueError("Invalid validation fields")
+        except Exception as error:
+            log_agent_fallback(__name__, error)
             result = None
 
     if not isinstance(result, dict):
         result = _fallback_validation(document_text, title, description, expected_period, filename)
 
-    return _normalize_result(result)
+    normalized = _normalize_result(result)
+    # A model's Complete verdict cannot override a proven arithmetic mismatch.
+    arithmetic_reasons = _bank_summary_reasons(document_text)
+    if arithmetic_reasons:
+        normalized["validation_status"] = "Incomplete"
+        normalized["reasons"] = list(dict.fromkeys(normalized["reasons"] + arithmetic_reasons))
+
+    if normalized["validation_status"] == "Incomplete":
+        logical_error = (
+            normalized.get("logical_error")
+            or normalized.get("validation_reason")
+            or (normalized.get("reasons", ["logical_error"])[0] if normalized.get("reasons") else "logical_error")
+        )
+        normalized["logical_error"] = logical_error
+        normalized["validation_reason"] = logical_error
+    else:
+        normalized["logical_error"] = ""
+        normalized["validation_reason"] = ""
+
+    return normalized
