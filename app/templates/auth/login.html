@@ -3,53 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b64">
   <title>Log in | AXIODY</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
   <script src="{{ url_for('static', filename='js/client.js') }}" defer></script>
 </head>
 <body>
+  {% macro brand_mark() -%}
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M31.5 5 8 47.5h14.2L32 29.7l10.1 17.8H56L32.6 5Z" fill="#4793f5"/>
+      <path d="M17.5 47.5 25 60h14l7.3-12.5H32Z" fill="#8dbcf6"/>
+    </svg>
+  {%- endmacro %}
+  <a class="skip-link" href="#form-title">Skip to login</a>
   <div class="layout">
-    <aside class="story" aria-label="Welcome">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">&#10035;</span> AXIODY</div>
+    <aside class="story" aria-label="Welcome to AXIODY">
+      <div class="brand">{{ brand_mark() }}<div><span class="brand-name">AXIODY</span><span class="brand-tagline">Simplifying Document Collection</span></div></div>
       <div class="story-content">
-        <div class="eyebrow">A little space. A fresh start.</div>
-        <h1>Good to have<br>you <span>back.</span></h1>
-        <p>Your next chapter starts right here. Log in and pick up where you left off.</p>
-        <div class="art" aria-hidden="true"><div class="orbit"></div><div class="orbit"></div><div class="orbit"></div><div class="spark"></div></div>
+        <h1>Smarter document<br> collection for<br> a simpler tomorrow.</h1>
+        <p class="story-intro">AXIODY helps accounting firms and SME clients collect, validate and manage bookkeeping documents with the power of AI.</p>
+        <ul class="features">
+          <li><span class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M9 12h6M9 16h6"/></svg></span><div><h2>Upload with ease</h2><p>Submit your invoices, receipts and bank statements in one place.</p></div></li>
+          <li><span class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 12h7l-1 8 10-13h-8Z"/></svg></span><div><h2>AI-powered processing</h2><p>Automatic classification and validation.</p></div></li>
+          <li><span class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 5"/></svg></span><div><h2>Stay on track</h2><p>Get timely reminders and complete your bookkeeping effortlessly.</p></div></li>
+        </ul>
       </div>
-      <div class="story-footer">A place to start. A space to grow.</div>
+      <div class="architecture" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="story-footer">Trusted by accounting firms<br>Built for growing businesses</div>
     </aside>
     <main class="main">
       <section class="card" aria-labelledby="form-title">
-        <p class="step">Welcome back</p>
-        <h2 id="form-title">Log in to your account</h2>
-        <p class="intro">Enter your details below to get started.</p>
+        <div class="card-brand">{{ brand_mark() }}<span class="brand-name">AXIODY</span></div>
+        <h2 id="form-title" tabindex="-1">Welcome back</h2>
+        <p class="intro">Log in to your AXIODY account</p>
         <form method="post" action="{{ url_for('auth.login') }}" data-js-login>
           <div class="field">
             <label for="email">Email address</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" value="{{ email | default('') }}" required>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>
+              <input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" value="{{ email | default('') }}" required>
+            </div>
           </div>
           <div class="field">
-            <label for="password">Password</label>
-            <div class="password-wrap">
+            <div class="label-row"><label for="password">Password</label><a class="forgot-password" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a></div>
+            <div class="input-wrap password-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg>
               <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
               <button class="toggle" type="button" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
             </div>
           </div>
-          <button class="primary" type="submit">Log in <span aria-hidden="true">&rarr;</span></button>
-          <a class="forgot-password" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
+          <button class="primary" type="submit">Log in</button>
           {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              {% for category, message in messages %}
+            {% for category, message in messages %}
+              {# Upload confirmations belong in the signed-in document flow. #}
+              {% if 'document file(s) submitted successfully.' not in message %}
                 <div class="message message-{{ category }}" role="status" aria-live="polite">{{ message }}</div>
-              {% endfor %}
-            {% else %}
-              <div class="message" role="status" aria-live="polite"></div>
-            {% endif %}
+              {% endif %}
+            {% endfor %}
           {% endwith %}
+          <div class="message" role="status" aria-live="polite" data-login-status></div>
         </form>
-        <div class="divider">New here?</div>
-        <a class="secondary" href="{{ url_for('auth.register') }}">Create an account</a>
+        <p class="signup">Don&rsquo;t have an account? <a href="{{ url_for('auth.register') }}">Sign up</a></p>
       </section>
     </main>
   </div>
