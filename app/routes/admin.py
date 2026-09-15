@@ -12,7 +12,7 @@ from flask import Blueprint, abort, current_app, flash, jsonify, redirect, rende
 from app.models.admin_dashboard import get_admin_dashboard_data
 from app.models.bookkeeping import get_bookkeeping_groups
 from app.services.bookkeeping_export import build_bookkeeping_workbook
-from app.time import to_singapore
+from app.time import singapore_today, to_singapore
 from app.models.documents import (
     DOCUMENT_TYPES,
     get_approval_documents,
@@ -94,6 +94,24 @@ def format_display_date(value):
     except ValueError:
         return value
     return parsed.strftime("%b %d, %Y")
+
+
+def build_recent_month_options(months_back=12):
+    today = singapore_today()
+    current = date(today.year, today.month, 1)
+    options = []
+    for _ in range(months_back):
+        options.append({
+            "value": current.strftime("%Y-%m"),
+            "label": current.strftime("%B %Y"),
+        })
+        year = current.year
+        month = current.month - 1
+        if month == 0:
+            year -= 1
+            month = 12
+        current = date(year, month, 1)
+    return options
 
 
 def display_file_type(filename, content_type):
@@ -474,12 +492,7 @@ def bookkeeping():
     if redirect_response:
         return redirect_response
 
-    period_options = [
-        {"value": "2026-09", "label": "September 2026"},
-        {"value": "2026-08", "label": "August 2026"},
-        {"value": "2026-07", "label": "July 2026"},
-        {"value": "2026-06", "label": "June 2026"},
-    ]
+    period_options = build_recent_month_options()
     selected_period = request.args.get("period", period_options[0]["value"])
     if selected_period not in {period["value"] for period in period_options}:
         selected_period = period_options[0]["value"]
@@ -527,7 +540,8 @@ def clients_attention():
 
 
 def bookkeeping_request_period():
-    period = request.args.get("period", "2026-09")
+    default_period = singapore_today().strftime("%Y-%m")
+    period = request.args.get("period", default_period)
     try:
         parsed = datetime.strptime(period, "%Y-%m")
     except ValueError:

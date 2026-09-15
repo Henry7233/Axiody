@@ -50,8 +50,8 @@ def get_bookkeeping_groups(database_path, period):
                    d.created_at,
                    COALESCE(NULLIF(TRIM(u.full_name), ''), u.email) AS submitted_by
             FROM documents d JOIN users u ON u.id = d.user_id
-            WHERE substr(d.created_at, 1, 7) = ?
-            ORDER BY d.created_at DESC, d.id DESC
+            WHERE substr(d.created_at, 1, 7) = ?              AND d.classification_status = 'Success'
+              AND d.reviewed_by IS NOT NULL            ORDER BY d.created_at DESC, d.id DESC
             """, (period,),
         ).fetchall()
     grouped = {

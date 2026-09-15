@@ -11,20 +11,37 @@ from app.time import singapore_today, to_singapore
 
 def get_admin_dashboard_data(database_path, period="all", today=None):
     today = today or singapore_today()
+    recent_month_values = []
+    current = date(today.year, today.month, 1)
+    for _ in range(12):
+        recent_month_values.append(current.strftime("%Y-%m"))
+        year = current.year
+        month = current.month - 1
+        if month == 0:
+            year -= 1
+            month = 12
+        current = date(year, month, 1)
+
     with closing(get_connection(database_path)) as connection:
         stored_periods = connection.execute(
             "SELECT DISTINCT substr(document_date, 1, 7) FROM documents"
         ).fetchall()
-        months = {today.strftime("%Y-%m")}
+        months = set(recent_month_values)
         for row in stored_periods:
             try:
                 parsed = datetime.strptime(row[0] or "", "%Y-%m")
             except ValueError:
                 continue
             months.add(parsed.strftime("%Y-%m"))
+
+        ordered_months = sorted(months, reverse=True)
+        priority_months = recent_month_values[:]
+        for month in ordered_months:
+            if month not in set(priority_months):
+                priority_months.append(month)
         period_options = [{"value": "all", "label": "All dates"}] + [
             {"value": month, "label": datetime.strptime(month, "%Y-%m").strftime("%B %Y")}
-            for month in sorted(months, reverse=True)
+            for month in priority_months
         ]
         if period not in {option["value"] for option in period_options}:
             period = "all"
