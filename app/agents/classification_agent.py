@@ -74,7 +74,7 @@ def _normalize_result(result):
     if 0 <= confidence <= 1:
         confidence *= 100
     confidence = max(0, min(100, round(confidence, 2)))
-    status = "Success" if document_type in SUCCESS_DOCUMENT_TYPES and confidence > 70 else "Under review"
+    status = "Success" if document_type in SUCCESS_DOCUMENT_TYPES else "Under review"
     return {
         "document_type": document_type,
         "ai_document_type": document_type,

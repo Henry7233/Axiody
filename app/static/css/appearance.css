@@ -270,12 +270,14 @@ html[data-theme="dark"] .notifications-page .empty-state {
   color: #ededed !important;
 }
 
-html[data-theme="dark"] body:has(.admin-dashboard) {
+html[data-theme="dark"] body:has(.admin-dashboard),
+html[data-theme="dark"] body:has(.verification-page) {
   background: #0b0b0b !important;
   color: #ededed !important;
 }
 
-html[data-theme="dark"] .admin-dashboard {
+html[data-theme="dark"] .admin-dashboard,
+html[data-theme="dark"] .verification-page {
   --admin-text: #ededed;
   --admin-muted: #b8b8b8;
   --admin-border: #343434;
@@ -313,3 +315,58 @@ html[data-theme="dark"] .admin-dashboard .section-heading h2,
 html[data-theme="dark"] .admin-dashboard .page-header h1 {
   color: #ededed !important;
 }
+
+/* Remaining admin dashboard details and reminder controls. */
+html[data-theme="dark"] .dashboard-page :is(.dashboard-header h1, .period-selector, .donut-inner strong, .deadline-date, .breakdown-item, .summary-arrow, .reminders-toolbar h2, .client-name, .title-cell, .date-stack) {
+  color: #ededed;
+}
+
+html[data-theme="dark"] .dashboard-page :is(.progress-caption, .donut-inner span, .cta-content p, .reminders-toolbar p, .filter-field label, .client-email, .date-stack small, .reminder-empty, .reminders-footer) {
+  color: #b8b8b8;
+}
+
+html[data-theme="dark"] .dashboard-page :is(.deadline-notice, .dashboard-cta, .progress-bar, .filter-field select) {
+  background-color: #1c1c1c;
+  background-image: none;
+  border-color: #343434;
+}
+
+html[data-theme="dark"] .dashboard-page .filter-field select {
+  appearance: auto;
+  color: #ededed;
+}
+
+html[data-theme="dark"] .dashboard-page .donut-chart::before { background: #151515; }
+html[data-theme="dark"] .dashboard-page :is(.reminders-toolbar, .reminder-stat) { border-color: #343434; }
+html[data-theme="dark"] .dashboard-page .dashboard-table th { background: #222; }
+html[data-theme="dark"] .dashboard-page .reminder-pill { background: #572b34; color: #ffabb2; }
+html[data-theme="dark"] .dashboard-page :is(.deadline-notice strong, .reminder-count-badge) { color: #a9c8ff; }
+html[data-theme="dark"] .dashboard-page .reminder-count-badge { background: #242424; }
+
+/* Client document review, verification forms and admin dialogs. */
+html[data-theme="dark"] .client-documents-page { color: #ededed; }
+html[data-theme="dark"] .client-documents-page :is(.client-summary-card, .documents-sidebar, .document-preview-panel, .document-icon),
+html[data-theme="dark"] :is(.admin-dialog, .decision-modal),
+html[data-theme="dark"] .verification-page .form-field :is(input, select, textarea),
+html[data-theme="dark"] .admin-controls :is(input, select),
+html[data-theme="dark"] .admin-dialog :is(input, select) {
+  background: #151515;
+  border-color: #343434;
+  color: #ededed;
+}
+
+html[data-theme="dark"] .client-documents-page :is(.client-icon, .client-extra-info, .document-item:hover, .document-item.active, .preview-container, .download-current-btn:hover) {
+  background: #242424;
+}
+
+html[data-theme="dark"] .client-documents-page :is(.client-main-info h1, .documents-sidebar h2, .preview-header h2, .document-item-info strong, .info-value) {
+  color: #ededed;
+}
+
+html[data-theme="dark"] .client-documents-page :is(.bookkeeping-period, .client-document-summary, .info-label, .document-item-info span, .preview-meta, .no-document-preview),
+html[data-theme="dark"] .decision-modal p {
+  color: #b8b8b8;
+}
+
+html[data-theme="dark"] .client-documents-page :is(.download-current-btn, .document-arrow) { color: #a9c8ff; }
+html[data-theme="dark"] .client-documents-page .client-status { background: #174b38; color: #8ce8bc; }

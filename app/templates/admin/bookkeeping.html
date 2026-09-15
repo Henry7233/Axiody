@@ -259,6 +259,7 @@
     <div>
       <p class="page-eyebrow">Admin view</p>
       <h1 id="bookkeeping-title">Bookkeeping</h1>
+      <p class="page-description">Files are grouped by document month. Other documents appear after approval.</p>
     </div>
     <div class="bookkeeping-actions">
     <form class="bookkeeping-period" method="get">
@@ -277,6 +278,7 @@
   </header>
 
   <div class="shell">
+    <p id="bookkeepingMessage" role="status" hidden></p>
     <div class="tabs" id="tabs"></div>
     <div class="panel">
       <div class="panel-header">
@@ -298,13 +300,26 @@
 
   let active = 'invoices';
   let data = {};
+  let loading = false;
 
   async function loadData() {
+    if (loading) return;
+    loading = true;
+    const messageEl = document.getElementById('bookkeepingMessage');
     const period = document.getElementById('bookkeeping-period').value;
-    const response = await fetch(`/admin/documents/data?period=${encodeURIComponent(period)}`);
-    data = await response.json();
-    renderTabs();
-    renderPanel();
+    try {
+      const response = await fetch(`/admin/documents/data?period=${encodeURIComponent(period)}`, { cache: 'no-store' });
+      if (!response.ok || response.redirected) throw new Error('Unable to load bookkeeping. Please reload and try again.');
+      data = await response.json();
+      renderTabs();
+      renderPanel();
+      messageEl.hidden = true;
+    } catch (error) {
+      messageEl.textContent = 'Unable to load bookkeeping. Please reload and try again.';
+      messageEl.hidden = false;
+    } finally {
+      loading = false;
+    }
   }
 
   function renderTabs(){
@@ -369,5 +384,9 @@
   }
 
   loadData();
+  window.addEventListener('focus', loadData);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) loadData();
+  });
 </script>
 {% endblock %}

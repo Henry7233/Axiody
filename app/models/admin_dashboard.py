@@ -5,7 +5,10 @@ from contextlib import closing
 from datetime import date, datetime
 
 from app.agents.reminder_agent import document_reminder
-from app.models.documents import document_validation_status, get_connection
+from app.models.documents import (
+    document_category, document_validation_status, get_connection,
+    is_bookkeeping_ready, needs_document_approval,
+)
 from app.time import singapore_today, to_singapore
 
 
@@ -61,7 +64,7 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
             """
             SELECT d.id, d.user_id, d.title, d.filename, d.document_date, d.created_at,
                    d.document_type, d.ai_document_type, d.classification_status,
-                   d.validation_status, d.validation_reasons,
+                   d.validation_status, d.validation_reasons, d.reviewed_by,
                    COALESCE(NULLIF(TRIM(u.full_name), ''), u.email, 'Unknown client') AS client
             FROM documents d
             LEFT JOIN users u ON u.id = d.user_id
@@ -86,20 +89,20 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
     documents = []
     attention = []
     counts = {"Invoice": 0, "Receipt": 0, "Bank Statement": 0, "Other": 0}
-    type_labels = {"invoice": "Invoice", "receipt": "Receipt", "bank statement": "Bank Statement"}
     for row in rows:
         document = dict(row)
-        stored_type = (row["document_type"] or "").strip() or (row["ai_document_type"] or "").strip()
-        document["type"] = type_labels.get(stored_type.lower().replace("_", " "), "Other")
+        category = document_category(row)
+        document["type"] = category if category in counts else "Other"
         counts[document["type"]] += 1
         validation = document_validation_status(row["validation_status"])
-        document["status"] = "Bookkept" if validation == "Complete" else "Under Review"
+        bookkept = is_bookkeeping_ready(row)
+        document["status"] = "Bookkept" if bookkept else "Under Review"
         try:
             document["date"] = to_singapore(row["created_at"]).strftime("%d %b %Y")
         except (AttributeError, ValueError):
             document["date"] = "Date not recorded"
         document["filename"] = row["filename"] or row["title"]
-        if validation != "Complete":
+        if not bookkept:
             try:
                 reasons = json.loads(row["validation_reasons"] or "[]")
             except (TypeError, ValueError):
@@ -110,6 +113,8 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
             document["reason"] = ", ".join(reasons) if validation == "Incomplete" and reasons else (
                 "Validation failed" if validation == "Incomplete" else "Pending validation"
             )
+            if validation == "Complete":
+                document["reason"] = "Awaiting approval" if needs_document_approval(row) else "Pending classification"
             attention.append(document)
         documents.append(document)
 

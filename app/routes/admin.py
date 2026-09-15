@@ -492,7 +492,8 @@ def bookkeeping():
     if redirect_response:
         return redirect_response
 
-    period_options = build_recent_month_options()
+    period_options = [option for option in get_admin_period_options(current_app.config["DATABASE"])
+                      if option["value"] != "all"]
     selected_period = request.args.get("period", period_options[0]["value"])
     if selected_period not in {period["value"] for period in period_options}:
         selected_period = period_options[0]["value"]
