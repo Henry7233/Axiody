@@ -89,28 +89,6 @@
       </div>
     </section>
 
-    <section class="settings-section settings-notifications" aria-labelledby="notifications-title">
-      <div><h2 id="notifications-title">Notifications</h2><p>Stay informed about important updates within the admin portal.</p>
-      <button class="settings-text-button" type="button" data-help="notification-preview">Preview selected alerts</button></div>
-      <div class="settings-checkboxes settings-checkboxes-admin">
-        
-        <label><input type="checkbox" name="registrations" data-notification checked>New client registrations</label><label><input type="checkbox" name="submissions" data-notification checked>Document submissions</label><label><input type="checkbox" name="lowConfidence" data-notification checked>Low-confidence classification alerts</label><label><input type="checkbox" name="humanReview" data-notification checked>Documents requiring human review</label><label><input type="checkbox" name="overdue" data-notification checked>Overdue client alerts</label><label><input type="checkbox" name="escalations" data-notification checked>Reminder escalation notifications</label><label><input type="checkbox" name="weekly" data-notification >Weekly summary reports</label>
-      </div>
-    </section>
-
-    
-    <section class="settings-section" aria-labelledby="workspace-title">
-      <h2 id="workspace-title">Workspace Preferences</h2><p>Set your preferred view and display options for managing client documents.</p>
-      <div class="settings-workspace-fields">
-        <div><label for="settings-view">Default dashboard view</label><select id="settings-view" name="dashboardView" data-preference><option value="needs-review">Needs Review</option><option value="all">All Documents</option><option value="overdue">Overdue</option></select></div>
-        <div><label for="settings-sorting">Default document sorting</label><select id="settings-sorting" name="documentSort" data-preference><option value="recent">Most Recent</option><option value="oldest">Oldest First</option><option value="client">Client Name (A-Z)</option><option value="deadline">Nearest Deadline</option></select></div>
-        <div><label for="settings-page-size">Items shown per page</label><select id="settings-page-size" name="pageSize" data-preference><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option></select></div>
-      </div>
-      <p class="settings-hint" data-workspace-summary aria-live="polite"></p>
-      <p class="settings-hint">Preferences are saved for this browser. The document dashboard is not connected yet.</p>
-    </section>
-    
-
     <section class="settings-section" aria-labelledby="help-title">
       <h2 id="help-title">Help &amp; Support</h2><p>Find resources and guidance to make the most of AXIODY.</p>
       <div class="settings-help-grid">
@@ -156,7 +134,7 @@
     </section>
     <div class="settings-save-note"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>
-</svg><span>Preferences save automatically on this browser. Notification delivery is not connected yet.</span></div>
+</svg><span>Preferences save automatically on this browser.</span></div>
     <p class="settings-status" data-preference-status role="status" aria-live="polite"></p>
   </div>
 
@@ -197,8 +175,6 @@
     <h3>Validation agent</h3><p>Checks document information against submission requirements and flags missing or inconsistent details. Review the evidence before accepting a result.</p>
     <h3>Reminder agent</h3><p>Supports follow-ups for pending or overdue documents and escalation when follow-up is needed. Confirm the recipient, deadline and previous reminders before taking action.</p>
   </template>
-  
-  <template id="notification-preview"><p>Example alerts for your selected categories. These are previews, not new account events; email and automatic delivery are not connected yet.</p><ul data-alert-preview></ul></template>
 </div>
 
   </main>

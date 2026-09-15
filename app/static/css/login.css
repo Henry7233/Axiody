@@ -70,6 +70,7 @@ input:-webkit-autofill { -webkit-text-fill-color: #152c4d; -webkit-box-shadow: 0
 .password-wrap input { padding-right: 66px; }
 .toggle { position: absolute; right: 5px; top: 6px; height: 44px; min-width: 52px; border: 0; border-radius: 6px; background: transparent; color: #526a86; font-size: 12px; font-weight: 600; cursor: pointer; }
 .toggle:hover { background: #edf4ff; color: #1764c5; }
+.hint { margin: 9px 0 0; color: #65748b; font-size: 13px; line-height: 1.5; }
 .primary { display: block; width: 100%; min-height: 56px; padding: 14px 20px; margin-top: 30px; border: 1px solid #2d75ce; border-radius: 9px; background: #2d75ce; color: #fff; font-size: 17px; font-weight: 600; cursor: pointer; transition: background .15s; }
 .primary:hover { background: #1c61b5; }
 .primary:disabled { opacity: .65; cursor: wait; }

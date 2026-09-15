@@ -15,7 +15,7 @@
       <path d="M17.5 47.5 25 60h14l7.3-12.5H32Z" fill="#8dbcf6"/>
     </svg>
   {%- endmacro %}
-  <a class="skip-link" href="#form-title">Skip to sign up</a>
+  <a class="skip-link" href="#form-title">Skip to registration</a>
   <div class="layout">
     <aside class="story" aria-label="Welcome to AXIODY">
       <div class="brand">{{ brand_mark() }}<div><span class="brand-name">AXIODY</span><span class="brand-tagline">Simplifying Document Collection</span></div></div>
@@ -40,15 +40,15 @@
           <div class="field">
             <label for="name">Full name</label>
             <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3"/></svg>
-              <input id="name" name="name" type="text" placeholder="Enter your full name" autocomplete="name" value="{{ name | default('') }}" required>
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+              <input id="name" name="name" type="text" placeholder="John Doe" autocomplete="name" value="{{ name | default('') }}" required>
             </div>
           </div>
           <div class="field">
             <label for="email">Email address</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>
-              <input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" value="{{ email | default('') }}" required>
+              <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" value="{{ email | default('') }}" required>
             </div>
           </div>
           <div class="field">
@@ -61,10 +61,10 @@
             <p class="hint" id="password-hint">Use at least 8 characters.</p>
           </div>
           <div class="field">
-            <label for="role">Role (optional)</label>
+            <label for="role">Role (Optional)</label>
             <div class="input-wrap">
-              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a20 20 0 0 0 18 0M12 12v3"/></svg>
-              <input id="role" name="role" type="text" placeholder="e.g. Business Owner" autocomplete="organization-title" value="{{ role | default('') }}">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>
+              <input id="role" name="role" type="text" placeholder="e.g. Business Owner, Finance Manager" autocomplete="organization" value="{{ role | default('') }}">
             </div>
           </div>
           <button class="primary" type="submit">Create an account</button>
