@@ -88,17 +88,6 @@
       </div>
     </section>
 
-    <section class="settings-section settings-notifications" aria-labelledby="notifications-title">
-      <div><h2 id="notifications-title">Notifications</h2><p>Stay informed about important updates and deadlines.</p>
-      <button class="settings-text-button" type="button" data-help="notification-preview">Preview selected alerts</button></div>
-      <div class="settings-checkboxes ">
-        
-        <label><input type="checkbox" name="reminders" data-notification checked>Submission reminders</label><label><input type="checkbox" name="status" data-notification checked>Document status updates</label><label><input type="checkbox" name="announcements" data-notification checked>Important announcements</label><label><input type="checkbox" name="promotions" data-notification >Promotional emails</label>
-      </div>
-    </section>
-
-    
-
     <section class="settings-section" aria-labelledby="help-title">
       <h2 id="help-title">Help &amp; Support</h2><p>Find answers to common questions or get in touch with our team.</p>
       <div class="settings-help-grid">
@@ -144,7 +133,7 @@
     </section>
     <div class="settings-save-note"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>
-</svg><span>Preferences save automatically on this browser. Notification delivery is not connected yet.</span></div>
+</svg><span>Preferences save automatically on this browser.</span></div>
     <p class="settings-status" data-preference-status role="status" aria-live="polite"></p>
   </div>
 
@@ -185,8 +174,6 @@
     <ul><li>PDF (.pdf)</li><li>Images (.jpg, .jpeg, .png)</li><li>Word (.doc, .docx)</li><li>Excel (.xls, .xlsx)</li></ul>
     <p>You can select multiple files. Provide complete, readable documents that open without a password. Renaming an extension does not convert a file. No upload size limit is published in the current form; ask support if a file cannot be uploaded.</p>
   </template>
-  
-  <template id="notification-preview"><p>Example alerts for your selected categories. These are previews, not new account events; email and automatic delivery are not connected yet.</p><ul data-alert-preview></ul></template>
 </div>
 
   </main>
@@ -304,28 +291,6 @@
         </div></fieldset>
       </div>
     </section>
-
-    <section class="settings-section settings-notifications" aria-labelledby="notifications-title">
-      <div><h2 id="notifications-title">{{ tr('Notifications') }}</h2><p>{{ tr('Stay informed about important updates within the admin portal.') if admin else tr('Stay informed about important updates and deadlines.') }}</p>
-      <button class="settings-text-button" type="button" data-help="notification-preview">{{ tr('Preview selected alerts') }}</button></div>
-      <div class="settings-checkboxes {% if admin %}settings-checkboxes-admin{% endif %}">
-        {% set notices = [('registrations', 'New client registrations'), ('submissions', 'Document submissions'), ('lowConfidence', 'Low-confidence classification alerts'), ('humanReview', 'Documents requiring human review'), ('overdue', 'Overdue client alerts'), ('escalations', 'Reminder escalation notifications'), ('weekly', 'Weekly summary reports')] if admin else [('reminders', 'Submission reminders'), ('status', 'Document status updates'), ('announcements', 'Important announcements'), ('promotions', 'Promotional emails')] %}
-        {% for key, label in notices %}<label><input type="checkbox" name="{{ key }}" data-notification {% if key not in ['weekly', 'promotions'] %}checked{% endif %}>{{ label }}</label>{% endfor %}
-      </div>
-    </section>
-
-    {% if admin %}
-    <section class="settings-section" aria-labelledby="workspace-title">
-      <h2 id="workspace-title">{{ tr('Workspace Preferences') }}</h2><p>{{ tr('Set your preferred view and display options for managing client documents.') }}</p>
-      <div class="settings-workspace-fields">
-        <div><label for="settings-view">{{ tr('Default dashboard view') }}</label><select id="settings-view" name="dashboardView" data-preference><option value="needs-review">Needs Review</option><option value="all">All Documents</option><option value="overdue">Overdue</option></select></div>
-        <div><label for="settings-sorting">{{ tr('Default document sorting') }}</label><select id="settings-sorting" name="documentSort" data-preference><option value="recent">Most Recent</option><option value="oldest">Oldest First</option><option value="client">Client Name (A-Z)</option><option value="deadline">Nearest Deadline</option></select></div>
-        <div><label for="settings-page-size">{{ tr('Items shown per page') }}</label><select id="settings-page-size" name="pageSize" data-preference><option value="10">10</option><option value="20" selected>20</option><option value="50">50</option></select></div>
-      </div>
-      <p class="settings-hint" data-workspace-summary aria-live="polite"></p>
-      <p class="settings-hint">{{ tr('Preferences are saved for this browser. The document dashboard is not connected yet.') }}</p>
-    </section>
-    {% endif %}
 
     <section class="settings-section" aria-labelledby="help-title">
       <h2 id="help-title">{{ tr('Help & Support') }}</h2><p>{{ tr('Find resources and guidance to make the most of AXIODY.') if admin else tr('Find answers to common questions or get in touch with our team.') }}</p>
@@ -456,7 +421,6 @@
     <p>{{ tr('You can select multiple files. Provide complete, readable documents that open without a password. Renaming an extension does not convert a file. No upload size limit is published in the current form; ask support if a file cannot be uploaded.') }}</p>
   </template>
   {% endif %}
-  <template id="notification-preview"><p>{{ tr('Example alerts for your selected categories. These are previews, not new account events; email and automatic delivery are not connected yet.') }}</p><ul data-alert-preview></ul></template>
 </div>
 {% endmacro %}
 
