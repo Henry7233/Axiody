@@ -1,13 +1,14 @@
 :root {
-  font-family: "Segoe UI", Inter, Arial, sans-serif;
+  --axiody-font-family: "Segoe UI", Arial, sans-serif;
+  font-family: var(--axiody-font-family);
   color: #152c4d;
-  background: #f5f8fd;
+  background: #fff;
   color-scheme: light;
   font-synthesis: none;
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; }
+body { margin: 0; font-family: var(--axiody-font-family); font-size: 1rem; line-height: 1.5; }
 button, input { font: inherit; }
 a { color: #1764c5; text-underline-offset: 4px; }
 a:hover { text-decoration: underline; }
@@ -29,10 +30,10 @@ a:hover { text-decoration: underline; }
 .story::before { content: ""; position: absolute; z-index: -1; width: 680px; height: 800px; right: -530px; top: -180px; border-radius: 50%; background: linear-gradient(140deg, #5c9fef30, #94caff4d); transform: rotate(25deg); }
 .brand, .card-brand { display: flex; align-items: center; gap: 14px; }
 .brand-mark { width: 62px; height: 68px; flex-shrink: 0; }
-.brand-name { display: block; font-size: 32px; font-weight: 650; letter-spacing: 3px; }
+.brand-name { display: block; font-size: 32px; font-weight: 600; letter-spacing: 3px; }
 .brand-tagline { display: block; margin-top: 4px; color: #d1e0f1; font-size: 11px; }
 .story-content { margin: 52px 0 64px; max-width: 510px; }
-h1 { font-size: clamp(30px, 2.9vw, 46px); line-height: 1.2; letter-spacing: -1.2px; font-weight: 650; margin: 0 0 24px; }
+h1 { font-size: clamp(30px, 2.9vw, 46px); line-height: 1.2; letter-spacing: -1.2px; font-weight: 600; margin: 0 0 24px; }
 .story-intro { font-size: clamp(15px, 1.25vw, 19px); line-height: 1.55; color: #dfebf8; margin: 0; }
 .features { list-style: none; display: grid; gap: 26px; margin: 38px 0 0; padding: 0; }
 .features li { display: flex; align-items: center; gap: 22px; }
@@ -48,14 +49,15 @@ h1 { font-size: clamp(30px, 2.9vw, 46px); line-height: 1.2; letter-spacing: -1.2
 .architecture span:nth-child(2) { right: 25px; }
 .architecture span:nth-child(3) { right: -120px; height: 640px; }
 
-.main { display: flex; align-items: center; justify-content: center; padding: 56px clamp(24px, 4vw, 64px); background: radial-gradient(ellipse at 50% 35%, #fff 0%, #f4f7fd 80%); }
+.main { display: flex; align-items: center; justify-content: center; padding: 56px clamp(24px, 4vw, 64px); background: #fff; }
 .card { width: 100%; max-width: 600px; padding: 48px clamp(28px, 3.5vw, 54px); background: #fff; border: 1px solid #edf2f9; border-radius: 22px; box-shadow: 0 14px 55px #214d8610; }
 .card-brand { justify-content: center; gap: 12px; margin-bottom: 26px; }
 .card-brand .brand-mark { width: 72px; height: 78px; }
 .card-brand .brand-name { font-size: 33px; }
-.card > h2 { margin: 0 0 10px; font-size: clamp(28px, 2.4vw, 36px); font-weight: 650; text-align: center; letter-spacing: -1px; }
+.card > h2 { margin: 0 0 10px; font-size: clamp(28px, 2.4vw, 36px); font-weight: 600; text-align: center; letter-spacing: -1px; }
 .intro { color: #65748b; text-align: center; font-size: 17px; margin: 0 0 36px; line-height: 1.5; }
 .field { margin-bottom: 24px; }
+.hint { margin: 9px 0 0; color: #65748b; font-size: 13px; line-height: 1.5; }
 label { display: block; margin-bottom: 9px; font-size: 15px; font-weight: 600; }
 .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .forgot-password { margin-bottom: 9px; font-size: 13px; text-decoration: none; }

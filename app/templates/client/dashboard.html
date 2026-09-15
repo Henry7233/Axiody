@@ -40,11 +40,11 @@
 
 {% block head %}
 <style>
-  body:has(.client-dashboard) { background: light-dark(#f5f8fe, #1b263c); }
+  body:has(.client-dashboard) { background: light-dark(#fff, #1b263c); }
   .site-content:has(.client-dashboard) { width: min(1424px, calc(100% - 64px)); padding: 32px 0 0; }
   .client-dashboard { color: light-dark(#091633, #93aeec); --dash-muted: light-dark(#54678f, #d8dee8); }
   .client-dashboard h1, .client-dashboard h2, .client-dashboard h3, .client-dashboard p { margin: 0; }
-  .client-dashboard h1 { font-size: clamp(1.75rem, 3.1vw, 2.75rem); font-weight: 750; letter-spacing: -1.4px; margin-bottom: 5px; }
+  .client-dashboard h1 { font-size: clamp(1.75rem, 3.1vw, 2.75rem); font-weight: 700; letter-spacing: -1.4px; margin-bottom: 5px; }
   .client-dashboard h2 { font-size: 1.3125rem; font-weight: 700; letter-spacing: -.7px; }
   .client-dashboard p { color: var(--dash-muted); line-height: 1.65; }
   .client-dashboard a { color: light-dark(#0055ed, #89b0f5); text-decoration: none; }
@@ -54,7 +54,7 @@
   .dashboard-heading > div > p { font-size: clamp(1rem, 1.6vw, 1.375rem); }
   .dashboard-period { display: flex; align-items: center; gap: 15px; padding: 13px 18px; border: 1px solid light-dark(#e0e8f8, #35415a); background: light-dark(#f1f5ff, #1b243c); border-radius: 16px; flex-shrink: 0; }
   .dashboard-period label { margin: 0 0 3px; font-size: 0.8125rem; font-weight: 400; color: var(--dash-muted); }
-  .dashboard-period select { border: 0; color: light-dark(#091633, #93aeec); background: transparent; font-weight: 650; padding: 3px 26px 3px 0; max-width: 210px; cursor: pointer; }
+  .dashboard-period select { border: 0; color: light-dark(#091633, #93aeec); background: transparent; font-weight: 600; padding: 3px 26px 3px 0; max-width: 210px; cursor: pointer; }
   .dashboard-icon { display: inline-flex; width: 60px; height: 60px; border-radius: 17px; align-items: center; justify-content: center; color: light-dark(#0055f5, #89aff5); background: light-dark(#ebf1ff, #1b253c); flex-shrink: 0; }
   .dashboard-icon svg { width: 32px; height: 32px; }
   .dashboard-icon.amber { color: light-dark(#d07a00, #f5c989); background: light-dark(#fff3e1, #4a3a21); }
