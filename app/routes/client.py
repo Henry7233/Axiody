@@ -277,6 +277,8 @@ def upload():
                             "document_title": title,
                             "bookkeeping_period": document_date[:7],
                             "validation_reasons": validation.get("reasons", []),
+                            "validation_reason": validation.get("validation_reason") or validation.get("logical_error"),
+                            "logical_error": validation.get("logical_error") or validation.get("validation_reason"),
                             "client_email": g.account["email"],
                         },
                         current_app.config["DATABASE"],

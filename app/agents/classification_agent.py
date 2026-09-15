@@ -9,6 +9,7 @@ from xml.etree import ElementTree
 
 from pypdf import PdfReader
 from pypdf.errors import PyPdfError
+from app.services.ai_service import parse_agent_response, log_agent_fallback
 
 try:
     from dotenv import load_dotenv
@@ -84,7 +85,8 @@ def _normalize_result(result):
 
 
 def _fallback_classification(document_text, title, description, filename):
-    evidence = " ".join((document_text, title, description, filename)).lower()
+    # PDF text often separates words with tabs or line breaks.
+    evidence = " ".join(document_text.lower().split())
     keyword_groups = {
         "Bank Statement": ("bank statement", "account statement", "opening balance", "closing balance", "transaction date"),
         "Invoice": ("invoice", "bill to", "amount due", "due date", "subtotal"),
@@ -95,6 +97,13 @@ def _fallback_classification(document_text, title, description, filename):
         for document_type, keywords in keyword_groups.items()
     }
     document_type, score = max(scores.items(), key=lambda item: item[1])
+    if score == 0:
+        metadata = " ".join(" ".join((title, description, filename)).lower().replace("_", " ").split())
+        scores = {
+            category: sum(1 for keyword in keywords if keyword in metadata)
+            for category, keywords in keyword_groups.items()
+        }
+        document_type, score = max(scores.items(), key=lambda item: item[1])
     if score == 0:
         return {"document_type": "Other", "confidence": 0}
     return {"document_type": document_type, "confidence": min(95, 70 + score * 5)}
@@ -120,7 +129,7 @@ def classify_document(
         try:
             import boto3
 
-            bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION"))
+            bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "us-east-1"))
             message_content = [{"text": prompt}]
             image_formats = {
                 "image/jpeg": "jpeg",
@@ -137,10 +146,13 @@ def classify_document(
             response = bedrock.converse(
                 modelId=MODEL_ID,
                 messages=[{"role": "user", "content": message_content}],
-                inferenceConfig={"maxTokens": 150, "temperature": 0},
+                inferenceConfig={"maxTokens": 400, "temperature": 0},
             )
-            result = json.loads(response["output"]["message"]["content"][0]["text"])
-        except Exception:
+            result = parse_agent_response(response)
+            if "document_type" not in result or "confidence" not in result:
+                raise ValueError("Missing classification fields")
+        except Exception as error:
+            log_agent_fallback(__name__, error)
             result = None
 
     if not isinstance(result, dict):
