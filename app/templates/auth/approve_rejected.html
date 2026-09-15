@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Incomplete Document Submission</title>
+
+  <title>
+    {% if status == "approved" %}
+      Document Approved
+    {% else %}
+      Document Rejected
+    {% endif %}
+  </title>
 </head>
 
 <body style="
@@ -65,7 +72,7 @@
 
 
         <!-- ===================== -->
-        <!-- INTRO + DEADLINE -->
+        <!-- INTRO + STATUS -->
         <!-- ===================== -->
         <tr>
           <td style="padding: 10px 38px 28px;">
@@ -95,13 +102,16 @@
                     Hello,
                   </h1>
 
+
+                  {% if status == "approved" %}
+
                   <p style="
                     margin: 0 0 25px;
                     font-size: 16px;
                     line-height: 1.7;
                     color: #5a6d8d;
                   ">
-                    We noticed that your document submission for the
+                    Good news! Your document submission for the
                     bookkeeping period
 
                     <span style="
@@ -115,7 +125,7 @@
                       {{ bookkeeping_period_display }}
                     </span>
 
-                    is incomplete.
+                    has been reviewed and approved.
                   </p>
 
                   <p style="
@@ -124,34 +134,89 @@
                     line-height: 1.7;
                     color: #5a6d8d;
                   ">
-                    The submitted document from
-                    <strong style="color:#445a7d;">
-                      {{ company_name }}
-                    </strong>
-                    {{ issue_sentence }}
-                    Please correct or resubmit it before the deadline.
+                    Thank you for submitting the required document.
                   </p>
+
+
+                  {% else %}
+
+                  <p style="
+                    margin: 0 0 25px;
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: #5a6d8d;
+                  ">
+                    Your document submission for the bookkeeping period
+
+                    <span style="
+                      display: inline-block;
+                      background-color: #eef5ff;
+                      color: #1674e8;
+                      font-weight: 700;
+                      padding: 2px 9px;
+                      border-radius: 6px;
+                    ">
+                      {{ bookkeeping_period_display }}
+                    </span>
+
+                    has been reviewed and could not be approved.
+                  </p>
+
+                  <p style="
+                    margin: 0;
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: #5a6d8d;
+                  ">
+                    Please check the details below, correct the issue,
+                    and resubmit the document.
+                  </p>
+
+                  {% endif %}
 
                 </td>
 
 
-                <!-- RIGHT DEADLINE CARD -->
+                <!-- RIGHT STATUS CARD -->
                 <td
                   width="40%"
                   valign="top"
                   style="
-                    background-color: #fff3ed;
+                    {% if status == 'approved' %}
+                      background-color: #ecf9f1;
+                    {% else %}
+                      background-color: #fff0f0;
+                    {% endif %}
                     border-radius: 14px;
                     padding: 24px;
+                    text-align: center;
                   "
                 >
 
+                  <!-- STATUS ICON -->
                   <div style="
-                    font-size: 28px;
-                    margin-bottom: 15px;
+                    width: 50px;
+                    height: 50px;
+                    line-height: 50px;
+                    margin: 0 auto 15px;
+                    border-radius: 50%;
+                    font-size: 27px;
+                    font-weight: 700;
+                    color: #ffffff;
+
+                    {% if status == 'approved' %}
+                      background-color: #24ad67;
+                    {% else %}
+                      background-color: #e82937;
+                    {% endif %}
                   ">
-                    📅
+                    {% if status == "approved" %}
+                      ✓
+                    {% else %}
+                      ×
+                    {% endif %}
                   </div>
+
 
                   <div style="
                     font-size: 15px;
@@ -159,24 +224,44 @@
                     color: #60728f;
                     margin-bottom: 5px;
                   ">
-                    Submission Deadline
+                    Status
                   </div>
+
 
                   <div style="
                     font-size: 21px;
                     line-height: 1.4;
                     font-weight: 700;
-                    color: #f04419;
+
+                    {% if status == 'approved' %}
+                      color: #16894c;
+                    {% else %}
+                      color: #c91c28;
+                    {% endif %}
                   ">
-                    {{ deadline }}
+                    {% if status == "approved" %}
+                      Approved
+                    {% else %}
+                      Rejected
+                    {% endif %}
+                  </div>
+
+
+                  <div style="
+                    margin-top: 16px;
+                    font-size: 14px;
+                    color: #60728f;
+                  ">
+                    Reviewed on
                   </div>
 
                   <div style="
                     margin-top: 4px;
                     font-size: 15px;
-                    color: #60728f;
+                    font-weight: 700;
+                    color: #173566;
                   ">
-                    {{ deadline_day }}
+                    {{ reviewed_date }}
                   </div>
 
                 </td>
@@ -219,6 +304,7 @@
 
                 </td>
               </tr>
+
 
               <tr>
                 <td style="padding: 10px 25px 28px;">
@@ -286,6 +372,57 @@
                     </tr>
 
 
+                    <!-- DOCUMENT TYPE -->
+                    <tr>
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        border-right: 1px solid #dbe3ee;
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #65758f;
+                      ">
+                        Document Type
+                      </td>
+
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        font-size: 15px;
+                        color: #173566;
+                      ">
+                        {{ document_type }}
+                      </td>
+                    </tr>
+
+
+                    {% if status == "approved" %}
+
+                    <!-- SUBMISSION DATE -->
+                    <tr>
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        border-right: 1px solid #dbe3ee;
+                        font-weight: 700;
+                        font-size: 14px;
+                        color: #65758f;
+                      ">
+                        Submission Date
+                      </td>
+
+                      <td style="
+                        padding: 15px 18px;
+                        border-bottom: 1px solid #dbe3ee;
+                        font-size: 15px;
+                        color: #173566;
+                      ">
+                        {{ submission_date }}
+                      </td>
+                    </tr>
+
+                    {% else %}
+
                     <!-- ISSUE -->
                     <tr>
                       <td style="
@@ -306,13 +443,18 @@
                         line-height: 1.5;
                         color: #173566;
                       ">
-                        Reason<br>
+                        <strong style="color:#c91c28;">
+                          Reason
+                        </strong>
+                        <br>
                         {{ issue_clean }}
                       </td>
                     </tr>
 
+                    {% endif %}
 
-                    <!-- MESSAGE -->
+
+                    <!-- STATUS -->
                     <tr>
                       <td style="
                         padding: 15px 18px;
@@ -321,17 +463,43 @@
                         font-size: 14px;
                         color: #65758f;
                       ">
-                        Message
+                        Status
                       </td>
 
                       <td style="
                         padding: 15px 18px;
                         font-size: 15px;
-                        line-height: 1.5;
                         color: #173566;
                       ">
-                        Please correct or resubmit the document before
-                        {{ deadline_short }}.
+
+                        {% if status == "approved" %}
+
+                        <span style="
+                          display: inline-block;
+                          background-color: #e4f7ec;
+                          color: #16894c;
+                          font-weight: 700;
+                          padding: 7px 12px;
+                          border-radius: 20px;
+                        ">
+                          ✓ &nbsp; Approved
+                        </span>
+
+                        {% else %}
+
+                        <span style="
+                          display: inline-block;
+                          background-color: #fde8ea;
+                          color: #c91c28;
+                          font-weight: 700;
+                          padding: 7px 12px;
+                          border-radius: 20px;
+                        ">
+                          × &nbsp; Rejected
+                        </span>
+
+                        {% endif %}
+
                       </td>
                     </tr>
 
@@ -373,6 +541,7 @@
         </tr>
 
 
+        <!-- TEXT BELOW BUTTON -->
         <tr>
           <td
             align="center"
@@ -383,7 +552,17 @@
               color: #61718c;
             "
           >
-            Log in to view your submission status and upload the correct document.
+
+            {% if status == "approved" %}
+
+              Log in to view your submission history and document status.
+
+            {% else %}
+
+              Log in to view your submission history and resubmit the document.
+
+            {% endif %}
+
           </td>
         </tr>
 
@@ -472,7 +651,7 @@
                 </td>
 
 
-                <!-- FOOTER LOGO ONLY -->
+                <!-- FOOTER LOGO -->
                 <td
                   align="right"
                   valign="middle"

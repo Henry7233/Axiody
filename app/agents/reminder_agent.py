@@ -1,3 +1,4 @@
+import json
 from datetime import date, datetime, timedelta
 from flask import current_app
 
@@ -54,12 +55,22 @@ def _message(validation_data, deadline):
     document_title = validation_data.get("document_title") or "Your document"
     reasons = validation_data.get("validation_reasons") or []
     if isinstance(reasons, str):
-        reasons = [reasons]
+        try:
+            parsed_reasons = json.loads(reasons)
+        except (TypeError, ValueError):
+            parsed_reasons = [reasons]
+        reasons = parsed_reasons if isinstance(parsed_reasons, list) else [reasons]
     reason = validation_data.get("validation_reason") or ", ".join(
-        reason.replace("_", " ") for reason in reasons if reason
+        str(reason).replace("_", " ") for reason in reasons if reason
     ) or "The document is missing required information."
+    reason = str(reason).strip().strip("[]\"").replace("_", " ")
+    reason = reason[:1].upper() + reason[1:] if reason else "The document is missing required information."
     period = validation_data.get("bookkeeping_period")
-    period_text = f" for {period}" if period else ""
+    try:
+        period_label = datetime.strptime(str(period), "%Y-%m").strftime("%B %Y")
+    except (TypeError, ValueError):
+        period_label = str(period) if period else ""
+    period_text = f" for {period_label}" if period_label else ""
     message = (
         f"{document_title}{period_text} is incomplete. {reason} "
         f"Please correct or resubmit it before {deadline.strftime('%B %d')}."

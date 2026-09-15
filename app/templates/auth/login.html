@@ -45,12 +45,15 @@
             </div>
           </div>
           <div class="field">
-            <div class="label-row"><label for="password">Password</label><a class="forgot-password" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a></div>
+            <label for="password">Password</label>
             <div class="input-wrap password-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4"/></svg>
               <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
               <button class="toggle" type="button" aria-controls="password" aria-label="Show password" aria-pressed="false">Show</button>
             </div>
+          </div>
+          <div class="form-link-row">
+            <a class="forgot-password" href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
           </div>
           <button class="primary" type="submit">Log in</button>
           {% with messages = get_flashed_messages(with_categories=true) %}

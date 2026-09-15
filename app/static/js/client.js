@@ -93,6 +93,8 @@ if (loginForm) {
   const requestedFilter = new URLSearchParams(window.location.search).get("filter");
   let activeFilter = filters.some(button => button.dataset.filter === requestedFilter) ? requestedFilter : "all";
 
+  sort.value = "recent";
+
   function updateResults() {
     const query = search.value.trim().toLocaleLowerCase();
     let visible = 0;

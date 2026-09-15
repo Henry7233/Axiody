@@ -141,6 +141,66 @@ def send_password_reset_otp(config, recipient, code, expiry_minutes):
     send_email(config, recipient, "Your AXIODY password reset code", body, html=html)
 
 
+def send_document_decision_email(config, recipient, document, decision):
+    approved = decision == "approved"
+    document_title = document.get("document_title") or "Your document"
+    document_date = document.get("document_date") or ""
+    try:
+        period = datetime.strptime(str(document_date), "%Y-%m-%d").strftime("%B %Y")
+    except (TypeError, ValueError):
+        period = document_date[:7] if document_date else "the selected period"
+    reviewed_at = document.get("reviewed_date") or singapore_today().isoformat()
+    try:
+        reviewed_date = datetime.fromisoformat(str(reviewed_at)).strftime("%d %B %Y")
+    except ValueError:
+        reviewed_date = str(reviewed_at)[:10]
+    submission_at = document.get("submission_date") or document_date
+    try:
+        submission_date = datetime.fromisoformat(str(submission_at)).strftime("%d %B %Y")
+    except ValueError:
+        submission_date = str(submission_at)[:10]
+    issue = (
+        "The document was approved and is ready for bookkeeping."
+        if approved
+        else "The document did not meet the approval requirements. Please correct and resubmit it."
+    )
+    subject = f"Your document was {'approved' if approved else 'rejected'} | AXIODY"
+    message = (
+        f"Your document '{document_title}' for {period} was approved by the AXIODY admin team."
+        if approved
+        else f"Your document '{document_title}' for {period} was rejected by the AXIODY admin team. Please review it and submit a corrected copy."
+    )
+    axiody_url = (config.get("AXIODY_URL") or "").strip().rstrip("/")
+    logo_path = Path(current_app.static_folder) / "images" / "axiody-logo.svg"
+    logo_content = logo_path.read_bytes()
+    html = current_app.jinja_env.get_template("auth/approve_rejected.html").render(
+        logo_url="cid:axiody-logo",
+        status=decision,
+        company_name=document.get("company_name") or recipient,
+        bookkeeping_period_display=period,
+        document_type=document.get("document_type") or "Other",
+        submission_date=submission_date,
+        reviewed_date=reviewed_date,
+        issue_clean=issue,
+        axiody_url=f"{axiody_url}/login.html" if axiody_url else "/login.html",
+        help_url=config.get("HELP_URL", config.get("AXIODY_URL", "")),
+    )
+    send_email(
+        config,
+        recipient,
+        subject,
+        message,
+        html=html,
+        inline_images=({
+            "content": logo_content,
+            "maintype": "image",
+            "subtype": "svg+xml",
+            "cid": "axiody-logo",
+            "filename": "axiody-logo.svg",
+        },),
+    )
+
+
 def send_reminder_email(config, recipient, subject, body, reminder=None):
     """Send a document reminder using the branded HTML template and text body."""
     reminder = reminder or {}
@@ -152,17 +212,21 @@ def send_reminder_email(config, recipient, subject, body, reminder=None):
     else:
         deadline = singapore_today()
 
-    issue = reminder.get("issue") or body
-    period = reminder.get("bookkeeping_period") or "the selected period"
+    issue = str(reminder.get("issue") or body).strip().strip("[]\"").replace("_", " ")
+    issue = issue[:1].upper() + issue[1:] if issue else "The document is missing required information."
+    try:
+        period = datetime.strptime(str(reminder.get("bookkeeping_period")), "%Y-%m").strftime("%B %Y")
+    except (TypeError, ValueError):
+        period = reminder.get("bookkeeping_period") or "the selected period"
     axiody_url = (config.get("AXIODY_URL") or "").strip().rstrip("/")
     logo_path = Path(current_app.static_folder) / "images" / "axiody-logo.svg"
     logo_content = logo_path.read_bytes()
     html = current_app.jinja_env.get_template("auth/reminder_email.html").render(
         logo_url="cid:axiody-logo",
         company_name=reminder.get("company_name") or "your account",
-        bookkeeping_period=period,
+        bookkeeping_period_display=period,
         issue_sentence=reminder.get("issue_sentence") or f"was flagged because {issue}",
-        issue=issue,
+        issue_clean=issue,
         deadline=deadline.strftime("%B %d, %Y"),
         deadline_day=deadline.strftime("%A"),
         deadline_short=deadline.strftime("%B %d"),

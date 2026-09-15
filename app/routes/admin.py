@@ -21,6 +21,8 @@ from app.models.documents import (
     list_documents,
     save_document_review,
 )
+from app.models.notifications import create_decision_notification
+from app.services.email_servie import send_document_decision_email
 from app.models.users import (
     create_user,
     format_created_date,
@@ -261,10 +263,26 @@ def review_document(document_id):
         return jsonify(message="This document is no longer awaiting review. Reload the page."), 409
     if result == "incomplete":
         return jsonify(message="This document is no longer eligible for classification review. Reload the approval queue."), 409
+    if payload["action"] in ("approved", "rejected"):
+        try:
+            decision = create_decision_notification(
+                current_app.config["DATABASE"], document_id, payload["action"]
+            )
+            if decision and decision["email"]:
+                send_document_decision_email(
+                    current_app.config,
+                    decision["email"],
+                    decision,
+                    payload["action"],
+                )
+        except Exception as error:
+            current_app.logger.warning(
+                "Decision notification for document %s failed: %s", document_id, error
+            )
     return jsonify(message={
         "saved": "Changes saved for review.",
         "approved": "Document approved.",
-        "rejected": "Document deleted.",
+        "rejected": "Document rejected.",
     }[payload["action"]])
 
 

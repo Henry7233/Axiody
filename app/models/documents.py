@@ -85,6 +85,7 @@ def init_document_db(database_path):
                 document_id INTEGER NOT NULL,
                 title TEXT NOT NULL,
                 message TEXT NOT NULL,
+                notification_type TEXT NOT NULL DEFAULT 'reminder',
                 status TEXT NOT NULL DEFAULT 'unread',
                 last_reminder_sent TIMESTAMP,
                 next_reminder_date DATE,
@@ -94,6 +95,14 @@ def init_document_db(database_path):
             )
             """
         )
+        notification_columns = {
+            column["name"]
+            for column in connection.execute("PRAGMA table_info(notifications)").fetchall()
+        }
+        if "notification_type" not in notification_columns:
+            connection.execute(
+                "ALTER TABLE notifications ADD COLUMN notification_type TEXT NOT NULL DEFAULT 'reminder'"
+            )
         columns = connection.execute("PRAGMA table_info(documents)").fetchall()
         column_names = {column["name"] for column in columns}
         foreign_keys = connection.execute("PRAGMA foreign_key_list(documents)").fetchall()
@@ -164,6 +173,8 @@ def create_documents_table(connection):
             ai_confidence REAL,
             document_type TEXT,
             classification_status TEXT NOT NULL DEFAULT 'Pending',
+            validation_status TEXT,
+            validation_reasons TEXT NOT NULL DEFAULT '[]',
             reviewed_by INTEGER,
             reviewed_at TEXT,
             created_at TEXT NOT NULL,
@@ -234,9 +245,10 @@ def create_document(
                 file_type,
                 file_size,
                 file_data,
+                classification_status,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -247,6 +259,7 @@ def create_document(
                 content_type or "",
                 len(file_data),
                 file_data,
+                "Pending",
                 created_at,
             ),
         )
@@ -335,6 +348,16 @@ def document_validation_status(value):
     return {"complete": "Complete", "incomplete": "Incomplete"}.get(
         (value or "").strip().lower(), "Pending validation"
     )
+
+
+def document_status_for_notification(document):
+    """Return the user-visible document status for notifications."""
+    validation_status = document_validation_status(document.get("validation_status"))
+    if validation_status == "Complete" and normalize_document_type(
+        document.get("document_type") or document.get("ai_document_type") or "Other"
+    ) == "Other":
+        return "Under review"
+    return validation_status
 
 
 def validation_messages(value):
@@ -451,8 +474,14 @@ def save_document_review(database_path, document_id, reviewer_id, action, change
         if not needs_document_approval(document):
             return "reviewed"
         if action == "rejected":
-            connection.execute("DELETE FROM notifications WHERE document_id = ?", (document_id,))
-            connection.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+            connection.execute(
+                """
+                UPDATE documents
+                SET classification_status = 'Rejected', reviewed_by = ?, reviewed_at = ?
+                WHERE id = ?
+                """,
+                (reviewer_id, singapore_now().isoformat(), document_id),
+            )
             return "ok"
         assignments, values = [], []
         for field in ("title", "description", "document_date", "document_type"):
