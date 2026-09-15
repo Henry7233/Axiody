@@ -43,7 +43,7 @@ if (loginForm) {
   loginForm.addEventListener('submit', async event => {
     event.preventDefault();
 
-    const message = loginForm.querySelector('[role="status"]');
+    const message = loginForm.querySelector('[data-login-status]') || loginForm.querySelector('[role="status"]');
     const submitButton = loginForm.querySelector('[type="submit"]');
     const formData = new FormData(loginForm);
 
