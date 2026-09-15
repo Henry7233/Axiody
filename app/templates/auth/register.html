@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173b64">
-  <title>Register | AXIODY</title>
+  <title>Sign up | AXIODY</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
   <script src="{{ url_for('static', filename='js/client.js') }}" defer></script>
 </head>
@@ -35,7 +35,7 @@
       <section class="card" aria-labelledby="form-title">
         <div class="card-brand">{{ brand_mark() }}<span class="brand-name">AXIODY</span></div>
         <h2 id="form-title" tabindex="-1">Create an account</h2>
-        <p class="intro">Just a few details, and you're on your way.</p>
+        <p class="intro">Sign up for your AXIODY account</p>
         <form method="post" action="{{ url_for('auth.register') }}">
           <div class="field">
             <label for="name">Full name</label>
