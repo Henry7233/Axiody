@@ -126,6 +126,28 @@ def _bank_summary_reasons(document_text):
     return ["totals_mismatch"] if expected != values["closing"] else []
 
 
+def _is_bank_statement(document_text, title="", description="", filename=""):
+    evidence = " ".join((document_text, title, description, filename)).lower()
+    return any(
+        marker in evidence
+        for marker in ("bank statement", "account statement", "opening balance", "closing balance")
+    )
+
+
+def _date_matches_expected(detected, expected, bank_statement=False):
+    if detected.year == expected.year and detected.month == expected.month:
+        return True
+
+    # Bank statements may be submitted during the first ten days of the
+    # following month, but never across a calendar year boundary.
+    return (
+        bank_statement
+        and expected.day <= 10
+        and detected.year == expected.year
+        and detected.month == expected.month - 1
+    )
+
+
 def _fallback_validation(document_text, title="", description="", expected_period="", filename=""):
     evidence = " ".join((document_text, title, description, filename)).lower()
     reasons = []
@@ -139,11 +161,18 @@ def _fallback_validation(document_text, title="", description="", expected_perio
         reasons.append("missing_date")
     elif expected_period:
         try:
-            expected = datetime.strptime(expected_period[:7], "%Y-%m")
+            expected = datetime.strptime(expected_period[:10], "%Y-%m-%d")
         except ValueError:
-            expected = None
+            try:
+                expected = datetime.strptime(expected_period[:7], "%Y-%m")
+            except ValueError:
+                expected = None
         if expected and not any(
-            detected.year == expected.year and detected.month == expected.month
+            _date_matches_expected(
+                detected,
+                expected,
+                bank_statement=_is_bank_statement(document_text, title, description, filename),
+            )
             for detected in detected_dates
         ):
             reasons.append("date_out_of_period")
