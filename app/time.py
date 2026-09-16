@@ -1,3 +1,5 @@
+"""Singapore timezone helpers used by persistence and reminder workflows."""
+
 from datetime import date, datetime, timedelta, timezone
 
 

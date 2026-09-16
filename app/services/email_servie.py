@@ -1,3 +1,5 @@
+"""SMTP delivery helpers for account and document notifications."""
+
 from email.message import EmailMessage
 import smtplib
 from datetime import date, datetime

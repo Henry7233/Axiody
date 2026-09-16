@@ -1,5 +1,7 @@
 """Read-only dashboard data from the application's document database."""
 
+"""Build read-only aggregates for the administrator dashboard."""
+
 import json
 from contextlib import closing
 from datetime import date, datetime

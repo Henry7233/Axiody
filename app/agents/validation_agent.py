@@ -1,11 +1,14 @@
-﻿import json
+﻿"""Validate document quality, period, and arithmetic consistency."""
+
+import json
 import os
 import re
 from datetime import datetime
 from decimal import Decimal
+from functools import lru_cache
 from pathlib import Path
 from string import Template
-from app.services.ai_service import parse_agent_response, log_agent_fallback
+from app.services.ai_service import get_bedrock_client, parse_agent_response, log_agent_fallback
 
 try:
     from dotenv import load_dotenv
@@ -25,6 +28,12 @@ IMAGE_FORMATS = {
 }
 
 
+@lru_cache(maxsize=1)
+def _validation_prompt():
+    """Read the immutable validation prompt once per process."""
+    return PROMPT_PATH.read_text(encoding="utf-8")
+
+
 def read_image(document_bytes, content_type=""):
     """Extract readable text from an image with the configured vision model."""
     image_format = IMAGE_FORMATS.get(content_type)
@@ -32,9 +41,7 @@ def read_image(document_bytes, content_type=""):
         return ""
 
     try:
-        import boto3
-
-        bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "us-east-1"))
+        bedrock = get_bedrock_client(os.getenv("AWS_REGION", "us-east-1"))
         response = bedrock.converse(
             modelId=MODEL_ID,
             messages=[
@@ -236,10 +243,7 @@ def validate_document(
     expected_period="",
     document_bytes=None,
 ):
-    if not document_text and document_bytes:
-        document_text = read_image(document_bytes, content_type)
-
-    prompt = Template(PROMPT_PATH.read_text(encoding="utf-8")).safe_substitute(
+    prompt = Template(_validation_prompt()).safe_substitute(
         title=title,
         description=description,
         document_text=document_text,
@@ -249,9 +253,7 @@ def validate_document(
     result = None
     if MODEL_ID:
         try:
-            import boto3
-
-            bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "us-east-1"))
+            bedrock = get_bedrock_client(os.getenv("AWS_REGION", "us-east-1"))
             message_content = [{"text": prompt}]
             image_format = IMAGE_FORMATS.get(content_type)
             if image_format and document_bytes:

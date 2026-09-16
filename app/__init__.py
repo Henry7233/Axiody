@@ -1,3 +1,5 @@
+"""Create the Flask application and register its persistence and routes."""
+
 from flask import Flask, redirect, session, url_for
 
 from app.models.documents import init_document_db

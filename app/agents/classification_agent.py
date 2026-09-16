@@ -1,15 +1,18 @@
+"""Classify uploaded documents with Bedrock and a local keyword fallback."""
+
 import io
 import json
 import logging
 import os
 import zipfile
+from functools import lru_cache
 from pathlib import Path
 from string import Template
 from xml.etree import ElementTree
 
 from pypdf import PdfReader
 from pypdf.errors import PyPdfError
-from app.services.ai_service import parse_agent_response, log_agent_fallback
+from app.services.ai_service import get_bedrock_client, parse_agent_response, log_agent_fallback
 
 try:
     from dotenv import load_dotenv
@@ -23,6 +26,12 @@ MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID")
 ALLOWED_DOCUMENT_TYPES = {"Invoice", "Receipt", "Bank Statement", "Other"}
 SUCCESS_DOCUMENT_TYPES = ALLOWED_DOCUMENT_TYPES - {"Other"}
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "classification_agent_prompt.txt"
+
+
+@lru_cache(maxsize=1)
+def _classification_prompt():
+    """Read the immutable prompt once per process instead of once per upload."""
+    return PROMPT_PATH.read_text(encoding="utf-8")
 
 
 def extract_document_text(file_data, filename="", content_type=""):
@@ -118,7 +127,7 @@ def classify_document(
     document_bytes=None,
 ):
 
-    prompt = Template(PROMPT_PATH.read_text(encoding="utf-8")).safe_substitute(
+    prompt = Template(_classification_prompt()).safe_substitute(
         title=title,
         description=description,
         document_text=document_text,
@@ -127,9 +136,7 @@ def classify_document(
     result = None
     if MODEL_ID:
         try:
-            import boto3
-
-            bedrock = boto3.client("bedrock-runtime", region_name=os.getenv("AWS_REGION", "us-east-1"))
+            bedrock = get_bedrock_client(os.getenv("AWS_REGION", "us-east-1"))
             message_content = [{"text": prompt}]
             image_formats = {
                 "image/jpeg": "jpeg",
