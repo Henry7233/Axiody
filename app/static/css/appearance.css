@@ -141,6 +141,10 @@ html[data-theme="dark"] .notifications-page .panel {
   border-color: #343434;
 }
 
+html[data-theme="dark"] .notifications-page .summary-card h2 {
+  color: #f2f2f2;
+}
+
 html[data-theme="dark"] body:has(.settings-page) {
   --settings-bg: #0b0b0b;
   --settings-surface: #151515;
