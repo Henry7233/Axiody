@@ -380,8 +380,8 @@ def register():
             flash("Full name is required.", "error")
             return render_template("auth/register.html", name=full_name, email=email, role=role), 400
 
-        if len(password) < 8:
-            flash("Password must be at least 8 characters.", "error")
+        if not password_is_strong(password):
+            flash("Use at least 8 characters with a letter, number, and symbol.", "error")
             return render_template("auth/register.html", name=full_name, email=email, role=role), 400
 
         user = create_user(
