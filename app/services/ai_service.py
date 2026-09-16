@@ -1,8 +1,16 @@
-"""Shared handling for Bedrock agent responses."""
+"""Shared Bedrock client lifecycle and agent-response parsing."""
 
 import json
 import logging
 import re
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def get_bedrock_client(region_name):
+    import boto3
+
+    return boto3.client("bedrock-runtime", region_name=region_name)
 
 
 def parse_agent_response(response):

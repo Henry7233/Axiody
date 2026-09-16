@@ -1,3 +1,5 @@
+"""Administrator routes for dashboards, reviews, exports, and user management."""
+
 import io
 import mimetypes
 import secrets

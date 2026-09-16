@@ -1,3 +1,5 @@
+"""Application configuration and environment loading."""
+
 from pathlib import Path
 import os
 

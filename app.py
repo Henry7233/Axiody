@@ -1,3 +1,5 @@
+"""WSGI entry point for the AXIODY Flask application."""
+
 from app import create_app
 
 

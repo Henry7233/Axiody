@@ -1,3 +1,5 @@
+"""User persistence, normalization, authentication, and account administration."""
+
 import sqlite3
 from contextlib import contextmanager
 

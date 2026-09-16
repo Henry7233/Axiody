@@ -1,3 +1,5 @@
+"""Authentication, account updates, password resets, and OTP workflows."""
+
 from flask import (
     abort,
     Blueprint,

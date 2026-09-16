@@ -1,3 +1,5 @@
+"""Document persistence, classification state, and bookkeeping readiness rules."""
+
 import json
 import os
 import sqlite3
@@ -288,60 +290,88 @@ def update_document_classification(database_path, document_id, classification):
         )
 
 
-def update_document_validation(database_path, document_id, validation):
-    with closing(get_connection(database_path)) as connection, connection:
-        validation_status = validation["validation_status"]
+def _apply_document_validation(connection, document_id, validation):
+    """Apply validation and resolve replaced-file reminders in one transaction."""
+    validation_status = validation["validation_status"]
+    connection.execute(
+        """
+        UPDATE documents
+        SET validation_status = ?,
+            validation_reasons = ?,
+            ai_confidence = ?
+        WHERE id = ?
+        """,
+        (
+            validation_status,
+            json.dumps(validation.get("reasons", []) if validation_status != "Complete" else []),
+            validation["ai_confidence"],
+            document_id,
+        ),
+    )
+    if validation_status == "Complete":
         connection.execute(
             """
             UPDATE documents
-            SET validation_status = ?,
-                validation_reasons = ?,
-                ai_confidence = ?
+            SET validation_status = 'Complete', validation_reasons = '[]'
+            WHERE user_id = (
+                SELECT user_id FROM documents WHERE id = ?
+            )
+              AND title = (
+                SELECT title FROM documents WHERE id = ?
+              )
+              AND SUBSTR(document_date, 1, 7) = (
+                SELECT SUBSTR(document_date, 1, 7) FROM documents WHERE id = ?
+              )
+              AND filename_stem(filename) = filename_stem(
+                (SELECT filename FROM documents WHERE id = ?)
+              )
+              AND LOWER(COALESCE(TRIM(validation_status), '')) = 'incomplete'
+            """,
+            (document_id, document_id, document_id, document_id),
+        )
+        connection.execute(
+            """
+            UPDATE notifications SET status = 'resolved', next_reminder_date = NULL
+            WHERE document_id IN (
+                SELECT older.id FROM documents older
+                JOIN documents current ON current.id = ?
+                WHERE older.user_id = current.user_id
+                  AND older.title = current.title
+                  AND SUBSTR(older.document_date, 1, 7) = SUBSTR(current.document_date, 1, 7)
+                  AND filename_stem(older.filename) = filename_stem(current.filename)
+                  AND older.id <= current.id
+            )
+            """,
+            (document_id,),
+        )
+
+
+def update_document_validation(database_path, document_id, validation):
+    with closing(get_connection(database_path)) as connection, connection:
+        _apply_document_validation(connection, document_id, validation)
+
+
+def update_document_results(database_path, document_id, classification, validation):
+    """Save both AI results together to avoid multiple SQLite transactions per upload."""
+    with closing(get_connection(database_path)) as connection, connection:
+        connection.execute(
+            """
+            UPDATE documents
+            SET ai_document_type = ?,
+                ai_confidence = ?,
+                document_type = ?,
+                classification_status = ?
             WHERE id = ?
             """,
             (
-                validation_status,
-                json.dumps(validation.get("reasons", []) if validation_status != "Complete" else []),
-                validation["ai_confidence"],
+                classification["ai_document_type"],
+                classification["ai_confidence"],
+                classification["document_type"],
+                classification["classification_status"],
                 document_id,
             ),
         )
-        if validation_status == "Complete":
-            connection.execute(
-                """
-                UPDATE documents
-                SET validation_status = 'Complete', validation_reasons = '[]'
-                WHERE user_id = (
-                    SELECT user_id FROM documents WHERE id = ?
-                )
-                  AND title = (
-                    SELECT title FROM documents WHERE id = ?
-                  )
-                  AND SUBSTR(document_date, 1, 7) = (
-                    SELECT SUBSTR(document_date, 1, 7) FROM documents WHERE id = ?
-                  )
-                  AND filename_stem(filename) = filename_stem(
-                    (SELECT filename FROM documents WHERE id = ?)
-                  )
-                  AND LOWER(COALESCE(TRIM(validation_status), '')) = 'incomplete'
-                """,
-                (document_id, document_id, document_id, document_id),
-            )
-            connection.execute(
-                """
-                UPDATE notifications SET status = 'resolved', next_reminder_date = NULL
-                WHERE document_id IN (
-                    SELECT older.id FROM documents older
-                    JOIN documents current ON current.id = ?
-                    WHERE older.user_id = current.user_id
-                      AND older.title = current.title
-                      AND SUBSTR(older.document_date, 1, 7) = SUBSTR(current.document_date, 1, 7)
-                      AND filename_stem(older.filename) = filename_stem(current.filename)
-                      AND older.id <= current.id
-                )
-                """,
-                (document_id,),
-            )
+        _apply_document_validation(connection, document_id, validation)
 
 
 def document_validation_status(value):

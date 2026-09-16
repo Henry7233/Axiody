@@ -1,3 +1,5 @@
+"""Client routes for dashboards, uploads, reminders, and account settings."""
+
 import os
 from datetime import date, datetime
 
@@ -16,8 +18,7 @@ from app.models.notifications import list_client_notifications
 from app.models.documents import (
     create_document,
     list_client_document_records,
-    update_document_classification,
-    update_document_validation,
+    update_document_results,
 )
 
 
@@ -254,10 +255,6 @@ def upload():
                     content_type=content_type,
                     document_bytes=file_data,
                 )
-                update_document_classification(
-                    current_app.config["DATABASE"], document_id, classification
-                )
-
                 validation = validate_document(
                     document_text,
                     title=title,
@@ -267,8 +264,8 @@ def upload():
                     expected_period=document_date,
                     document_bytes=file_data,
                 )
-                update_document_validation(
-                    current_app.config["DATABASE"], document_id, validation
+                update_document_results(
+                    current_app.config["DATABASE"], document_id, classification, validation
                 )
                 if validation["validation_status"] == "Incomplete":
                     create_initial_reminder(

@@ -1,3 +1,5 @@
+"""Assemble client-facing validation, decision, and reminder notifications."""
+
 from datetime import datetime
 
 from app.agents.reminder_agent import document_reminder
