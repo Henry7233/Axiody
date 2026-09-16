@@ -1,7 +1,14 @@
 {% for document in recent_submissions %}
 <tr>
   <td>{{ document.client }}</td>
-  <td><a href="{{ url_for('admin.preview_document', document_id=document.id) }}" target="_blank" rel="noopener">{{ document.filename }}</a></td>
+  <td>
+    <a class="document-preview-link"
+       href="{{ url_for('admin.preview_document', document_id=document.id, requested_filename=document.filename) }}"
+       data-preview-url="{{ url_for('admin.preview_document', document_id=document.id, requested_filename=document.filename) }}"
+       data-document-name="{{ document.filename }}"
+       target="_blank"
+       rel="noopener">{{ document.filename }}</a>
+  </td>
   <td>{{ document.type }}</td>
   <td><span class="status-badge {{ 'status-success' if document.status == 'Bookkept' else 'status-warning' }}">{{ document.status }}</span></td>
   <td>{{ document.date }}</td>

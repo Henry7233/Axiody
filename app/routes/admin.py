@@ -412,7 +412,8 @@ def client_detail(client_id=None):
 
 
 @admin_bp.route("/documents/<int:document_id>/preview")
-def preview_document(document_id):
+@admin_bp.route("/documents/<int:document_id>/preview/<path:requested_filename>")
+def preview_document(document_id, requested_filename=None):
     redirect_response = require_admin()
     if redirect_response:
         return redirect_response
@@ -423,12 +424,14 @@ def preview_document(document_id):
 
     filename = document["filename"] or f"document-{document_id}"
     mimetype = document["file_type"] or mimetypes.guess_type(filename)[0] or "application/octet-stream"
-    return send_file(
+    response = send_file(
         io.BytesIO(document["file_data"]),
         as_attachment=False,
         download_name=filename,
         mimetype=mimetype,
     )
+    response.headers["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response
 
 
 @admin_bp.route("/documents/<int:document_id>/download")
