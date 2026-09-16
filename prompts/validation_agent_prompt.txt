@@ -12,6 +12,7 @@ Check the document against these criteria:
    - The expected reporting period is the calendar MONTH and YEAR of the supplied date, not an exact day or the upload date.
    - Accept readable dates such as 2024-07-01, 01/07/2024, 01 Jul 2024, and 01 September 2026. Use day/month/year for ambiguous numeric dates unless the document clearly establishes month/day/year.
    - For bank statements, use the statement period. A range overlapping the expected month and year is in period; transaction dates without a year may inherit the year from that range.
+   - A bank statement is also in period when it is submitted during the first 10 days of the following month in the same calendar year. For example, a September 2026 statement submitted on 10 October 2026 is in period; a September 2026 statement submitted on 11 October 2026 is out of period.
    - A statement for July 2024 is out of period for September 2026, even if it was uploaded in September 2026.
    - Dates in the title or description do not substitute for a readable date in the document.
 
