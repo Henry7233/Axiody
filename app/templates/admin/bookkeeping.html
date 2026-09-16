@@ -376,8 +376,21 @@
         <span class="file-meta">${f.size}</span>
         <span class="file-date">${f.date}</span>
       `;
-      li.addEventListener('click', (event) => {
-        alert(`Opening ${f.name}\nSubmitted by ${f.submittedBy} on ${f.submittedAt}`);
+      li.addEventListener('click', () => {
+        const previewWindow = window.open('', '_blank');
+        if (!previewWindow) return;
+
+        previewWindow.opener = null;
+        previewWindow.document.title = f.name || 'Document';
+        previewWindow.document.body.style.margin = '0';
+
+        const frame = previewWindow.document.createElement('iframe');
+        frame.src = `/admin/documents/${encodeURIComponent(f.id)}/preview/${encodeURIComponent(f.name || 'document')}`;
+        frame.title = f.name || 'Document';
+        frame.style.width = '100vw';
+        frame.style.height = '100vh';
+        frame.style.border = '0';
+        previewWindow.document.body.appendChild(frame);
       });
       listEl.appendChild(li);
     });

@@ -567,6 +567,27 @@
 
   {% block scripts %}{% endblock %}
   <script>
+    document.querySelectorAll('.document-preview-link').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const previewWindow = window.open('', '_blank');
+        if (!previewWindow) return;
+
+        const fileName = link.dataset.documentName || 'Document';
+        previewWindow.opener = null;
+        previewWindow.document.title = fileName;
+        previewWindow.document.body.style.margin = '0';
+
+        const frame = previewWindow.document.createElement('iframe');
+        frame.src = link.dataset.previewUrl || link.href;
+        frame.title = fileName;
+        frame.style.width = '100vw';
+        frame.style.height = '100vh';
+        frame.style.border = '0';
+        previewWindow.document.body.appendChild(frame);
+      });
+    });
+
     const accountMenu = document.querySelector('.account-menu');
     if (accountMenu) {
       let accountRequest = 0;
