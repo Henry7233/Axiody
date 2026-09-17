@@ -120,6 +120,9 @@ def dashboard():
     )
 
 
+ALLOWED_UPLOAD_EXTENSIONS = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".txt", ".csv"}
+
+
 def require_client():
     if "user_id" not in session:
         flash("Please log in first.", "error")
@@ -130,6 +133,15 @@ def require_client():
 
     flash("Please use the client area with a client account.", "error")
     return redirect(url_for("admin.dashboard"))
+
+
+def is_allowed_submission_file(filename, content_type=""):
+    extension = os.path.splitext(filename or "")[1].lower()
+    if content_type and content_type.startswith("image/"):
+        return False
+    if extension in {".png", ".jpg", ".jpeg", ".gif", ".webp"}:
+        return False
+    return extension in ALLOWED_UPLOAD_EXTENSIONS
 
 
 @client_bp.route("/upload", methods=["GET", "POST"])
@@ -226,11 +238,25 @@ def upload():
                             submission_status=submission_status,
                         ), 400
 
+                content_type = uploaded_file.mimetype or ""
+                if not is_allowed_submission_file(filename, content_type):
+                    flash(
+                        "Unsupported file type. Please upload a PDF, Word, or Excel document. PNG/JPG images are not accepted for submission.",
+                        "error",
+                    )
+                    return render_template(
+                        "client/upload.html",
+                        username=session.get("user_email"),
+                        initial_title=initial_title,
+                        initial_document_date=initial_document_date,
+                        required_filenames=sorted(required_filenames),
+                        submission_status=submission_status,
+                    ), 400
+
                 file_data = uploaded_file.read()
                 if not file_data:
                     continue
 
-                content_type = uploaded_file.mimetype or ""
                 file_size = len(file_data)
                 document_id = create_document(
                     current_app.config["DATABASE"],
