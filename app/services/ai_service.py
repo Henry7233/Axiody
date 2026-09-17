@@ -3,14 +3,81 @@
 import json
 import logging
 import re
+import base64
+import os
+import urllib.error
+import urllib.request
 from functools import lru_cache
 
 
 @lru_cache(maxsize=1)
 def get_bedrock_client(region_name):
+    if os.getenv("LLM_GATEWAY_URL") and os.getenv("LLM_GATEWAY_API_KEY"):
+        return GatewayClient(
+            os.getenv("LLM_GATEWAY_URL"),
+            os.getenv("LLM_GATEWAY_API_KEY"),
+        )
+
     import boto3
 
     return boto3.client("bedrock-runtime", region_name=region_name)
+
+
+class GatewayClient:
+    """Expose an OpenAI-compatible gateway through the Bedrock converse shape."""
+
+    def __init__(self, base_url, api_key):
+        self.url = base_url.rstrip("/") + "/v1/chat/completions"
+        self.api_key = api_key
+
+    def converse(self, modelId, messages, inferenceConfig=None):
+        gateway_messages = []
+        for message in messages:
+            content = []
+            for block in message.get("content", []):
+                if "text" in block:
+                    content.append({"type": "text", "text": block["text"]})
+                elif "image" in block:
+                    image = block["image"]
+                    encoded = base64.b64encode(image["source"]["bytes"]).decode("ascii")
+                    content.append(
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/{image['format']};base64,{encoded}"
+                            },
+                        }
+                    )
+            gateway_messages.append({"role": message["role"], "content": content})
+
+        inferenceConfig = inferenceConfig or {}
+        payload = json.dumps(
+            {
+                "model": modelId,
+                "messages": gateway_messages,
+                "max_tokens": inferenceConfig.get("maxTokens", 400),
+                "temperature": inferenceConfig.get("temperature", 0),
+            }
+        ).encode("utf-8")
+        request = urllib.request.Request(
+            self.url,
+            data=payload,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            raise RuntimeError(f"Gateway HTTP {error.code}") from error
+        except urllib.error.URLError as error:
+            raise RuntimeError("Gateway connection failed") from error
+
+        text = result["choices"][0]["message"]["content"]
+        return {"output": {"message": {"content": [{"text": text}]}}}
 
 
 def parse_agent_response(response):
@@ -28,5 +95,5 @@ def log_agent_fallback(logger_name, error):
     # Do not log request contents, credentials, or provider response bodies.
     code = getattr(error, "response", {}).get("Error", {}).get("Code", type(error).__name__)
     logging.getLogger(logger_name).warning(
-        "Bedrock agent failed (%s); using local fallback checks.", code
+        "AI agent failed (%s); using local fallback checks.", code
     )

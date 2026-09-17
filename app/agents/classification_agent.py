@@ -22,7 +22,7 @@ except ImportError:
 
 load_dotenv()
 
-MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID")
+MODEL_ID = os.getenv("LLM_MODEL") or os.getenv("AWS_BEDROCK_MODEL_ID")
 ALLOWED_DOCUMENT_TYPES = {"Invoice", "Receipt", "Bank Statement", "Other"}
 SUCCESS_DOCUMENT_TYPES = ALLOWED_DOCUMENT_TYPES - {"Other"}
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "classification_agent_prompt.txt"
