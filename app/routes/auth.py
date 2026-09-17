@@ -107,6 +107,16 @@ def otp_now():
     return singapore_now()
 
 
+def otp_is_active(pending):
+    if not pending:
+        return False
+    try:
+        expires_at = datetime.fromisoformat(pending.get("expires_at"))
+    except (TypeError, ValueError):
+        return False
+    return otp_now() <= expires_at
+
+
 def generate_otp():
     return f"{secrets.randbelow(1_000_000):06d}"
 
@@ -338,6 +348,11 @@ def resend_otp():
     pending = get_password_reset()
     if not pending:
         return jsonify({"success": False, "message": "Start the password reset again."}), 400
+    if otp_is_active(pending):
+        return jsonify({
+            "success": False,
+            "message": "A verification code is already active. Please use the current code or wait for it to expire.",
+        }), 429
     try:
         updated = send_password_reset_code(pending["email"])
     except Exception as error:
@@ -447,6 +462,10 @@ def resend_account_otp():
     pending = get_pending_account_update()
     if not pending:
         return jsonify({"message": "Start by saving your account changes again."}), 400
+    if otp_is_active(pending):
+        return jsonify({
+            "message": "A verification code is already active. Please use the current code or wait for it to expire.",
+        }), 429
 
     try:
         send_account_otp(pending)

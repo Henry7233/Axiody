@@ -121,6 +121,18 @@ def dashboard():
 
 
 ALLOWED_UPLOAD_EXTENSIONS = {".pdf"}
+MAX_SUBMISSION_FILE_SIZE = 50 * 1024 * 1024
+
+
+def get_uploaded_file_size(uploaded_file):
+    try:
+        current_position = uploaded_file.tell()
+        uploaded_file.seek(0, os.SEEK_END)
+        size = uploaded_file.tell()
+        uploaded_file.seek(current_position)
+        return size
+    except (AttributeError, OSError):
+        return len(uploaded_file.read())
 
 
 def require_client():
@@ -253,11 +265,26 @@ def upload():
                         submission_status=submission_status,
                     ), 400
 
+                file_size = get_uploaded_file_size(uploaded_file)
+                if file_size > MAX_SUBMISSION_FILE_SIZE:
+                    flash(
+                        "File size exceeds the 50MB limit per file. Please upload a smaller file.",
+                        "error",
+                    )
+                    return render_template(
+                        "client/upload.html",
+                        username=session.get("user_email"),
+                        initial_title=initial_title,
+                        initial_document_date=initial_document_date,
+                        required_filenames=sorted(required_filenames),
+                        submission_status=submission_status,
+                    ), 400
+
+                uploaded_file.seek(0)
                 file_data = uploaded_file.read()
                 if not file_data:
                     continue
 
-                file_size = len(file_data)
                 document_id = create_document(
                     current_app.config["DATABASE"],
                     session["user_id"],
