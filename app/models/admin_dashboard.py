@@ -145,7 +145,7 @@ def get_admin_dashboard_data(database_path, period="all", today=None):
         "total_clients": total_clients,
         "submitted_documents": submitted,
         "bookkept_documents": complete,
-        "under_review": len(attention),
+        "under_review": sum(1 for document in documents if needs_document_approval(document)),
         "bookkeeping_percentage": round(complete / submitted * 100) if submitted else 0,
         "invoice_count": counts["Invoice"], "receipt_count": counts["Receipt"],
         "bank_statement_count": counts["Bank Statement"], "other_count": counts["Other"],
