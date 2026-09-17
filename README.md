@@ -20,7 +20,6 @@ AXIODY is a Flask bookkeeping document submission and review application. Client
 
 - Python 3.10 or newer
 - A virtual environment is recommended.
-- An SMTP account for email notifications.
 - Either a compatible LLM gateway or AWS Bedrock credentials.
 
 ## Installation
