@@ -574,7 +574,22 @@ def list_client_summaries(database_path):
                 users.email,
                 COALESCE(NULLIF(users.full_name, ''), users.email) AS name,
                 COUNT(documents.id) AS documents,
-                SUM(CASE WHEN documents.classification_status = 'Success' THEN 1 ELSE 0 END) AS classified,
+                SUM(CASE
+                    WHEN LOWER(COALESCE(documents.validation_status, '')) = 'complete'
+                     AND (
+                         (
+                             LOWER(REPLACE(COALESCE(NULLIF(TRIM(documents.document_type), ''), NULLIF(TRIM(documents.ai_document_type), ''), 'Other'), '_', ' ')) = 'other'
+                             AND LOWER(COALESCE(documents.classification_status, '')) = 'success'
+                             AND documents.reviewed_by IS NOT NULL
+                         )
+                         OR (
+                             LOWER(REPLACE(COALESCE(NULLIF(TRIM(documents.document_type), ''), NULLIF(TRIM(documents.ai_document_type), ''), 'Other'), '_', ' ')) IN ('invoice', 'receipt', 'bank statement')
+                             AND (
+                                 LOWER(COALESCE(documents.classification_status, '')) = 'success'
+                                 OR LOWER(COALESCE(documents.classification_status, '')) = 'under review'
+                             )
+                         )
+                     ) THEN 1 ELSE 0 END) AS classified,
                 SUM(CASE WHEN documents.classification_status = 'Under review' THEN 1 ELSE 0 END) AS needs_review
             FROM users
             LEFT JOIN documents ON documents.user_id = users.id
