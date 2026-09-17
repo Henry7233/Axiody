@@ -9,6 +9,9 @@
   {% elif name == 'clock' %}<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/>
   {% elif name == 'bell' %}<path d="M18 8a6 6 0 0 0-12 0c0 6-3 7-3 9h18c0-2-3-3-3-9M10 21h4"/>
   {% elif name == 'check' %}<path d="m4 12 5 5L20 6"/>
+  {% elif name == 'complete' %}<circle cx="12" cy="12" r="9" fill="currentColor" stroke="none"/><path d="m7.5 12 3 3 6-6" stroke="white"/>
+  {% elif name == 'incomplete' %}<path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0Z" fill="currentColor" stroke="none"/><path d="M12 9v5m0 3h.01" stroke="white"/>
+  {% elif name == 'shield' %}<path d="M12 3 20 6v5c0 5.2-3.4 8.6-8 10-4.6-1.4-8-4.8-8-10V6l8-3Z" fill="currentColor" stroke="none"/>
   {% elif name == 'calendar' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-14 4h1m4 0h1m4 0h1M7 17h1m4 0h1"/>
   {% elif name == 'user' %}<circle cx="12" cy="7" r="4"/><path d="M4 21v-3a8 8 0 0 1 16 0v3Z"/>
   {% elif name == 'chart' %}<path d="M4 20v-6h4v6Zm6 0V9h4v11Zm6 0V3h4v17Z"/>
@@ -60,6 +63,10 @@
   .dashboard-icon.amber { color: light-dark(#d07a00, #f5c989); background: light-dark(#fff3e1, #4a3a21); }
   .dashboard-icon.purple { color: light-dark(#7130ef, #ae89f5); background: light-dark(#f0eaff, #241b3c); }
   .dashboard-icon.green { color: light-dark(#08a65d, #89f5c3); background: light-dark(#e1f9ed, #214a36); }
+  .dashboard-icon.red { color: light-dark(#d83245, #ff9ca8); background: light-dark(#ffebee, #4a242d); }
+  .dashboard-icon.blue { color: light-dark(#1264d8, #8bbaff); background: light-dark(#e7f0ff, #1d3455); }
+  .dashboard-stats > .dashboard-stat > .dashboard-icon { width: 60px; height: 60px; }
+  .dashboard-stats > .dashboard-stat > .dashboard-icon svg { width: 32px; height: 32px; }
   .dashboard-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
   .dashboard-card { background: light-dark(#fff, #212836); border: 1px solid light-dark(#e8eef9, #35415a); border-radius: 15px; box-shadow: 0 3px 16px #b1c5e30a; }
   .dashboard-stat { padding: 22px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px 20px; }
@@ -181,25 +188,15 @@
   </header>
 
   <section class="dashboard-stats" aria-label="Submission overview">
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ completed_count }} / {{ submitted_count }}</strong><p>Documents Completed</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) {{ period_scope }}</div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ submitted_count }}</strong><p>Uploaded Documents</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) {{ period_scope }}</div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon green">{{ icon('complete') }}</span><div><strong>{{ completed_count }}</strong><p>Completed Documents</p></div><div class="dashboard-stat-note">Documents that passed validation {{ period_scope }}.</div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon red">{{ icon('incomplete') }}</span><div><strong>{{ changes_file_count }}</strong><p>Incomplete Documents</p></div><div class="dashboard-stat-note">Documents requiring attention.<br><a href="{{ url_for('client.notifications', filter='changes', _anchor='changes') }}">View required changes {{ icon('chevron') }}</a></div></article>
     <article class="dashboard-card dashboard-stat">
-      <span class="dashboard-icon amber">{{ icon('clock') }}</span>
-      <div><strong>{{ deadline_days | abs if deadline_days is not none else '\u2014' }}</strong><p>{{ 'Days Overdue' if deadline_days is not none and deadline_days < 0 else 'Days to Deadline' }}</p></div>
+      <span class="dashboard-icon blue">{{ icon('shield') }}</span>
+      <div><strong>{{ approved_count }}</strong><p>Approved by Admins</p></div>
       <div class="dashboard-stat-note">
-        {% if deadline_reminder %}
-        {{ 'Due today' if deadline_days == 0 else 'Due ' ~ deadline_reminder.deadline.deadline_label }}<br>
-        <a href="{{ url_for('client.notifications', filter='deadlines', _anchor='deadlines') }}">{{ deadline_reminder.title }} {{ icon('chevron') }}</a>
-        {% else %}No deadline reminders {{ period_scope }}{% endif %}
-      </div>
-    </article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon purple">{{ icon('bell') }}</span><div><strong>{{ pending_count }}</strong><p>Documents Awaiting Completion</p></div><div class="dashboard-stat-note">Incomplete or pending validation.<br><a href="{{ url_for('client.upload') }}">Go to document submission {{ icon('chevron') }}</a></div></article>
-    <article class="dashboard-card dashboard-stat">
-      <span class="dashboard-icon {{ 'purple' if outstanding_reminder_count else 'green' }}">{{ icon('bell' if outstanding_reminder_count else 'check') }}</span>
-      <div><strong>{{ outstanding_reminder_count }}</strong><p>Outstanding Reminders</p></div>
-      <div class="dashboard-stat-note">
-        {% if outstanding_reminder_count %}{{ reminder_file_count }} file(s) in {{ outstanding_reminder_count }} record(s) need corrections {{ period_scope }}.
-        {% else %}You're all caught up on reminders {{ period_scope }}.{% endif %}<br>
-        <a href="{{ url_for('client.notifications', filter='changes') }}">View Reminders {{ icon('chevron') }}</a>
+        Documents approved by the AXIODY admin team {{ period_scope }}.<br>
+        <a href="{{ url_for('client.notifications', filter='updates', _anchor='updates') }}">View admin updates {{ icon('chevron') }}</a>
       </div>
     </article>
   </section>

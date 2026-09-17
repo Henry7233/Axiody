@@ -249,6 +249,10 @@ def list_client_notifications(database_path, user_id, today=None):
         "notifications": notifications,
         "complete_count": sum(group["status"] == "Complete" for group in notifications),
         "changes_count": sum(group["incomplete_count"] > 0 for group in notifications),
+        "approved_count": sum(
+            group.get("category") == "updates" and group.get("decision_status") == "Approved"
+            for group in notifications
+        ),
         "files_to_change": sum(group["incomplete_count"] for group in notifications),
         "deadline_count": len(reminders),
         "updates_count": len(updates),

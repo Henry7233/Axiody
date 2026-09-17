@@ -44,9 +44,9 @@
     <div class="filters" role="group" aria-label="Filter notifications">
       <button type="button" data-filter="all" aria-pressed="true">All ({{ notifications | length }})</button>
       <button type="button" data-filter="successful" aria-pressed="false">Complete ({{ complete_count }})</button>
-      <button type="button" data-filter="changes" aria-pressed="false">Needs Changes ({{ changes_count }})</button>
+      <button id="changes" type="button" data-filter="changes" aria-pressed="false">Needs Changes ({{ changes_count }})</button>
       <button id="deadlines" type="button" data-filter="deadlines" aria-pressed="false">Deadlines ({{ deadline_count }})</button>
-      <button type="button" data-filter="updates" aria-pressed="false">Updates ({{ updates_count }})</button>
+      <button id="updates" type="button" data-filter="updates" aria-pressed="false">Updates ({{ updates_count }})</button>
     </div>
     <label class="sort"><span class="sr-only">Sort notifications</span><select id="notification-sort"><option value="recent" selected>Most recent</option><option value="oldest">Oldest first</option><option value="deadline">Deadline first</option></select></label>
   </div>
