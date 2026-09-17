@@ -3,8 +3,10 @@ from datetime import datetime
 from app.agents.reminder_agent import document_reminder
 from app.models.documents import (
     document_filename_stem,
+    document_status_for_notification,
     document_validation_status,
     get_connection,
+    normalize_document_type,
     validation_messages,
 )
 from app.time import SINGAPORE_TZ, to_singapore
@@ -73,6 +75,7 @@ def list_client_notifications(database_path, user_id, today=None):
             """
             SELECT d.id, d.title, d.filename, d.document_date, d.created_at,
                    d.validation_status, d.validation_reasons,
+                   d.document_type, d.ai_document_type, d.classification_status,
                    n.id AS reminder_id, n.title AS reminder_title, n.message AS reminder_message,
                    n.created_at AS reminder_created_at, n.last_reminder_sent
             FROM documents d
@@ -146,7 +149,13 @@ def list_client_notifications(database_path, user_id, today=None):
         except ValueError:
             period_label = "Period not recorded"
         status = document_validation_status(row["validation_status"])
-        group = groups.setdefault((row["title"], period, status), {
+        normalized_type = normalize_document_type(row["document_type"] or row["ai_document_type"] or "Other")
+        notification_status = document_status_for_notification({
+            "validation_status": row["validation_status"],
+            "document_type": row["document_type"],
+            "ai_document_type": row["ai_document_type"],
+        })
+        group = groups.setdefault((row["title"], period, notification_status), {
             "id": f'validation-{row["id"]}', "title": row["title"], "period_label": period_label,
             "files": [], "reminders": [], "deadlines": [],
             "updated": _timestamp(row["created_at"]),
@@ -155,8 +164,15 @@ def list_client_notifications(database_path, user_id, today=None):
         has_validation_feedback = bool(reasons)
         if status == "Incomplete" and not reasons:
             reasons = ["This file is incomplete, but no detailed validation feedback was saved. Please review and resubmit it."]
-        group["files"].append({"filename": row["filename"], "document_date": row["document_date"], "status": status, "reasons": reasons,
-                               "has_validation_feedback": has_validation_feedback})
+        group["files"].append({
+            "filename": row["filename"],
+            "document_date": row["document_date"],
+            "status": status,
+            "document_type": normalized_type,
+            "classification_status": row["classification_status"],
+            "reasons": reasons,
+            "has_validation_feedback": has_validation_feedback,
+        })
         group["updated"] = max(group["updated"], _timestamp(row["created_at"]))
         if status != "Incomplete" or row["reminder_id"] is None:
             continue
@@ -207,6 +223,17 @@ def list_client_notifications(database_path, user_id, today=None):
         elif group["pending_count"]:
             group.update(status="Pending validation", color="blue", category="pending",
                          message=f'{group["pending_count"]} file(s) are awaiting validation. Results will appear here when available.')
+        elif any(
+            normalize_document_type(file.get("document_type") or file.get("classification_status") or "Other") == "Other"
+            and file["status"] == "Complete"
+            for file in group["files"]
+        ):
+            group.update(
+                status="Under review",
+                color="amber",
+                category="updates",
+                message="Your document passed validation, but it was classified as Other. The admin team is reviewing it before it is added to bookkeeping.",
+            )
         else:
             group.update(status="Complete", color="green", category="successful",
                          message=f'All {complete} file(s) have passed validation. No changes are needed.')

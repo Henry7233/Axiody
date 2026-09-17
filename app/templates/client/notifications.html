@@ -48,7 +48,7 @@
       <button type="button" data-filter="deadlines" aria-pressed="false">Deadlines ({{ deadline_count }})</button>
       <button type="button" data-filter="updates" aria-pressed="false">Updates ({{ updates_count }})</button>
     </div>
-    <label class="sort"><span class="sr-only">Sort notifications</span><select id="notification-sort"><option value="recent">Most recent</option><option value="oldest">Oldest first</option><option value="deadline">Deadline first</option></select></label>
+    <label class="sort"><span class="sr-only">Sort notifications</span><select id="notification-sort"><option value="recent" selected>Most recent</option><option value="oldest">Oldest first</option><option value="deadline">Deadline first</option></select></label>
   </div>
   <p class="sr-only" id="results-count" role="status" aria-live="polite">{{ notifications | length }} notifications shown</p>
   <section class="notification-list" aria-label="Document review notifications">

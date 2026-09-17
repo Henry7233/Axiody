@@ -173,6 +173,8 @@ def create_documents_table(connection):
             ai_confidence REAL,
             document_type TEXT,
             classification_status TEXT NOT NULL DEFAULT 'Pending',
+            validation_status TEXT,
+            validation_reasons TEXT NOT NULL DEFAULT '[]',
             reviewed_by INTEGER,
             reviewed_at TEXT,
             created_at TEXT NOT NULL,
@@ -346,6 +348,16 @@ def document_validation_status(value):
     return {"complete": "Complete", "incomplete": "Incomplete"}.get(
         (value or "").strip().lower(), "Pending validation"
     )
+
+
+def document_status_for_notification(document):
+    """Return the user-visible document status for notifications."""
+    validation_status = document_validation_status(document.get("validation_status"))
+    if validation_status == "Complete" and normalize_document_type(
+        document.get("document_type") or document.get("ai_document_type") or "Other"
+    ) == "Other":
+        return "Under review"
+    return validation_status
 
 
 def validation_messages(value):
