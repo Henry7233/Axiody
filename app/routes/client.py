@@ -124,7 +124,7 @@ def dashboard():
         reminder_file_count=sum(len(reminder["files"]) for reminder in reminders),
         complete_count=notification_data["complete_count"],
         changes_count=notification_data["changes_count"],
-        changes_file_count=notification_data["files_to_change"],
+        changes_file_count=sum(notification["incomplete_count"] for notification in period_notifications),
         approved_count=approved_count,
         deadline_reminder=deadline_reminder, deadline_days=deadline_days,
         period_label=next(period["label"] for period in periods if period["value"] == selected_period),
