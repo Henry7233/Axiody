@@ -277,7 +277,6 @@ def validate_document(
         result = _fallback_validation(document_text, title, description, expected_period, filename)
 
     normalized = _normalize_result(result)
-    # A model's Complete verdict cannot override a proven arithmetic mismatch.
     arithmetic_reasons = _bank_summary_reasons(document_text)
     if arithmetic_reasons:
         normalized["validation_status"] = "Incomplete"
