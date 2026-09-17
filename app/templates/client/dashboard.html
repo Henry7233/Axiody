@@ -188,7 +188,7 @@
       <div class="dashboard-stat-note">
         {% if deadline_reminder %}
         {{ 'Due today' if deadline_days == 0 else 'Due ' ~ deadline_reminder.deadline.deadline_label }}<br>
-        <a href="{{ url_for('client.notifications', _anchor=deadline_reminder.id) }}">{{ deadline_reminder.title }} {{ icon('chevron') }}</a>
+        <a href="{{ url_for('client.notifications', filter='deadlines', _anchor='deadlines') }}">{{ deadline_reminder.title }} {{ icon('chevron') }}</a>
         {% else %}No deadline reminders {{ period_scope }}{% endif %}
       </div>
     </article>
@@ -227,7 +227,7 @@
           <h3>{{ deadline_reminder.title }}</h3>
           <p>{{ deadline_reminder.period_label }} &middot; {{ deadline_reminder.files | length }} file(s) to correct</p>
           <p>{{ deadline_reminder.deadline.message }}</p>
-          <p><a href="{{ url_for('client.notifications', _anchor=deadline_reminder.id) }}">Review this reminder {{ icon('chevron') }}</a></p>
+          <p><a href="{{ url_for('client.notifications', filter='deadlines', _anchor='deadlines') }}">Review this reminder {{ icon('chevron') }}</a></p>
           {% else %}
           <h3>No deadline reminders</h3><p>No saved reminders with a deadline {{ period_scope }}. New submission reminders will appear here.</p>
           {% endif %}
