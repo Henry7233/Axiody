@@ -76,6 +76,17 @@ class GatewayClient:
         except urllib.error.URLError as error:
             raise RuntimeError("Gateway connection failed") from error
 
+        usage = result.get("usage") or {}
+        if os.getenv("DEBUG_LLM", "").strip().lower() in {"1", "true", "yes", "on"}:
+            print(
+                "LLM usage:",
+                {
+                    "prompt_tokens": usage.get("prompt_tokens"),
+                    "completion_tokens": usage.get("completion_tokens"),
+                    "total_tokens": usage.get("total_tokens"),
+                },
+            )
+
         text = result["choices"][0]["message"]["content"]
         return {"output": {"message": {"content": [{"text": text}]}}}
 
