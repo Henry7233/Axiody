@@ -80,12 +80,33 @@ class GatewayClient:
         return {"output": {"message": {"content": [{"text": text}]}}}
 
 
+def _extract_json_from_text(text):
+    cleaned = text.strip()
+    if not cleaned:
+        raise json.JSONDecodeError("Empty response", text, 0)
+
+    cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.IGNORECASE)
+
+    decoder = json.JSONDecoder()
+    for index, char in enumerate(cleaned):
+        if char not in "[{":
+            continue
+        try:
+            value, _ = decoder.raw_decode(cleaned[index:])
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            return value
+
+    raise json.JSONDecodeError("No JSON object found in agent response", text, 0)
+
+
 def parse_agent_response(response):
     text = "".join(
         block.get("text", "") for block in response["output"]["message"]["content"]
     ).strip()
-    text = re.sub(r"^```(?:json)?\s*\n?(.*?)\n?```$", r"\1", text, flags=re.DOTALL | re.IGNORECASE)
-    result = json.loads(text)
+    result = _extract_json_from_text(text)
     if not isinstance(result, dict):
         raise ValueError("Agent response must be an object")
     return result
