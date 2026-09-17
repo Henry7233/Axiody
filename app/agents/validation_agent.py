@@ -18,7 +18,7 @@ except ImportError:
 
 load_dotenv()
 
-MODEL_ID = os.getenv("AWS_BEDROCK_MODEL_ID")
+MODEL_ID = os.getenv("LLM_MODEL") or os.getenv("AWS_BEDROCK_MODEL_ID")
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / "validation_agent_prompt.txt"
 IMAGE_FORMATS = {
     "image/jpeg": "jpeg",
