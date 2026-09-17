@@ -83,7 +83,7 @@
     <aside class="panel preview-card" aria-labelledby="preview-title">
       <div class="preview-card__heading">
         <h2 id="preview-title">Document preview</h2>
-        <span id="documentConfidence" class="confidence">{% if document.ai_confidence is not none %}{{ document.ai_confidence }}% confidence{% else %}Confidence unavailable{% endif %}</span>
+        <span id="documentConfidence" class="confidence">{% if document.ai_confidence is not none %}{{ ((document.ai_confidence * 100) if document.ai_confidence <= 1 else document.ai_confidence)|round(0)|int }}% confidence{% else %}Confidence unavailable{% endif %}</span>
       </div>
       <p class="muted" id="previewMeta">{{ document.filename }} &middot; Document #{{ document.id }}</p>
       <div class="preview-box">

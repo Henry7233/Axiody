@@ -11,6 +11,14 @@
       Document Rejected
     {% endif %}
   </title>
+  <style>
+    .status-card-approved { background-color: #ecf9f1; }
+    .status-card-rejected { background-color: #fff0f0; }
+    .status-icon-approved { background-color: #24ad67; }
+    .status-icon-rejected { background-color: #e82937; }
+    .status-text-approved { color: #16894c; }
+    .status-text-rejected { color: #c91c28; }
+  </style>
 </head>
 
 <body style="
@@ -181,12 +189,8 @@
                 <td
                   width="40%"
                   valign="top"
+                  class="{% if status == 'approved' %}status-card-approved{% else %}status-card-rejected{% endif %}"
                   style="
-                    {% if status == 'approved' %}
-                      background-color: #ecf9f1;
-                    {% else %}
-                      background-color: #fff0f0;
-                    {% endif %}
                     border-radius: 14px;
                     padding: 24px;
                     text-align: center;
@@ -194,7 +198,7 @@
                 >
 
                   <!-- STATUS ICON -->
-                  <div style="
+                  <div class="{% if status == 'approved' %}status-icon-approved{% else %}status-icon-rejected{% endif %}" style="
                     width: 50px;
                     height: 50px;
                     line-height: 50px;
@@ -203,12 +207,6 @@
                     font-size: 27px;
                     font-weight: 700;
                     color: #ffffff;
-
-                    {% if status == 'approved' %}
-                      background-color: #24ad67;
-                    {% else %}
-                      background-color: #e82937;
-                    {% endif %}
                   ">
                     {% if status == "approved" %}
                       ✓
@@ -218,7 +216,7 @@
                   </div>
 
 
-                  <div style="
+                  <div class="{% if status == 'approved' %}status-text-approved{% else %}status-text-rejected{% endif %}" style="
                     font-size: 15px;
                     line-height: 1.5;
                     color: #60728f;
@@ -232,12 +230,6 @@
                     font-size: 21px;
                     line-height: 1.4;
                     font-weight: 700;
-
-                    {% if status == 'approved' %}
-                      color: #16894c;
-                    {% else %}
-                      color: #c91c28;
-                    {% endif %}
                   ">
                     {% if status == "approved" %}
                       Approved

@@ -120,7 +120,7 @@ def dashboard():
     )
 
 
-ALLOWED_UPLOAD_EXTENSIONS = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".csv"}
+ALLOWED_UPLOAD_EXTENSIONS = {".pdf"}
 
 
 def require_client():
