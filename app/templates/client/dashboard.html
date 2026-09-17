@@ -189,8 +189,8 @@
 
   <section class="dashboard-stats" aria-label="Submission overview">
     <article class="dashboard-card dashboard-stat"><span class="dashboard-icon">{{ icon('file') }}</span><div><strong>{{ submitted_count }}</strong><p>Uploaded Documents</p></div><div class="dashboard-stat-note">{{ submitted_count }} file(s) in {{ records | length }} record(s) {{ period_scope }}</div></article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon green">{{ icon('complete') }}</span><div><strong>{{ completed_count }}</strong><p>Completed Documents</p></div><div class="dashboard-stat-note">Documents that passed validation {{ period_scope }}.</div></article>
-    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon red">{{ icon('incomplete') }}</span><div><strong>{{ changes_file_count }}</strong><p>Incomplete Documents</p></div><div class="dashboard-stat-note">Documents requiring attention.<br><a href="{{ url_for('client.notifications', filter='changes', _anchor='changes') }}">View required changes {{ icon('chevron') }}</a></div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon green">{{ icon('complete') }}</span><div><strong>{{ completed_count }}</strong><p>Bookkeepted Documents</p></div><div class="dashboard-stat-note">Documents that passed validation {{ period_scope }}.</div></article>
+    <article class="dashboard-card dashboard-stat"><span class="dashboard-icon red">{{ icon('incomplete') }}</span><div><strong>{{ changes_file_count }}</strong><p>Incompleted Documents</p></div><div class="dashboard-stat-note">Documents requiring attention.<br><a href="{{ url_for('client.notifications', filter='changes', _anchor='changes') }}">View required changes {{ icon('chevron') }}</a></div></article>
     <article class="dashboard-card dashboard-stat">
       <span class="dashboard-icon blue">{{ icon('shield') }}</span>
       <div><strong>{{ approved_count }}</strong><p>Approved by Admins</p></div>
