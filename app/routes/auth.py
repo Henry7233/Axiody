@@ -22,7 +22,7 @@ import sqlite3
 
 from app.time import singapore_now
 from app.models.users import create_user, delete_user, get_user_by_email, get_user_by_id, update_user_account, update_user_appearance, update_user_password, verify_user
-from app.services.email_servie import EmailConfigError, EmailConnectionError, send_account_update_otp, send_password_reset_otp
+from app.services.email_service import EmailConfigError, EmailConnectionError, send_account_update_otp, send_password_reset_otp
 
 
 auth_bp = Blueprint("auth", __name__)

@@ -24,7 +24,7 @@ from app.models.documents import (
     save_document_review,
 )
 from app.models.notifications import create_decision_notification
-from app.services.email_servie import send_document_decision_email
+from app.services.email_service import send_document_decision_email
 from app.models.users import (
     create_user,
     format_created_date,

@@ -45,6 +45,15 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+On macOS or Linux:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
 ## Environment Variables
 
 Create a `.env` file in the project root and do not commit it to source control.
@@ -91,6 +100,13 @@ Run reminder processing manually:
 
 ```powershell
 $env:FLASK_APP = "app.py"
+flask process-reminders
+```
+
+On macOS or Linux:
+
+```bash
+export FLASK_APP=app.py
 flask process-reminders
 ```
 
@@ -142,7 +158,7 @@ app/
   services/
     ai_service.py
     bookkeeping_export.py
-    email_servie.py
+    email_service.py
     file_service.py
   static/
     css/
@@ -171,7 +187,7 @@ The shared LLM layer in `app/services/ai_service.py` accepts JSON returned by th
 
 ## Email and Security Notes
 
-- Email delivery is handled in `app/services/email_servie.py`.
+- Email delivery is handled in `app/services/email_service.py`.
 - The app sends OTP codes, password-reset messages, approval/rejection emails, and reminder emails.
 - If SMTP delivery fails, the reminder is still recorded and the error is logged.
 - Keep `.env`, `users.db`, and API credentials out of version control.
@@ -180,6 +196,8 @@ The shared LLM layer in `app/services/ai_service.py` accepts JSON returned by th
 - The built-in Flask development server is intended for local development only.
 
 ## Useful Commands
+
+### Windows PowerShell
 
 ```powershell
 # create a virtual environment
@@ -190,6 +208,25 @@ python -m venv venv
 
 # install dependencies
 pip install -r requirements.txt
+
+# start the app
+python app.py
+
+# process reminders manually
+flask --app app.py process-reminders
+```
+
+### macOS and Linux
+
+```bash
+# create a virtual environment
+python3 -m venv venv
+
+# activate it
+source venv/bin/activate
+
+# install dependencies
+python -m pip install -r requirements.txt
 
 # start the app
 python app.py
