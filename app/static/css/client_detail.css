@@ -229,6 +229,12 @@
 }
 
 
+.document-item.status-complete {
+  background: #ecfdf5;
+  box-shadow: inset 4px 0 0 #22c55e;
+}
+
+
 .document-item.active {
   background: #eaf2ff;
 }
@@ -241,6 +247,11 @@
 
 .document-item.status-under-review.active {
   background: #fef3c7;
+}
+
+
+.document-item.status-complete.active {
+  background: #dcfce7;
 }
 
 
@@ -370,6 +381,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: none;
+  text-decoration: none;
 }
 
 
@@ -391,6 +403,14 @@
   background: #fef3c7;
   border: 1px solid #fcd34d;
   color: #92400e;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+
+.status-badge.status-under-review:hover {
+  background: #fcd34d;
+  border-color: #eab308;
+  color: #78350f;
 }
 
 

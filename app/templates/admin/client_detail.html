@@ -52,7 +52,7 @@
         {% for document in documents %}
         <button
           type="button"
-          class="document-item {% if loop.first %}active{% endif %}{% if document.is_incomplete %} status-incomplete{% elif document.is_under_review %} status-under-review{% endif %}"
+          class="document-item {% if loop.first %}active{% endif %}{% if document.is_incomplete %} status-incomplete{% elif document.is_under_review %} status-under-review{% else %} status-complete{% endif %}"
           data-id="{{ document.id }}"
           data-name="{{ document.filename }}"
           data-type="{{ document.file_type }}"
@@ -127,9 +127,19 @@
 
         {% if documents %}
         <div class="preview-actions">
-          <span id="preview-document-status" class="status-badge status-{{ 'incomplete' if documents[0].is_incomplete else ('under-review' if documents[0].is_under_review else 'complete') }}">
+          {% if documents[0].is_under_review %}
+          <a
+            id="preview-document-status"
+            href="{{ url_for('admin.preview_approve', client=client.name, document=documents[0].id) }}"
+            class="status-badge status-under-review"
+          >
+            Under review
+          </a>
+          {% else %}
+          <span id="preview-document-status" class="status-badge status-{{ 'incomplete' if documents[0].is_incomplete else 'complete' }}">
             {{ documents[0].display_status }}
           </span>
+          {% endif %}
           <a
             id="download-current-document"
             href="{{ url_for('admin.download_document', document_id=documents[0].id) }}"
@@ -166,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const previewType = document.getElementById("preview-file-type");
   const previewSize = document.getElementById("preview-file-size");
   const previewUploaded = document.getElementById("preview-uploaded");
-  const previewStatus = document.getElementById("preview-document-status");
+  let previewStatus = document.getElementById("preview-document-status");
   const downloadButton = document.getElementById("download-current-document");
 
   if (!documentItems.length || !previewFrame || !downloadButton) return;
@@ -186,10 +196,25 @@ document.addEventListener("DOMContentLoaded", function () {
       previewUploaded.textContent = "Uploaded on " + this.dataset.uploaded;
       previewFrame.src = this.dataset.previewUrl;
       if (previewStatus) {
-        previewStatus.textContent = statusText;
-        previewStatus.className = "status-badge status-" + (
-          statusText === "Incomplete" ? "incomplete" : (statusText === "Under review" ? "under-review" : "complete")
-        );
+        const isUnderReview = this.dataset.underReview === "true";
+        if (isUnderReview) {
+          const link = document.createElement("a");
+          link.id = "preview-document-status";
+          link.className = "status-badge status-under-review";
+          link.href = this.dataset.approveUrl || "#";
+          link.textContent = "Under review";
+          previewStatus.replaceWith(link);
+          previewStatus = link;
+        } else {
+          const span = document.createElement("span");
+          span.id = "preview-document-status";
+          span.className = "status-badge status-" + (
+            statusText === "Incomplete" ? "incomplete" : "complete"
+          );
+          span.textContent = statusText;
+          previewStatus.replaceWith(span);
+          previewStatus = span;
+        }
       }
       downloadButton.href = this.dataset.downloadUrl;
     });
