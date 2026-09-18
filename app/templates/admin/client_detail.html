@@ -52,13 +52,15 @@
         {% for document in documents %}
         <button
           type="button"
-          class="document-item {% if loop.first %}active{% endif %}"
+          class="document-item {% if loop.first %}active{% endif %}{% if document.is_incomplete %} status-incomplete{% elif document.is_under_review %} status-under-review{% endif %}"
           data-id="{{ document.id }}"
           data-name="{{ document.filename }}"
           data-type="{{ document.file_type }}"
           data-size="{{ document.file_size }}"
           data-uploaded="{{ document.created_at }}"
+          data-status="{{ document.display_status }}"
           data-under-review="{{ 'true' if document.is_under_review else 'false' }}"
+          data-summary-status="{{ document.status }}"
           data-preview-url="{{ url_for('admin.preview_document', document_id=document.id) }}"
           data-download-url="{{ url_for('admin.download_document', document_id=document.id) }}"
           data-approve-url="{{ url_for('admin.preview_approve', client=client.name, document=document.id) }}"
@@ -125,14 +127,9 @@
 
         {% if documents %}
         <div class="preview-actions">
-          <a
-            id="approve-current-document"
-            href="{{ url_for('admin.preview_approve', client=client.name, document=documents[0].id) }}"
-            class="approve-current-btn"
-            {% if not documents[0].is_under_review %}hidden{% endif %}
-          >
-            Approve
-          </a>
+          <span id="preview-document-status" class="status-badge status-{{ 'incomplete' if documents[0].is_incomplete else ('under-review' if documents[0].is_under_review else 'complete') }}">
+            {{ documents[0].display_status }}
+          </span>
           <a
             id="download-current-document"
             href="{{ url_for('admin.download_document', document_id=documents[0].id) }}"
@@ -169,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const previewType = document.getElementById("preview-file-type");
   const previewSize = document.getElementById("preview-file-size");
   const previewUploaded = document.getElementById("preview-uploaded");
-  const approveButton = document.getElementById("approve-current-document");
+  const previewStatus = document.getElementById("preview-document-status");
   const downloadButton = document.getElementById("download-current-document");
 
   if (!documentItems.length || !previewFrame || !downloadButton) return;
@@ -182,14 +179,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
       this.classList.add("active");
 
+      const statusText = this.dataset.status || "Complete";
       previewName.textContent = this.dataset.name;
       previewType.textContent = this.dataset.type.toUpperCase();
       previewSize.textContent = this.dataset.size;
       previewUploaded.textContent = "Uploaded on " + this.dataset.uploaded;
       previewFrame.src = this.dataset.previewUrl;
-      if (approveButton) {
-        approveButton.href = this.dataset.approveUrl;
-        approveButton.hidden = this.dataset.underReview !== "true";
+      if (previewStatus) {
+        previewStatus.textContent = statusText;
+        previewStatus.className = "status-badge status-" + (
+          statusText === "Incomplete" ? "incomplete" : (statusText === "Under review" ? "under-review" : "complete")
+        );
       }
       downloadButton.href = this.dataset.downloadUrl;
     });

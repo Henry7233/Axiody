@@ -29,6 +29,7 @@
             <th scope="col">Submitted</th>
             <th scope="col">Bookkept</th>
             <th scope="col">Under review</th>
+            <th scope="col">Incomplete</th>
             <th scope="col">Action</th>
           </tr>
         </thead>
@@ -40,6 +41,7 @@
             <td>{{ client.documents }}</td>
             <td>{{ client.classified }}</td>
             <td>{{ client.needs_review }}</td>
+            <td>{{ client.invalid }}</td>
             <td>
               <a
                 class="btn btn--secondary"
@@ -51,7 +53,7 @@
           </tr>
           {% else %}
           <tr>
-            <td colspan="6">No clients found.</td>
+            <td colspan="7">No clients found.</td>
           </tr>
           {% endfor %}
         </tbody>
