@@ -218,6 +218,12 @@ def delete_user(database_path, user_id):
         if user["protected"]:
             return {"deleted": False, "reason": "protected"}
 
+        # Remove notifications tied to the user's documents before deleting the docs,
+        # because older SQLite schemas may not have ON DELETE CASCADE on notifications.
+        connection.execute(
+            "DELETE FROM notifications WHERE document_id IN (SELECT id FROM documents WHERE user_id = ?)",
+            (user_id,),
+        )
         # Keep other clients' reviewed documents when their reviewer leaves.
         connection.execute("UPDATE documents SET reviewed_by = NULL WHERE reviewed_by = ?", (user_id,))
         connection.execute("DELETE FROM documents WHERE user_id = ?", (user_id,))
@@ -259,10 +265,14 @@ def delete_unprotected_admin_users(database_path):
         ).fetchall()
         deleted_ids = [user["id"] for user in users]
         if deleted_ids:
-            connection.executemany(
-                "DELETE FROM users WHERE id = ?",
-                [(user_id,) for user_id in deleted_ids],
-            )
+            for user_id in deleted_ids:
+                connection.execute(
+                    "DELETE FROM notifications WHERE document_id IN (SELECT id FROM documents WHERE user_id = ?)",
+                    (user_id,),
+                )
+                connection.execute("UPDATE documents SET reviewed_by = NULL WHERE reviewed_by = ?", (user_id,))
+                connection.execute("DELETE FROM documents WHERE user_id = ?", (user_id,))
+                connection.execute("DELETE FROM users WHERE id = ?", (user_id,))
 
         return {"deleted": len(deleted_ids), "deleted_ids": deleted_ids}
 

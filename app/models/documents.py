@@ -77,6 +77,71 @@ def get_connection(database_path):
     return connection
 
 
+def ensure_notifications_cascade(connection):
+    foreign_keys = connection.execute("PRAGMA foreign_key_list(notifications)").fetchall()
+    if any(
+        foreign_key["table"] == "documents" and foreign_key["on_delete"] == "CASCADE"
+        for foreign_key in foreign_keys
+    ):
+        return
+
+    rows = connection.execute(
+        """
+        SELECT id, document_id, title, message, notification_type, status,
+               last_reminder_sent, next_reminder_date, reminder_count, created_at
+        FROM notifications
+        """
+    ).fetchall()
+
+    connection.execute("PRAGMA foreign_keys = OFF")
+    try:
+        connection.execute("ALTER TABLE notifications RENAME TO notifications_old")
+        connection.execute(
+            """
+            CREATE TABLE notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                notification_type TEXT NOT NULL DEFAULT 'reminder',
+                status TEXT NOT NULL DEFAULT 'unread',
+                last_reminder_sent TIMESTAMP,
+                next_reminder_date DATE,
+                reminder_count INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE
+            )
+            """
+        )
+        if rows:
+            connection.executemany(
+                """
+                INSERT INTO notifications (
+                    id, document_id, title, message, notification_type, status,
+                    last_reminder_sent, next_reminder_date, reminder_count, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    (
+                        row["id"],
+                        row["document_id"],
+                        row["title"],
+                        row["message"],
+                        row["notification_type"],
+                        row["status"],
+                        row["last_reminder_sent"],
+                        row["next_reminder_date"],
+                        row["reminder_count"],
+                        row["created_at"],
+                    )
+                    for row in rows
+                ],
+            )
+        connection.execute("DROP TABLE notifications_old")
+    finally:
+        connection.execute("PRAGMA foreign_keys = ON")
+
+
 def init_document_db(database_path):
     with closing(get_connection(database_path)) as connection, connection:
         create_documents_table(connection)
@@ -105,6 +170,7 @@ def init_document_db(database_path):
             connection.execute(
                 "ALTER TABLE notifications ADD COLUMN notification_type TEXT NOT NULL DEFAULT 'reminder'"
             )
+        ensure_notifications_cascade(connection)
         columns = connection.execute("PRAGMA table_info(documents)").fetchall()
         column_names = {column["name"] for column in columns}
         foreign_keys = connection.execute("PRAGMA foreign_key_list(documents)").fetchall()
