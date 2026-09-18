@@ -6,7 +6,7 @@ from flask import current_app
 
 from app.time import singapore_now, singapore_today, to_singapore
 from app.models.documents import get_connection
-from app.services.email_servie import send_reminder_email
+from app.services.email_service import send_reminder_email
 
 
 REMINDER_INTERVAL_DAYS = 5
