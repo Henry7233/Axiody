@@ -591,7 +591,8 @@ def list_client_summaries(database_path):
                          )
                      ) THEN 1 ELSE 0 END) AS classified,
                 SUM(CASE WHEN documents.classification_status = 'Under review'
-                    AND LOWER(COALESCE(documents.validation_status, '')) = 'complete' THEN 1 ELSE 0 END) AS needs_review
+                    AND LOWER(COALESCE(documents.validation_status, '')) = 'complete' THEN 1 ELSE 0 END) AS needs_review,
+                SUM(CASE WHEN LOWER(COALESCE(documents.validation_status, '')) = 'incomplete' THEN 1 ELSE 0 END) AS invalid
             FROM users
             LEFT JOIN documents ON documents.user_id = users.id
             WHERE users.account_type = 'client'
@@ -605,6 +606,7 @@ def list_client_summaries(database_path):
         documents = row["documents"]
         classified = row["classified"] or 0
         needs_review = row["needs_review"] or 0
+        invalid = row["invalid"] or 0
         if needs_review:
             status = "Needs review"
         elif not documents:
@@ -622,6 +624,7 @@ def list_client_summaries(database_path):
                 "documents": documents,
                 "classified": classified,
                 "needs_review": needs_review,
+                "invalid": invalid,
             }
         )
     return summaries

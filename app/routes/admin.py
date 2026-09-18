@@ -372,7 +372,20 @@ def client_detail(client_id=None):
 
     documents = []
     for document in document_rows:
-        status = document["validation_status"] or document["classification_status"] or "Under review"
+        validation_status = (document["validation_status"] or "").strip()
+        classification_status = (document["classification_status"] or "").strip()
+        status = validation_status or classification_status or "Under review"
+        is_incomplete = validation_status.lower() == "incomplete"
+        is_under_review = (
+            validation_status.lower() == "complete"
+            and classification_status.lower() == "under review"
+        ) or status.lower() == "under review"
+        if validation_status.lower() == "incomplete":
+            display_status = "Incomplete"
+        elif validation_status.lower() == "complete":
+            display_status = "Under review" if classification_status.lower() == "under review" else "Complete"
+        else:
+            display_status = "Under review" if classification_status.lower() == "under review" else "Complete"
         documents.append(
             {
                 "id": document["id"],
@@ -381,7 +394,11 @@ def client_detail(client_id=None):
                 "file_size": format_file_size(document["file_size"]),
                 "created_at": format_display_date(document["created_at"]),
                 "status": status,
-                "is_under_review": status == "Under review",
+                "validation_status": validation_status,
+                "classification_status": classification_status,
+                "display_status": display_status,
+                "is_incomplete": is_incomplete,
+                "is_under_review": is_under_review,
             }
         )
     bookkept_count = sum(1 for document in documents if document["status"] in {"Complete", "Success"})
