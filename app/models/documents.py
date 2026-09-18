@@ -590,7 +590,8 @@ def list_client_summaries(database_path):
                              )
                          )
                      ) THEN 1 ELSE 0 END) AS classified,
-                SUM(CASE WHEN documents.classification_status = 'Under review' THEN 1 ELSE 0 END) AS needs_review
+                SUM(CASE WHEN documents.classification_status = 'Under review'
+                    AND LOWER(COALESCE(documents.validation_status, '')) = 'complete' THEN 1 ELSE 0 END) AS needs_review
             FROM users
             LEFT JOIN documents ON documents.user_id = users.id
             WHERE users.account_type = 'client'
