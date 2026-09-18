@@ -375,12 +375,15 @@ def client_detail(client_id=None):
         validation_status = (document["validation_status"] or "").strip()
         classification_status = (document["classification_status"] or "").strip()
         status = validation_status or classification_status or "Under review"
-        is_incomplete = validation_status.lower() == "incomplete"
+        is_rejected = classification_status.lower() == "rejected"
+        is_incomplete = validation_status.lower() == "incomplete" or is_rejected
         is_under_review = (
             validation_status.lower() == "complete"
             and classification_status.lower() == "under review"
         ) or status.lower() == "under review"
-        if validation_status.lower() == "incomplete":
+        if is_rejected:
+            display_status = "Rejected"
+        elif validation_status.lower() == "incomplete":
             display_status = "Incomplete"
         elif validation_status.lower() == "complete":
             display_status = "Under review" if classification_status.lower() == "under review" else "Complete"
@@ -397,6 +400,7 @@ def client_detail(client_id=None):
                 "validation_status": validation_status,
                 "classification_status": classification_status,
                 "display_status": display_status,
+                "is_rejected": is_rejected,
                 "is_incomplete": is_incomplete,
                 "is_under_review": is_under_review,
             }

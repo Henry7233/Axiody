@@ -52,7 +52,7 @@
         {% for document in documents %}
         <button
           type="button"
-          class="document-item {% if loop.first %}active{% endif %}{% if document.is_incomplete %} status-incomplete{% elif document.is_under_review %} status-under-review{% else %} status-complete{% endif %}"
+          class="document-item {% if loop.first %}active{% endif %}{% if document.is_rejected or document.is_incomplete %} status-incomplete{% elif document.is_under_review %} status-under-review{% else %} status-complete{% endif %}"
           data-id="{{ document.id }}"
           data-name="{{ document.filename }}"
           data-type="{{ document.file_type }}"
@@ -135,8 +135,12 @@
           >
             Under review
           </a>
+          {% elif documents[0].is_rejected or documents[0].is_incomplete %}
+          <span id="preview-document-status" class="status-badge status-incomplete">
+            {{ documents[0].display_status }}
+          </span>
           {% else %}
-          <span id="preview-document-status" class="status-badge status-{{ 'incomplete' if documents[0].is_incomplete else 'complete' }}">
+          <span id="preview-document-status" class="status-badge status-complete">
             {{ documents[0].display_status }}
           </span>
           {% endif %}
@@ -197,6 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
       previewFrame.src = this.dataset.previewUrl;
       if (previewStatus) {
         const isUnderReview = this.dataset.underReview === "true";
+        const isRejected = (statusText || "").toLowerCase() === "rejected";
         if (isUnderReview) {
           const link = document.createElement("a");
           link.id = "preview-document-status";
@@ -209,9 +214,9 @@ document.addEventListener("DOMContentLoaded", function () {
           const span = document.createElement("span");
           span.id = "preview-document-status";
           span.className = "status-badge status-" + (
-            statusText === "Incomplete" ? "incomplete" : "complete"
+            isRejected || statusText === "Incomplete" ? "incomplete" : "complete"
           );
-          span.textContent = statusText;
+          span.textContent = statusText === "Rejected" ? "Rejected" : statusText;
           previewStatus.replaceWith(span);
           previewStatus = span;
         }
