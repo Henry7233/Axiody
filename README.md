@@ -112,6 +112,43 @@ flask process-reminders
 
 This command sends overdue reminder emails and resolves completed reminder records.
 
+## Create the First System Administrator
+
+Public registration creates client accounts only. Before an administrator can use
+the admin dashboard or create additional administrators, create the first
+protected administrator from the project root:
+
+```powershell
+python
+```
+
+Then run the following Python code at the prompt, replacing the placeholder
+values with the administrator's details:
+
+```python
+from getpass import getpass
+from app import create_app
+from app.models.users import create_user
+
+app = create_app()
+with app.app_context():
+  user = create_user(
+    app.config["DATABASE"],
+    "admin@example.com",
+    getpass("Admin password: "),
+    account_type="admin",
+    protected=1,
+    full_name="Administrator Name",
+    role="Administrator",
+  )
+  print("Administrator created." if user else "That email already exists.")
+```
+
+Exit Python with `exit()`, start the app, and sign in with the new administrator
+account. The protected administrator can then use **Admin Management** to create
+additional admin accounts. Keep the administrator password private and use a
+strong password.
+
 ## Application Flow
 
 ### Client flow
