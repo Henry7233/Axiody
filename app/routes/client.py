@@ -83,14 +83,22 @@ def dashboard():
     completed_count = sum(record["completed_count"] for record in records)
     today = singapore_today()
     notification_data = list_client_notifications(current_app.config["DATABASE"], session["user_id"], today)
-    reminders = [
+    period_notifications = [
         notification for notification in notification_data["notifications"]
-        if notification["category"] == "deadlines"
-        and (selected_period == "all" or any(
+        if selected_period == "all" or any(
             (file["document_date"] or "").startswith(selected_period)
             for file in notification["files"]
-        ))
+        )
     ]
+    reminders = [
+        notification for notification in period_notifications
+        if notification["category"] == "deadlines"
+    ]
+    approved_count = sum(
+        notification.get("category") == "updates"
+        and notification.get("decision_status") == "Approved"
+        for notification in period_notifications
+    )
     # Keep overdue work visible first, using the same deadline as Notifications.
     deadline_reminder = min(
         (reminder for reminder in reminders if reminder["deadline"]),
@@ -117,7 +125,7 @@ def dashboard():
         complete_count=notification_data["complete_count"],
         changes_count=notification_data["changes_count"],
         changes_file_count=notification_data["files_to_change"],
-        approved_count=notification_data["approved_count"],
+        approved_count=approved_count,
         deadline_reminder=deadline_reminder, deadline_days=deadline_days,
         period_label=next(period["label"] for period in periods if period["value"] == selected_period),
         username=account["full_name"] or account["email"],
