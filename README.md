@@ -132,7 +132,6 @@ users.db                      Local SQLite database, created at runtime
 
 - Keep `.env`, `users.db`, and API credentials out of source control.
 - Use a strong production `SECRET_KEY`.
-- Use HTTPS in production.
-- Use Gmail App Passwords or another dedicated SMTP credential instead of a personal account password.
+- Use HTTPS in production.-
 - Set `DEBUG_LLM=0` in production unless token usage diagnostics are specifically required.
 - The built-in Flask server is intended for local development, not production hosting.
