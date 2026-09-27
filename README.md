@@ -2,29 +2,41 @@
 
 AXIODY is a Flask bookkeeping document submission and review application. Clients submit accounting documents, while administrators review classifications, approve or reject submissions, manage clients, and download bookkeeping records.
 
+Clients upload PDF accounting documents, the app extracts and validates the content, and administrators review AI-generated classification and validation checks before approving or rejecting each submission. The system also includes email OTP flows, password resets, reminder processing, and bookkeeping export workflows.
+
 ## Features
 
-- Client registration, login, logout, password reset, and OTP verification.
-- Client dashboard with document history, notifications, settings, and reminders.
-- PDF-only client document submissions. PNG, JPG, Word, Excel, CSV, and text files are rejected.
-- AI classification into `Invoice`, `Receipt`, `Bank Statement`, or `Other`.
-- AI validation for document completeness and bookkeeping-related issues.
-- Local fallback checks when the configured AI provider is unavailable or returns an invalid response.
-- Admin approval and rejection workflow with email notifications.
-- Gmail SMTP notifications for password reset, account updates, document decisions, and reminders.
-- Incomplete-document reminders tracked in SQLite and scheduled every five days until the monthly deadline.
-- Bookkeeping views and downloads for reviewed documents.
-- Token usage logging when `DEBUG_LLM` is enabled.
+- Client registration, login, logout, and password reset
+- OTP-based account and password verification
+- Client and admin dashboard views
+- PDF-only uploads with rejection for unsupported file types
+- AI classification into invoice, receipt, bank statement, or other
+- AI validation for document completeness and bookkeeping-related issues
+- Local fallback checks when the LLM gateway fails or returns invalid output
+- Admin approval and rejection workflow with document feedback
+- Email notifications for resets, verifications, approvals, rejections, and reminders
+- Reminder tracking for incomplete documents with 5-day interval using SQLite
+- Bookkeeping review and export for approved records
+- Optional LLM token usage logging
 
-## Requirements
+## Tech Stack
+
+- Python 3.10+
+- Flask 3
+- SQLite
+- OpenAI-compatible LLM gateway
+- pypdf and openpyxl
+
+## Prerequisites
 
 - Python 3.10 or newer
-- A virtual environment is recommended.
-- Either a compatible LLM gateway or AWS Bedrock credentials.
+- Virtual environment recommended
+- OpenAI-compatible LLM gateway access
+- SMTP credentials for email-based OTP and reminder delivery
 
 ## Installation
 
-From the project directory:
+From the project root:
 
 ```powershell
 python -m venv venv
@@ -33,105 +45,157 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## Environment Configuration
+## Environment Variables
 
-Create a `.env` file in the project root. Never commit this file because it contains credentials.
+Create a `.env` file in the project root and do not commit it to source control.
 
 ```dotenv
 SECRET_KEY=replace-with-a-long-random-secret
 
-# LLM gateway option
+# Required: LLM gateway configuration
 LLM_GATEWAY_URL=https://your-gateway.example
 LLM_GATEWAY_API_KEY=replace-with-your-api-key
 LLM_MODEL=your-model-id
 DEBUG_LLM=0
+
+# Optional email settings
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=1
+MAIL_USE_SSL=0
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_DEFAULT_SENDER=your-email@gmail.com
+MAIL_LOGO_URL=https://example.com/logo.png
+
+# OTP settings
+OTP_EXPIRY_MINUTES=5
+OTP_MAX_ATTEMPTS=5
 ```
 
-## Running the Application
+Notes:
 
-Start the development server from the project root:
+- The app uses the LLM gateway for classification and validation.
+- Gmail should use an App Password rather than the account password.
+- If `DEBUG_LLM=1`, token usage is printed during LLM requests.
+
+## Running the App
+
+Start the development server:
 
 ```powershell
 python app.py
 ```
 
-For Flask CLI commands, set the application and run:
+Run reminder processing manually:
 
 ```powershell
 $env:FLASK_APP = "app.py"
 flask process-reminders
 ```
 
-The reminder command processes incomplete documents that are due for another notification.
+This command sends overdue reminder emails and resolves completed reminder records.
 
-## Main Workflows
+## Application Flow
 
-### Client
+### Client flow
 
 1. Register or sign in.
-2. Open the upload page and provide a title, document date, and optional description.
-3. Upload one or more PDF files.
-4. AXIODY extracts PDF text, classifies the document, validates it, and stores the result.
-5. Review notifications and resubmit corrected documents when requested.
+2. Open the upload page and add document details.
+3. Submit one or more PDF files.
+4. The system extracts text, classifies the document, validates it, and stores the result.
+5. Review notifications and resubmit corrected documents if needed.
 
-### Administrator
+### Admin flow
 
 1. Sign in with an administrator account.
-2. Use the dashboard to monitor submissions and client activity.
-3. Review documents awaiting approval, including the AI classification and confidence.
-4. Approve or reject documents and provide feedback when needed.
-5. Use Bookkeeping to view or download processed records.
+2. Review client activity and pending submissions.
+3. Inspect AI classification and validation detail.
+4. Approve or reject each document with feedback.
+5. Use bookkeeping views to review or export processed records.
 
-## AI Agents
-
-The agents are in `app/agents/`:
-
-- `classification_agent.py` identifies invoices, receipts, bank statements, and other documents.
-- `validation_agent.py` checks document quality, required information, and dates.
-- `reminder_agent.py` creates and processes incomplete-document reminders.
-
-The shared LLM integration is in `app/services/ai_service.py`. It accepts JSON responses, including responses wrapped in Markdown code fences or surrounded by additional text. If an AI request fails, the application logs a safe warning and uses local fallback checks.
-
-To print provider token usage in the terminal during gateway requests:
-
-```dotenv
-DEBUG_LLM=1
-```
-
-Token counts are printed for prompt, completion, and total usage. Request contents, credentials, and provider response bodies are not logged.
-
-## Email Notifications
-
-Email delivery is centralized in `app/services/email_servie.py` and is used for:
-
-- Password reset OTPs
-- Account update OTPs
-- Admin approval and rejection decisions
-- Incomplete-document reminders
-
-The application records reminder notifications even when SMTP delivery fails, and logs the delivery error for diagnosis. Check SMTP credentials, Gmail App Password configuration, firewall rules, and network access when email cannot be delivered.
-
-## Project Layout
+## Project Structure
 
 ```text
-app.py                         Flask entry point
-config.py                      Environment and application configuration
-requirements.txt               Python dependencies
+app.py                    Flask entry point
+config.py                 App configuration and environment loading
+requirements.txt          Python dependencies
+README.md                 Project documentation
+users.db                  SQLite database created at runtime
 app/
-	agents/                      Classification, validation, and reminder agents
-	models/                      SQLite persistence and data access
-	routes/                      Authentication, client, and admin routes
-	services/                    AI, email, file, and bookkeeping services
-	static/                      CSS, JavaScript, and images
-	templates/                   Jinja templates for auth, client, and admin pages
-prompts/                       Agent prompt files
-users.db                      Local SQLite database, created at runtime
+  __init__.py              Flask app factory
+  time.py                  Utility for Singapore time handling
+  agents/
+    classification_agent.py
+    reminder_agent.py
+    validation_agent.py
+  models/
+    admin_dashboard.py
+    bookkeeping.py
+    documents.py
+    notifications.py
+    users.py
+  routes/
+    admin.py
+    auth.py
+    client.py
+  services/
+    ai_service.py
+    bookkeeping_export.py
+    email_servie.py
+    file_service.py
+  static/
+    css/
+    js/
+    images/
+  templates/
+    auth/
+    client/
+    admin/
+    base.html
+prompts/
+  classification_agent_prompt.txt
+  reminder_agent_prompt.txt
+  validation_agent_prompt.txt
 ```
 
-## Security Notes
+## AI and Validation Notes
 
-- Keep `.env`, `users.db`, and API credentials out of source control.
-- Use a strong production `SECRET_KEY`.
-- Use HTTPS in production.-
-- Set `DEBUG_LLM=0` in production unless token usage diagnostics are specifically required.
-- The built-in Flask server is intended for local development, not production hosting.
+The AI logic is located in the `app/agents` package:
+
+- `classification_agent.py` identifies invoices, receipts, bank statements, and other document types.
+- `validation_agent.py` checks whether the document is complete and suitable for bookkeeping processing.
+- `reminder_agent.py` handles follow-up reminder generation and delivery.
+
+The shared LLM layer in `app/services/ai_service.py` accepts JSON returned by the model and tolerates Markdown fences and surrounding text. If a request fails, the app logs a warning and uses local fallback checks instead.
+
+## Email and Security Notes
+
+- Email delivery is handled in `app/services/email_servie.py`.
+- The app sends OTP codes, password-reset messages, approval/rejection emails, and reminder emails.
+- If SMTP delivery fails, the reminder is still recorded and the error is logged.
+- Keep `.env`, `users.db`, and API credentials out of version control.
+- Use a strong `SECRET_KEY` in production.
+- Prefer HTTPS and disable debug features in production.
+- The built-in Flask development server is intended for local development only.
+
+## Useful Commands
+
+```powershell
+# create a virtual environment
+python -m venv venv
+
+# activate it
+.\venv\Scripts\Activate.ps1
+
+# install dependencies
+pip install -r requirements.txt
+
+# start the app
+python app.py
+
+# process reminders manually
+flask --app app.py process-reminders
+```
+
+This project is intended to be extended through the routes, services, models, and templates as business rules evolve.
